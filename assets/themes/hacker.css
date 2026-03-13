@@ -1,0 +1,103 @@
+/*
+Name: Hacker
+Author: PicFlow
+Description: Dark theme inspired by terminal aesthetics.
+*/
+
+.picflow-container {
+    font-family: "Courier New", Courier, monospace;
+    line-height: 1.6;
+    color: #00ff00;
+    background-color: #000000;
+    padding: 20px;
+    font-size: 16px;
+}
+
+.picflow-container h1 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #00ff00;
+    text-transform: uppercase;
+    border-bottom: 1px dashed #00ff00;
+    padding-bottom: 10px;
+    margin: 30px 0 20px;
+}
+
+.picflow-container h1::before {
+    content: "> ";
+}
+
+.picflow-container h2 {
+    font-size: 20px;
+    font-weight: bold;
+    color: #00cc00;
+    margin: 25px 0 15px;
+}
+
+.picflow-container h2::before {
+    content: "## ";
+}
+
+.picflow-container h3 {
+    font-size: 18px;
+    font-weight: bold;
+    color: #00aa00;
+    margin: 20px 0 10px;
+}
+
+.picflow-container p {
+    margin-bottom: 15px;
+}
+
+.picflow-container blockquote {
+    border-left: 2px solid #00ff00;
+    padding-left: 15px;
+    color: #00aa00;
+    font-style: italic;
+    margin: 20px 0;
+}
+
+.picflow-container pre {
+    background-color: #111;
+    border: 1px solid #00ff00;
+    padding: 15px;
+    overflow-x: auto;
+    margin: 20px 0;
+}
+
+.picflow-container code {
+    font-family: "Courier New", Courier, monospace;
+    color: #ffff00;
+    background-color: #222;
+    padding: 2px 5px;
+}
+
+.picflow-container pre code {
+    background-color: transparent;
+    color: #00ff00;
+    padding: 0;
+}
+
+.picflow-container a {
+    color: #ffff00;
+    text-decoration: underline;
+}
+
+.picflow-container ul {
+    list-style-type: square;
+    padding-left: 20px;
+}
+
+.picflow-container img {
+    border: 1px solid #00ff00;
+    filter: grayscale(100%);
+    max-width: 100%;
+    display: block;
+    margin: 20px auto;
+}
+
+.picflow-container hr {
+    border: none;
+    border-top: 1px dashed #00ff00;
+    margin: 30px 0;
+}

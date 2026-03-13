@@ -1,0 +1,118 @@
+/*
+Name: Minority
+Author: PicFlow
+Description: Elegant and minimalist style, suitable for reading.
+*/
+
+.picflow-container {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    line-height: 1.8;
+    color: #2c3e50;
+    font-size: 17px;
+    background-color: #fff;
+}
+
+.picflow-container h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #d32f2f;
+    margin: 40px 0 20px;
+    text-align: center;
+}
+
+.picflow-container h2 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 30px 0 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    color: #34495e;
+}
+
+.picflow-container h3 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 25px 0 12px;
+    color: #455a64;
+}
+
+.picflow-container p {
+    margin-bottom: 20px;
+    text-align: justify;
+    letter-spacing: 0.01em;
+}
+
+.picflow-container strong {
+    color: #d32f2f;
+    font-weight: 600;
+}
+
+.picflow-container blockquote {
+    margin: 25px 0;
+    padding: 15px 20px;
+    background-color: #fdf6f6;
+    border-left: 5px solid #d32f2f;
+    color: #555;
+    border-radius: 4px;
+}
+
+.picflow-container img {
+    max-width: 100%;
+    border-radius: 8px;
+    display: block;
+    margin: 25px auto;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.picflow-container ul, .picflow-container ol {
+    padding-left: 25px;
+    margin-bottom: 20px;
+}
+
+.picflow-container li {
+    margin-bottom: 8px;
+}
+
+.picflow-container code {
+    font-family: Consolas, Monaco, monospace;
+    background-color: #fff3e0;
+    color: #e65100;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+.picflow-container pre {
+    background-color: #263238;
+    color: #eceff1;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 25px 0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.picflow-container pre code {
+    background-color: transparent;
+    color: inherit;
+    padding: 0;
+}
+
+.picflow-container hr {
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
+    margin: 40px 0;
+}
+
+.picflow-container a {
+    color: #d32f2f;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(211, 47, 47, 0.3);
+    transition: border-color 0.2s;
+}
+
+.picflow-container a:hover {
+    border-bottom-color: #d32f2f;
+}

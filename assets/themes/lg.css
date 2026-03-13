@@ -1,0 +1,89 @@
+/*
+@name: AI 流光卡片 (AI-Flow-Card)
+@author: PicFlow 提炼自示例
+@version: 1.0.0
+@desc: 具有圆角卡片感、柔和渐变背景和高亮重点的现代技术排版风格。
+*/
+
+/* 1. 容器：背景为纯白，设置默认字体和对齐 */
+.picflow-container {
+  font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #111111;
+  background-color: #ffffff;
+  text-align: justify;
+}
+
+/* 2. 一级标题：大字号加粗，模仿文章标题 */
+.picflow-container h1 {
+  font-size: 26px;
+  line-height: 1.25;
+  font-weight: 900;
+  margin: 20px 2px 15px;
+  color: #111111;
+}
+
+/* 3. 二级标题：稍大字号加粗，带间距 */
+.picflow-container h2 {
+  font-size: 18px;
+  font-weight: 900;
+  margin: 22px 2px 10px;
+  line-height: 1.35;
+  color: #111111;
+}
+
+/* 4. 段落：设置合理的垂直间距 */
+.picflow-container p {
+  margin: 10px 2px;
+}
+
+/* 5. 重点高亮：模仿源码中的黄色背景高亮标签 */
+.picflow-container strong {
+  background-color: rgb(255, 213, 74);
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+/* 6. 引用块 (Blockquote)：模仿源码中的左侧粗条样式 */
+.picflow-container blockquote {
+  border-left: 4px solid #111111;
+  padding: 12px 15px;
+  background-color: #fafafa;
+  border-radius: 12px;
+  margin: 15px 0;
+  color: #111111;
+}
+
+/* 7. 代码块 (Pre)：深色电影质感背景 + 圆角 + 阴影 */
+.picflow-container pre {
+  background-color: rgb(15, 15, 16);
+  color: rgb(247, 247, 247);
+  border-radius: 14px;
+  padding: 15px;
+  margin: 12px 0;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+  box-shadow: rgba(0, 0, 0, 0.12) 0px 10px 24px;
+}
+
+/* 8. 列表：带层次感 */
+.picflow-container ul,
+.picflow-container ol {
+  padding-left: 20px;
+  margin: 10px 0;
+}
+
+.picflow-container li {
+  margin-bottom: 8px;
+}
+
+/* 9. 装饰性水平线 */
+.picflow-container hr {
+  border: 0;
+  height: 1px;
+  background-color: rgb(238, 238, 238);
+  margin: 18px 0;
+}

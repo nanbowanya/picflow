@@ -1,0 +1,17 @@
+# Node.js
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Obsidian
+.obsidian/
+data.json
+manifest.json.tmp
+
+# macOS
+.DS_Store
+
+# Misc
+.env
