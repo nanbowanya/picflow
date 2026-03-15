@@ -48,7 +48,6 @@ export class ThemeManager {
 
         // Path to assets/themes relative to vault root
         const themeDir = `${manifestDir}/assets/themes`;
-        console.log(`[PicFlow] Loading themes from: ${themeDir}`);
 
         try {
             if (await adapter.exists(themeDir)) {
@@ -76,11 +75,9 @@ export class ThemeManager {
                             author,
                             description
                         });
-                        console.log(`[PicFlow] Loaded theme: ${name}`);
                     }
                 }
             } else {
-                console.log("[PicFlow] Theme directory not found, creating it:", themeDir);
                 await adapter.mkdir(themeDir);
                 // Attempt to fetch default themes immediately if directory was just created
                 await this.fetchDefaultThemes(); 
@@ -113,7 +110,6 @@ export class ThemeManager {
 
         try {
             // 1. Try to fetch list from GitHub API
-            // console.log(`[PicFlow] Fetching theme list from: ${this.GITHUB_API_URL}`);
             const response = await requestUrl({ url: this.GITHUB_API_URL });
             
             if (response.status === 200) {
@@ -155,7 +151,6 @@ export class ThemeManager {
             try {
                 // Use jsDelivr for faster download than raw GitHub
                 const url = `${this.REMOTE_BASE_URL}/${fileName}`;
-                // console.log(`[PicFlow] Downloading theme: ${url}`);
                 
                 const response = await requestUrl({ url });
                 if (response.status === 200) {

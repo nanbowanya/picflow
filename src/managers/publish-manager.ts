@@ -174,7 +174,6 @@ export class PublishManager {
         // @ts-ignore
         if (process.env.BUILD_TYPE === 'PRO') {
             try {
-                // console.log("Loading Pro Publishers...");
                 // Use require to load Pro modules dynamically
                 // Note: These paths must exist in the PRO build
                 const { WeChatPublisher } = require('../core/publishers/wechat-publisher');

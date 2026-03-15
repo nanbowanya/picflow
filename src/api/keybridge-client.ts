@@ -78,7 +78,6 @@ export class KeyBridgeClient {
             this.lastCheckTime = now;
         }
 
-        // console.log('[PicFlow] Verifying license key with KeyBridge:', licenseKey);
 
         try {
             const machineId = await this.getMachineId();
@@ -95,7 +94,6 @@ export class KeyBridgeClient {
 
             if (response.status === 200) {
                 const data = response.json;
-                // console.log('[PicFlow] License verification response:', data);
 
                 // Parse balance safely, allowing 0
                 let balance = 0;
@@ -147,7 +145,6 @@ export class KeyBridgeClient {
     static async downloadAndInstallPro(plugin: Plugin, downloadUrls: { mainJs: string, stylesCss: string }): Promise<void> {
         try {
             new Notice(t('settings.activation.injecting', (plugin as any).settings));
-            // console.log("[PicFlow] Starting Pro component injection from:", downloadUrls);
 
             // 1. Download files concurrently
             const [mainJs, stylesCss] = await Promise.all([
@@ -155,7 +152,6 @@ export class KeyBridgeClient {
                 requestUrl({ url: downloadUrls.stylesCss }).then(res => res.text)
             ]);
 
-            // console.log("[PicFlow] Injection complete. Size:", {
             //     mainJs: mainJs.length,
             //     stylesCss: stylesCss.length
             // });
@@ -181,7 +177,6 @@ export class KeyBridgeClient {
             await adapter.write(mainJsPath, mainJs);
             await adapter.write(stylesCssPath, stylesCss);
             
-            // console.log("[PicFlow] Pro components installed successfully.");
             new Notice(t('settings.activation.success', (plugin as any).settings));
 
         } catch (error) {

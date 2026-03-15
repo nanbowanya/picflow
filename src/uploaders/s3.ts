@@ -71,11 +71,9 @@ export class S3Uploader implements Uploader {
                 await client.send(headCommand);
                 
                 // If we are here, file exists
-                console.log(`[PicFlow] File exists: ${key}`);
                 
                 if (uploadStrategy === 'skip') {
                     // Calculate and return existing URL
-                    console.log(`[PicFlow] Strategy is SKIP. Returning existing URL.`);
                     
                     if (s3CustomDomain) {
                         let domain = s3CustomDomain.replace(/\/$/, "");
@@ -96,14 +94,12 @@ export class S3Uploader implements Uploader {
                 // If 404, file doesn't exist, proceed to upload.
                 if (error.name !== 'NotFound' && error.$metadata?.httpStatusCode !== 404) {
                     // Real error?
-                    console.warn("[PicFlow] HeadObject failed with unexpected error:", error);
                     // We proceed to try upload anyway? Or throw? 
                     // Let's proceed, maybe upload works.
                 }
             }
         }
 
-		console.log(`[PicFlow] Uploading to Bucket: ${s3Bucket}, Key: ${key}, Endpoint: ${s3Endpoint}`);
 
 		// Convert File to ArrayBuffer then to Buffer (Node.js) for upload
 		const arrayBuffer = await file.arrayBuffer();
@@ -119,7 +115,6 @@ export class S3Uploader implements Uploader {
 
 		try {
 			const response = await client.send(command);
-			console.log("S3 Upload Response:", response);
 			
 			// Verify if upload was successful (though AWS SDK usually throws on failure)
 			if (response.$metadata.httpStatusCode && response.$metadata.httpStatusCode >= 300) {
@@ -133,9 +128,7 @@ export class S3Uploader implements Uploader {
 					Key: key,
 				});
 				await client.send(headCommand);
-				console.log("[PicFlow] Verification successful: Object exists.");
 			} catch (headError: any) {
-				console.warn("[PicFlow] Verification failed:", headError);
 				// If HeadObject fails with 404, it implies the file wasn't saved where we expected.
 				// If it fails with 403, it exists but we might not have permission (which is fine, we assume success).
 				// We won't throw here to avoid blocking "blind write" scenarios, but we log it.
@@ -193,7 +186,6 @@ export class S3Uploader implements Uploader {
 			}
 
 		} catch (error: any) {
-			console.error("S3 Upload Error:", error);
 			// Check if error.message is undefined and try to extract useful info
 			let errorMessage = error.message;
 			if (!errorMessage) {
@@ -318,7 +310,6 @@ export class S3Uploader implements Uploader {
 				};
 			});
 		} catch (error: any) {
-			console.error("S3 List Error:", error);
 			throw new Error(`Failed to list images: ${error.message || error}`);
 		}
 	}
@@ -361,10 +352,8 @@ export class S3Uploader implements Uploader {
 			// S3 DeleteObject is idempotent and returns 204 No Content typically, 
 			// or 200 even if object didn't exist.
 			// It throws mainly on permissions or network errors.
-			console.log(`[PicFlow] Deleted object: ${key}`, response);
 			return true;
 		} catch (error: any) {
-			console.error("S3 Delete Error:", error);
 			throw new Error(`Failed to delete file: ${error.message || error}`);
 		}
 	}

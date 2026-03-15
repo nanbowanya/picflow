@@ -23,7 +23,6 @@ export class WebDAVUploader implements Uploader {
                 const https = require('https');
                 httpsAgent = new https.Agent({ rejectUnauthorized: false });
             } catch (e) {
-                console.warn("Failed to load https module for bypassing certificate validation:", e);
             }
         }
 
@@ -50,7 +49,6 @@ export class WebDAVUploader implements Uploader {
                 
                 // If here, file exists
                 if (uploadStrategy === 'skip') {
-                    console.log(`[PicFlow] WebDAV File exists, skipping: ${remotePath}`);
                     return this.getPublicUrl(remotePath);
                 }
                 if (uploadStrategy === 'rename') {
@@ -66,7 +64,6 @@ export class WebDAVUploader implements Uploader {
             }
         }
 
-        console.log(`[PicFlow] Uploading to WebDAV: ${host}${remotePath}`);
 
         try {
             const arrayBuffer = await file.arrayBuffer();
@@ -77,7 +74,6 @@ export class WebDAVUploader implements Uploader {
             return this.getPublicUrl(remotePath);
 
         } catch (error: any) {
-            console.error("WebDAV Upload Error:", error);
             throw new Error(`WebDAV Upload failed: ${error.message}`);
         }
     }
@@ -114,7 +110,6 @@ export class WebDAVUploader implements Uploader {
             return images.slice(offset, offset + limit);
 
         } catch (error: any) {
-            console.error("WebDAV List Error:", error);
             throw new Error(`Failed to list WebDAV files: ${error.message}`);
         }
     }
@@ -124,10 +119,8 @@ export class WebDAVUploader implements Uploader {
         
         try {
             await client.deleteFile(key);
-            console.log(`[PicFlow] WebDAV Deleted: ${key}`);
             return true;
         } catch (error: any) {
-            console.error("WebDAV Delete Error:", error);
             throw new Error(`Failed to delete file: ${error.message}`);
         }
     }

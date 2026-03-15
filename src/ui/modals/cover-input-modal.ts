@@ -133,7 +133,6 @@ export class CoverInputModal extends Modal {
             
             // Let's look at the fallback (Base64) path.
         } else {
-            console.log('File object:', file);
             
             const reader = new FileReader();
             reader.onload = (e) => {

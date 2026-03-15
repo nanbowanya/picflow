@@ -60,7 +60,7 @@ const context = await esbuild.context({
             name: 'mock-pro-modules',
             setup(build) {
                 if (BUILD_TYPE === 'LITE') {
-                    // Mock all imports from src/core/ (Pro modules)
+                    // Mock all src/core/ (Pro modules)
                     build.onResolve({ filter: /src\/core\// }, args => {
                         return { path: args.path, namespace: 'mock-pro-modules' }
                     });

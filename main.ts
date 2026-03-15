@@ -81,7 +81,6 @@ export default class PicFlowPlugin extends Plugin {
                 const { registerCorePlatforms } = require('./src/core/platforms/definitions');
                 registerCorePlatforms(PlatformRegistry);
 
-                // console.log("PicFlow Pro modules loaded.");
             } catch (e) {
                 console.error("Failed to load Pro modules:", e);
                 this.migrationManager = new StubMigrationManager(this);
@@ -125,7 +124,6 @@ export default class PicFlowPlugin extends Plugin {
             })
         );
 
-        // console.log('PicFlow: Loading plugin...');
 
         // Register View
         this.registerView(
@@ -247,7 +245,6 @@ export default class PicFlowPlugin extends Plugin {
         // We should only migrate if we have legacy data (e.g. s3Endpoint or githubToken) AND profiles are empty.
         // If both are empty, it's a fresh install, we should still initialize default profiles.
         if (!this.settings.profiles || this.settings.profiles.length === 0) {
-            // console.log("Initializing profiles (Fresh Install)...");
             this.settings.profiles = [];
 
             // 1. Create Default S3 Profile (Empty)

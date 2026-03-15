@@ -56,7 +56,6 @@ export class LocalImageServer {
                         res.end('File Not Found');
                     }
                 } catch (e) {
-                    console.error("LocalBridge Error:", e);
                     res.writeHead(500);
                     res.end('Internal Error');
                 }
@@ -64,7 +63,6 @@ export class LocalImageServer {
 
             this.server.on('error', (e: any) => {
                 if (e.code === 'EADDRINUSE') {
-                    console.warn(`LocalBridge: Port ${this.port} in use, trying ${this.port + 1}`);
                     this.port++;
                     this.server?.listen(this.port, '0.0.0.0'); // Retry
                 } else {
@@ -74,7 +72,6 @@ export class LocalImageServer {
 
             // Listen on 0.0.0.0 to allow external access (including from Docker)
             this.server.listen(this.port, '0.0.0.0', () => {
-                console.log(`LocalBridge: Started at http://localhost:${this.port}`);
                 this.isRunning = true;
                 resolve();
             });
@@ -91,7 +88,6 @@ export class LocalImageServer {
         }
         this.isRunning = false;
         this.imageMap.clear();
-        console.log("LocalBridge: Stopped");
     }
 
     /**
@@ -162,7 +158,6 @@ export class LocalImageServer {
             fs.writeFileSync(filePath, Buffer.from(buffer));
             return filePath;
         } catch (e) {
-            console.error("Failed to download remote image for bridging:", e);
             throw e;
         }
     }

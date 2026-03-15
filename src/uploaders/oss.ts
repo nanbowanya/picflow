@@ -176,7 +176,6 @@ export class OSSUploader implements Uploader {
                 
                 // File exists
                 if (uploadStrategy === 'skip') {
-                    console.log(`[PicFlow] Strategy is SKIP. Returning existing URL.`);
                     return this.generateUrl(key);
                 }
             } catch (error: any) {
@@ -269,7 +268,6 @@ export class OSSUploader implements Uploader {
              let detectedRegion = response.LocationConstraint;
              
              // Log for debugging
-             // console.log('[PicFlow] Auto Fetch Region:', detectedRegion);
 
              if (detectedRegion) {
                  if (provider === 'aliyun') {
@@ -319,7 +317,6 @@ export class OSSUploader implements Uploader {
         // If we are using Custom Domain (which implies bucketEndpoint=true in current getClient),
         // try to construct a standard client for listing if possible.
         if (this.config.customDomain && region) {
-            // console.log('[PicFlow] Switching to Standard Endpoint for List operation to avoid Auth issues with Custom Domain.');
             
             // Re-create client forcing standard endpoint
             let standardEndpoint = '';

@@ -162,12 +162,10 @@ export class LoginModal extends Modal {
             const url = this.webview.getURL();
             const title = this.webview.getTitle();
             
-            // console.log(`[PicFlow] Checking login status: ${url}`);
 
             const result = await this.platform.checkLoginStatus(url, title, this.webview);
             
             if (result && result.success) {
-                // console.log('[PicFlow] Login success detected!');
                 // Capture cookies
                 let cookies = [];
                 let methodUsed = '';
@@ -249,11 +247,6 @@ export class LoginModal extends Modal {
                              
                              cookies = Array.from(cookieMap.values());
                              
-                             // console.log('[PicFlow] Weibo Cookies Detailed Capture:');
-                             // console.log('Total Cookies:', cookies.length);
-                             // console.log('Cookie Names:', cookies.map(c => c.name).join(', '));
-                             // console.log('SUB Cookie Present:', cookies.some(c => c.name === 'SUB'));
-                             // console.log('SUBP Cookie Present:', cookies.some(c => c.name === 'SUBP'));
                          } else {
                              cookies = await session.cookies.get({});
                          }
@@ -277,7 +270,6 @@ export class LoginModal extends Modal {
                     }
                 }
 
-                // console.log(`[PicFlow] Cookies captured: ${cookies.length} via ${methodUsed}`);
                 result.cookies = cookies;
                 
                 // Store result but DO NOT CLOSE automatically

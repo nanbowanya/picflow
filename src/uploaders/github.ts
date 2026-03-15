@@ -58,13 +58,11 @@ export class GitHubUploader implements Uploader {
 				sha = checkResp.json.sha;
 			}
 		} catch (e) {
-			console.warn("GitHub check file failed", e);
 		}
 
 		// Handle Upload Strategy
 		if (exists) {
 			if (uploadStrategy === 'skip') {
-				console.log(`[PicFlow] File exists, skipping upload: ${path}`);
 				return this.getCDNUrl(path);
 			}
 			if (uploadStrategy === 'rename') {
@@ -98,9 +96,7 @@ export class GitHubUploader implements Uploader {
 				throw new Error(`GitHub Upload failed: ${uploadResp.status} - ${uploadResp.text}`);
 			}
 			
-			console.log("[PicFlow] GitHub Upload Success:", uploadResp.json);
 		} catch (error: any) {
-			console.error("GitHub Upload Error:", error);
 			throw new Error(error.message || "Unknown GitHub Upload Error");
 		}
 
@@ -159,7 +155,6 @@ export class GitHubUploader implements Uploader {
 			return images.slice(offset, offset + limit);
 
 		} catch (error: any) {
-			console.error("GitHub List Error:", error);
 			throw new Error(`Failed to list GitHub images: ${error.message}`);
 		}
 	}
@@ -190,13 +185,11 @@ export class GitHubUploader implements Uploader {
 			if (checkResp.status === 200) {
 				sha = checkResp.json.sha;
 			} else if (checkResp.status === 404) {
-				console.warn("GitHub Delete: File not found, considering deleted.");
 				return true;
 			} else {
 				throw new Error(`Failed to get file info for deletion: ${checkResp.status}`);
 			}
 		} catch (e: any) {
-			console.error("GitHub Get SHA Failed", e);
 			throw new Error(`Failed to get file SHA: ${e.message}`);
 		}
 
@@ -220,13 +213,11 @@ export class GitHubUploader implements Uploader {
 			});
 
 			if (deleteResp.status === 200 || deleteResp.status === 204) {
-				console.log("[PicFlow] GitHub Delete Success");
 				return true;
 			} else {
 				throw new Error(`GitHub Delete failed: ${deleteResp.status} - ${deleteResp.text}`);
 			}
 		} catch (error: any) {
-			console.error("GitHub Delete Error:", error);
 			throw new Error(error.message || "Unknown GitHub Delete Error");
 		}
 	}

@@ -15,7 +15,6 @@ export class SFTPUploader implements Uploader {
             throw new Error("SFTP Configuration is incomplete.");
         }
 
-        // console.log(`[PicFlow] SFTP Connecting to ${host}:${port || 22} as ${username}...`);
         
         await client.connect({
             host: host,
@@ -51,7 +50,6 @@ export class SFTPUploader implements Uploader {
 
             if (exists) {
                 if (uploadStrategy === 'skip') {
-                    // console.log(`[PicFlow] SFTP File exists, skipping: ${remotePath}`);
                     return this.getPublicUrl(remotePath);
                 }
                 if (uploadStrategy === 'rename') {
@@ -68,7 +66,6 @@ export class SFTPUploader implements Uploader {
                 // Overwrite: ssh2-sftp-client put overwrites by default? Yes.
             }
 
-            // console.log(`[PicFlow] Uploading to SFTP: ${host}${remotePath}`);
 
             const arrayBuffer = await file.arrayBuffer();
             const buffer = Buffer.from(arrayBuffer);
@@ -143,7 +140,6 @@ export class SFTPUploader implements Uploader {
         try {
             await this.connect(client);
             await client.delete(key);
-            // console.log(`[PicFlow] SFTP Deleted: ${key}`);
             return true;
         } catch (error: any) {
              console.error("SFTP Delete Error:", error);

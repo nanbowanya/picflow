@@ -893,15 +893,14 @@ export class PicFlowSettingTab extends PluginSettingTab {
                     }
                 }))
             .addButton(btn => btn
-                .setTooltip('Reload & Download Themes')
+                .setTooltip('Reset & Download Themes from GitHub')
                 .setIcon('refresh-cw')
                 .onClick(async () => {
-                    new Notice('Checking for themes...');
-                    // Pass true to force checking/downloading if needed, or just standard load
-                    // We'll use fetchDefaultThemes(false) to only download missing ones
-                    await this.plugin.themeManager.fetchDefaultThemes(false);
+                    new Notice('Resetting themes from GitHub...');
+                    // Pass true to force checking/downloading
+                    await this.plugin.themeManager.fetchDefaultThemes(true);
                     await this.plugin.themeManager.loadThemes();
-                    new Notice('Themes reloaded');
+                    new Notice('Themes reset and reloaded');
                     this.display();
                 }));
 
