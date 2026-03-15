@@ -3,6 +3,8 @@
 
 **PicFlow** is not about "Picture Flow" (image workflow), but rather a comprehensive end-to-end content production toolkit that addresses challenges throughout the writing and publishing process: **P**ublish (article publishing), **I**mage (image management), A**i** (AI-powered creation), **C**lip (web clipping), and more.
 
+<br>
+
 **PicFlow** 不是Picture Flow（图片流程），而是 文章发布（**P**ublish）、图片管理（**I**mage）、AI创作（A**i**）、剪藏（**C**lip）等在写作和发布过程中遇到问题的一整套全流程内容生产工具。
 
 
@@ -15,6 +17,9 @@
 ### Value (j价值)
 
 Solving the fragmentation pain points for Obsidian users in the content production pipeline:
+
+<br>
+
 解决 Obsidian 用户在内容生产链路中的割裂感：
 
 *   **Difficult Collection**: Web clipping results in messy formatting, and images easily break (hotlink protection).
@@ -22,6 +27,7 @@ Solving the fragmentation pain points for Obsidian users in the content producti
 *   **Difficult Creation**: Lacks convenient features for image generation and article polishing.
 *   **Difficult Publishing**: Converting from Markdown to self-media platforms like WeChat Official Accounts and Zhihu requires repetitive formatting and manual image handling.
 
+<br>
 
 *   **采集难**：网页剪藏格式混乱，图片容易失效（防盗链）。
 *   **管理难**：图床配置繁琐，多环境（公司/个人）切换不便。
@@ -34,12 +40,17 @@ Solving the fragmentation pain points for Obsidian users in the content producti
 1.  **Closed-Loop Ecosystem**: Seamlessly connects the entire chain from "web clipping" to "article rewriting" to "image hosting storage" to "one-click publishing."
 2.  **PicGo-Free**: No background process required; the plugin uploads directly via built-in SDK.
 
+<br>
+
 1.  **闭环生态**：从“网页剪藏”到“文章改写”到“图床存储”到“一键发布”，全链路打通。
 2.  **去 PicGo 化**：无需后台进程，插件内置 SDK 直接上传。
 
 ### User Scenarios（场景）
 
 To accommodate different user needs, the plugin supports the following combination scenarios:
+
+<br>
+
 为了覆盖不同用户的需求，插件支持以下组合场景：
 
 
@@ -56,6 +67,7 @@ To accommodate different user needs, the plugin supports the following combinati
     *   Scenario: Content curation + automated operations.
     *   Workflow: Enter URL -> Parse -> AI Rewrite -> Auto Publish.
 
+<br>
 
 1.  **仅剪藏 (Fetch Only)**:
     *   场景：看到一篇好文章，只想保存到本地 Obsidian，不需要 AI 改写也不发布。
@@ -96,6 +108,7 @@ To accommodate different user needs, the plugin supports the following combinati
 | **Douban** | 💡 Planned | |
 | **Everyone is a Product Manager** | 💡 Planned | |
 
+<br>
 
 | 发布平台                  | 状态     | 文档  |
 | :-------------------- | :----- | :--- |
@@ -123,6 +136,8 @@ To accommodate different user needs, the plugin supports the following combinati
 
 Please use the following standard selectors to control the styling of different elements. The plugin will automatically wrap content with the `.picflow-container` class.
 
+<br>
+
 请使用以下标准选择器来控制不同元素的样式。插件会自动为内容包裹 `.picflow-container` 类。
 
 
@@ -145,6 +160,7 @@ Please use the following standard selectors to control the styling of different 
 | **Table Header** | `.picflow-container th` | `background: #f0f0f0`, `padding: 8px`, `border: 1px solid #ddd` |
 | **Table Cell** | `.picflow-container td` | `padding: 8px`, `border: 1px solid #ddd` |
 
+<br>
 
 | 元素 | 选择器示例 | 示例 |
 | :--- | :--- | :--- |
