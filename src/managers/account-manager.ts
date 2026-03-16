@@ -43,7 +43,7 @@ export class AccountManager {
     await this.plugin.saveData(data);
   }
 
-  async addAccount(platformId: string, onSuccess?: () => void) {
+  addAccount(platformId: string, onSuccess?: () => void) {
       const platform = PlatformRegistry.get(platformId);
       if (!platform) {
           // If platform is not found, it likely means we are in Lite version and the core platform is not loaded.

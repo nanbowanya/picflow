@@ -34,7 +34,12 @@ export class PublishManager {
         };
 
         // Initialize and register adapters
-        this.loadPublishers();
+        // We cannot load Pro modules synchronously here because import() is async.
+        // We will call init() from main.ts
+    }
+
+    async init() {
+        await this.loadPublishers();
     }
 
     // ... (rest of the file)
@@ -170,32 +175,32 @@ export class PublishManager {
         };
     }
 
-    private loadPublishers() {
+    private async loadPublishers() {
         // @ts-ignore
         if (process.env.BUILD_TYPE === 'PRO') {
             try {
-                // Use require to load Pro modules dynamically
+                // Use import() to load Pro modules dynamically
                 // Note: These paths must exist in the PRO build
-                const { WeChatPublisher } = require('../core/publishers/wechat-publisher');
+                const { WeChatPublisher } = await import('../core/publishers/wechat-publisher');
                 this.registerPublisher('wechat', new WeChatPublisher(this.plugin, this.themeManager));
 
-                const { ZhihuPublisher } = require('../core/publishers/zhihu-publisher');
+                const { ZhihuPublisher } = await import('../core/publishers/zhihu-publisher');
                 this.registerPublisher('zhihu', new ZhihuPublisher(this.plugin, this.themeManager));
 
-                const { CSDNPublisher } = require('../core/publishers/csdn-publisher');
+                const { CSDNPublisher } = await import('../core/publishers/csdn-publisher');
                 this.registerPublisher('csdn', new CSDNPublisher(this.plugin, this.themeManager));
 
-                const { JuejinPublisher } = require('../core/publishers/juejin-publisher');
+                const { JuejinPublisher } = await import('../core/publishers/juejin-publisher');
                 this.registerPublisher('juejin', new JuejinPublisher(this.plugin, this.themeManager));
 
-                const { WeiboPublisher } = require('../core/publishers/weibo-publisher');
+                const { WeiboPublisher } = await import('../core/publishers/weibo-publisher');
                 this.registerPublisher('weibo', new WeiboPublisher(this.plugin, this.themeManager));
 
-                const { BilibiliPublisher } = require('../core/publishers/bilibili-publisher');
+                const { BilibiliPublisher } = await import('../core/publishers/bilibili-publisher');
                 this.registerPublisher('bilibili', new BilibiliPublisher(this.plugin, this.themeManager));
                 
                 // [NEW] Load Custom Platforms
-                this.loadCustomPublishers();
+                await this.loadCustomPublishers();
 
             } catch (e) {
                 console.error("Failed to load Pro publishers:", e);
@@ -207,17 +212,17 @@ export class PublishManager {
         }
     }
 
-    private loadCustomPublishers() {
+    private async loadCustomPublishers() {
         const customPlatforms = this.plugin.settings.customPlatforms || [];
         if (customPlatforms.length === 0) return;
 
         try {
             // Dynamically require Custom Publishers
             // These files must exist in src/core/publishers/
-            const { WordPressPublisher } = require('../core/publishers/wordpress-publisher');
-            const { DifyPublisher } = require('../core/publishers/dify-publisher');
-            const { WebhookPublisher } = require('../core/publishers/webhook-publisher');
-            const { MCPPublisher } = require('../core/publishers/mcp-publisher');
+            const { WordPressPublisher } = await import('../core/publishers/wordpress-publisher');
+            const { DifyPublisher } = await import('../core/publishers/dify-publisher');
+            const { WebhookPublisher } = await import('../core/publishers/webhook-publisher');
+            const { MCPPublisher } = await import('../core/publishers/mcp-publisher');
 
             customPlatforms.forEach(platform => {
                 let publisher: IPlatformPublisher | null = null;

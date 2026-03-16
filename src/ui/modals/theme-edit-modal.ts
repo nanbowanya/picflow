@@ -27,9 +27,8 @@ export class ThemeEditModal extends Modal {
         // CSS Editor Area
         const editorContainer = contentEl.createDiv({ cls: "picflow-theme-editor-container" });
         const textArea = new TextAreaComponent(editorContainer);
-        textArea.inputEl.style.width = "100%";
-        textArea.inputEl.style.height = "400px";
-        textArea.inputEl.style.fontFamily = "monospace";
+        textArea.inputEl.addClass("picflow-theme-editor-textarea");
+        // Styles moved to CSS class .picflow-theme-editor-textarea
         textArea.setValue(this.cssContent);
         textArea.onChange((value) => {
             this.cssContent = value;

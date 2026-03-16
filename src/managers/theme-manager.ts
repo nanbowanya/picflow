@@ -1,4 +1,4 @@
-import { App, Notice, TFile, FileSystemAdapter, requestUrl } from "obsidian";
+import { App, Notice, TFile, FileSystemAdapter, requestUrl, Component, MarkdownRenderer } from "obsidian";
 import PicFlowPlugin from "../../main";
 import * as path from "path";
 
@@ -231,9 +231,9 @@ export class ThemeManager {
         const sourcePath = activeFile ? activeFile.path : '/';
         
         // Use a Component to manage lifecycle if needed, but for string generation it's transient
-        const component = new (require('obsidian').Component)();
+        const component = new Component();
         
-        await require('obsidian').MarkdownRenderer.render(
+        await MarkdownRenderer.render(
             this.plugin.app,
             markdown,
             container,

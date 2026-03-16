@@ -29,7 +29,7 @@ export class TemplateSuggestModal extends SuggestModal<AIPromptTemplate> {
         el.createEl("small", { text: template.description });
     }
 
-    async onChooseSuggestion(template: AIPromptTemplate, evt: MouseEvent | KeyboardEvent) {
+    onChooseSuggestion(template: AIPromptTemplate, evt: MouseEvent | KeyboardEvent) {
         const selection = this.editor.getSelection();
         if (!selection) {
             new Notice(t('ai.chat.notice.noSelection'));
@@ -43,6 +43,13 @@ export class TemplateSuggestModal extends SuggestModal<AIPromptTemplate> {
             prompt = `${prompt}\n\n${selection}`;
         }
 
+        // Handle async operations
+        this.handleSelection(prompt, template.model).catch(err => {
+            console.error("Failed to process suggestion:", err);
+        });
+    }
+
+    private async handleSelection(prompt: string, model: any) {
         // Open Sidebar and Send Message
         await this.plugin.activateSidebarView();
         
@@ -54,7 +61,7 @@ export class TemplateSuggestModal extends SuggestModal<AIPromptTemplate> {
                 // Switch to AI tab
                 await view.switchToTab('ai');
                 // Send message
-                await view.aiDrawer.sendMessage(prompt, template.model);
+                await view.aiDrawer.sendMessage(prompt, model);
             }
         }
     }

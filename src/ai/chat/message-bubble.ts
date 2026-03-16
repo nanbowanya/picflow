@@ -1,5 +1,5 @@
 
-import { MarkdownRenderer, setIcon, Notice, MarkdownView, Editor } from "obsidian";
+import { MarkdownRenderer, setIcon, Notice, MarkdownView, Editor, requestUrl, Component } from "obsidian";
 import PicFlowPlugin from "../../../main";
 import { t } from "../../i18n";
 import { getActiveEditor, getActiveMarkdownView } from "../../utils/editor";
@@ -10,12 +10,15 @@ export class MessageBubble {
     container: HTMLElement;
     message: ChatMessage;
     onRetry?: () => void;
+    component: Component;
 
-    constructor(plugin: PicFlowPlugin, container: HTMLElement, message: ChatMessage, onRetry?: () => void) {
+    constructor(plugin: PicFlowPlugin, parentComponent: Component, container: HTMLElement, message: ChatMessage, onRetry?: () => void) {
         this.plugin = plugin;
         this.container = container;
         this.message = message;
         this.onRetry = onRetry;
+        this.component = new Component();
+        parentComponent.addChild(this.component);
     }
 
     render() {
@@ -64,7 +67,7 @@ export class MessageBubble {
                     displayContent,
                     contentEl,
                     "",
-                    this.plugin
+                    this.component
                 ).then(() => {
                     // Post-process to style the reference tokens
                     // We look for text nodes containing the pattern
@@ -129,7 +132,7 @@ export class MessageBubble {
                         
                         node.parentNode?.replaceChild(fragment, node);
                     });
-                });
+                }).catch(console.error);
             }
 
             // Render collapsible reference if exists
@@ -144,7 +147,7 @@ export class MessageBubble {
                     referenceContent,
                     refContentEl,
                     "",
-                    this.plugin
+                    this.component
                 ).then(() => {
                     // Post-process to style the "Reference: ..." line if it exists
                     // We look for the paragraph starting with "Reference:"
@@ -156,7 +159,7 @@ export class MessageBubble {
                             // Let's make it bold via CSS class
                         }
                     });
-                });
+                }).catch(console.error);
             }
 
             this.renderTextActions(bubbleWrapper); 
@@ -179,7 +182,7 @@ export class MessageBubble {
         const copyBtn = actionsEl.createEl("button", { cls: "chat-action-btn clickable-icon", title: t('ai.chat.btn.copy') });
         setIcon(copyBtn, "copy");
         copyBtn.onclick = () => {
-            navigator.clipboard.writeText(this.message.content);
+            navigator.clipboard.writeText(this.message.content).catch(console.error);
             new Notice(t('ai.chat.notice.copied'));
         };
 
@@ -208,8 +211,8 @@ export class MessageBubble {
         setIcon(copyBtn, "copy");
         copyBtn.onclick = async () => {
             try {
-                const response = await fetch(this.message.content);
-                const blob = await response.blob();
+                const response = await requestUrl({ url: this.message.content });
+                const blob = new Blob([response.arrayBuffer], { type: response.headers['content-type'] });
                 await navigator.clipboard.write([
                     new ClipboardItem({
                         [blob.type]: blob

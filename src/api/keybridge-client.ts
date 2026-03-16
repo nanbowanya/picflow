@@ -26,6 +26,9 @@ export class KeyBridgeClient {
     private static lastCheckTime: number = 0;
 
     public static async getMachineId(): Promise<string> {
+        // Ensure async context
+        await Promise.resolve();
+        
         // 1. Try Hardware ID (Desktop only)
         if (Platform.isDesktop) {
             try {
