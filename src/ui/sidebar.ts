@@ -47,7 +47,7 @@ export class PicFlowSidebarView extends ItemView {
         const dummyContainer = document.createElement("div");
         this.publishDrawer = new PublishDrawer(plugin, dummyContainer, this.themeManager, this.htmlRenderer);
         this.clipDrawer = new ClipDrawer(plugin, dummyContainer, this);
-        this.aiDrawer = new AIDrawer(plugin, dummyContainer);
+        this.aiDrawer = new AIDrawer(plugin, this, dummyContainer);
     }
 
     getViewType() {

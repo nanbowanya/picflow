@@ -1,4 +1,4 @@
-import { App, Notice, Plugin, PluginSettingTab, Setting, MarkdownView, Editor, EditorPosition, TFile, moment } from 'obsidian';
+import { App, Notice, Plugin, MarkdownView, Editor, TFile, moment, WorkspaceLeaf } from 'obsidian';
 import { PicFlowSettings, DEFAULT_SETTINGS, PicFlowSettingTab } from './src/settings';
 import { S3Uploader } from './src/uploaders/s3';
 import { GitHubUploader } from './src/uploaders/github';
@@ -51,6 +51,7 @@ export default class PicFlowPlugin extends Plugin {
         await this.accountManager.load();
 
         this.publishManager = new PublishManager(this);
+        await this.publishManager.init(); // Async init for dynamic imports
         
         this.themeManager = new ThemeManager(this);
         await this.themeManager.loadThemes();
@@ -59,6 +60,7 @@ export default class PicFlowPlugin extends Plugin {
 
         this.uploadHandler = new UploadHandler(this);
         this.eventHandler = new EventHandler(this, this.uploadHandler);
+        await this.eventHandler.load();
 
         // Default to Stub
         this.aiManager = new StubAIManager(this);
@@ -67,18 +69,18 @@ export default class PicFlowPlugin extends Plugin {
         // @ts-ignore
         if (process.env.BUILD_TYPE === 'PRO') {
             try {
-                // Use require to load Pro modules
-                const { MigrationManager } = require('./src/core/managers/migration-manager');
+                // Use import() to load Pro modules
+                const { MigrationManager } = await import('./src/core/managers/migration-manager');
                 this.migrationManager = new MigrationManager(this);
 
-                const { ThemeExtractorManager } = require('./src/core/managers/theme-extractor-manager');
+                const { ThemeExtractorManager } = await import('./src/core/managers/theme-extractor-manager');
                 this.themeExtractorManager = new ThemeExtractorManager(this);
                 
-                const { AIManager } = require('./src/core/managers/ai-manager');
+                const { AIManager } = await import('./src/core/managers/ai-manager');
                 this.aiManager = new AIManager(this);
 
                 // Load Core Platforms
-                const { registerCorePlatforms } = require('./src/core/platforms/definitions');
+                const { registerCorePlatforms } = await import('./src/core/platforms/definitions');
                 registerCorePlatforms(PlatformRegistry);
 
             } catch (e) {
@@ -99,28 +101,33 @@ export default class PicFlowPlugin extends Plugin {
 
         // Register File Creation Event for Default Front-matter
         this.registerEvent(
-            this.app.vault.on('create', async (file) => {
-                // 1. Check if enabled
-                if (!this.settings.enableDefaultFrontmatter) return;
-                
-                // 2. Check if Markdown file
-                if (!(file instanceof TFile) || file.extension !== 'md') return;
+            this.app.vault.on('create', (file) => {
+                // Async wrapper to satisfy void return type
+                (async () => {
+                    // 1. Check if enabled
+                    if (!this.settings.enableDefaultFrontmatter) return;
+                    
+                    // 2. Check if Markdown file
+                    if (!(file instanceof TFile) || file.extension !== 'md') return;
 
-                // 3. Check if file is empty (prevent overwriting templates from other plugins)
-                const content = await this.app.vault.read(file);
-                if (content.trim().length > 0) return;
+                    // 3. Check if file is empty (prevent overwriting templates from other plugins)
+                    const content = await this.app.vault.read(file);
+                    if (content.trim().length > 0) return;
 
-                // 4. Generate Front-matter
-                let template = this.settings.defaultFrontmatterTemplate;
-                
-                // Variable replacement
-                template = template.replace(/{{title}}/g, file.basename);
-                template = template.replace(/{{date}}/g, (window as any).moment().format('YYYY-MM-DD HH:mm'));
-                template = template.replace(/{{time}}/g, (window as any).moment().format('HH:mm:ss'));
+                    // 4. Generate Front-matter
+                    let template = this.settings.defaultFrontmatterTemplate;
+                    
+                    // Variable replacement
+                    template = template.replace(/{{title}}/g, file.basename);
+                    template = template.replace(/{{date}}/g, (window as any).moment().format('YYYY-MM-DD HH:mm'));
+                    template = template.replace(/{{time}}/g, (window as any).moment().format('HH:mm:ss'));
 
-                // 5. Write to file
-                const newContent = `---\n${template}\n---\n`;
-                await this.app.vault.modify(file, newContent);
+                    // 5. Write to file
+                    const newContent = `---\n${template}\n---\n`;
+                    await this.app.vault.modify(file, newContent);
+                })().catch(error => {
+                    console.error("Error in create event handler:", error);
+                });
             })
         );
 
@@ -133,21 +140,21 @@ export default class PicFlowPlugin extends Plugin {
 
         // Add Ribbon Icon
         this.addRibbonIcon('zap', 'PicFlow Unified Sidebar', () => {
-            this.activateSidebarView();
+            void this.activateSidebarView();
         });
 
         // Add Command to Open Sidebar
         this.addCommand({
-            id: 'open-picflow-sidebar',
-            name: 'Open PicFlow Sidebar',
+            id: 'open-sidebar',
+            name: t('command.openSidebar', this.settings), // Use translation and avoid plugin name
             callback: () => {
-                this.activateSidebarView();
+                void this.activateSidebarView();
             }
         });
 
         // 注册命令：批量上传当前文档图片 (MVP)
         this.addCommand({
-            id: 'picflow-upload-current',
+            id: 'upload-current',
             name: t('command.uploadAll', this.settings),
             callback: () => {
                 const view = this.app.workspace.getActiveViewOfType(MarkdownView);
@@ -161,7 +168,7 @@ export default class PicFlowPlugin extends Plugin {
 
         // Register Command: AI Quick Action
         this.addCommand({
-            id: 'picflow-ai-quick-action',
+            id: 'ai-quick-action',
             name: t('command.aiQuickAction'),
             editorCallback: (editor: Editor, view: MarkdownView) => {
                 new TemplateSuggestModal(this.app, this, editor).open();
@@ -189,7 +196,7 @@ export default class PicFlowPlugin extends Plugin {
     async activateSidebarView() {
         const { workspace } = this.app;
 
-        let leaf: any = null;
+        let leaf: WorkspaceLeaf | null = null;
         const leaves = workspace.getLeavesOfType(VIEW_TYPE_PICFLOW_SIDEBAR);
 
         if (leaves.length > 0) {
@@ -229,9 +236,6 @@ export default class PicFlowPlugin extends Plugin {
         }
         if (this.settings.s3AccessKeyId) {
             this.settings.s3AccessKeyId = SecurityManager.decrypt(this.settings.s3AccessKeyId);
-        }
-        if (this.settings.aiApiKey) {
-            this.settings.aiApiKey = SecurityManager.decrypt(this.settings.aiApiKey);
         }
         if (this.settings.githubToken) {
             this.settings.githubToken = SecurityManager.decrypt(this.settings.githubToken);
@@ -294,37 +298,43 @@ export default class PicFlowPlugin extends Plugin {
     }
 
     async saveSettings() {
-        // Create a copy to encrypt
-        const dataToSave = JSON.parse(JSON.stringify(this.settings)); // Deep copy
+        const data = Object.assign({}, this.settings);
 
-        // Encrypt sensitive fields (Legacy) - Can be removed later if we fully drop legacy support
-        if (dataToSave.s3SecretAccessKey) dataToSave.s3SecretAccessKey = SecurityManager.encrypt(dataToSave.s3SecretAccessKey);
-        if (dataToSave.s3AccessKeyId) dataToSave.s3AccessKeyId = SecurityManager.encrypt(dataToSave.s3AccessKeyId);
-        if (dataToSave.aiApiKey) dataToSave.aiApiKey = SecurityManager.encrypt(dataToSave.aiApiKey);
-        if (dataToSave.githubToken) dataToSave.githubToken = SecurityManager.encrypt(dataToSave.githubToken);
-        if (dataToSave.licenseKey) dataToSave.licenseKey = SecurityManager.encrypt(dataToSave.licenseKey);
+        // Encrypt sensitive fields
+        if (data.s3SecretAccessKey) {
+            data.s3SecretAccessKey = SecurityManager.encrypt(data.s3SecretAccessKey);
+        }
+        if (data.s3AccessKeyId) {
+            data.s3AccessKeyId = SecurityManager.encrypt(data.s3AccessKeyId);
+        }
+        if (data.githubToken) {
+            data.githubToken = SecurityManager.encrypt(data.githubToken);
+        }
+        if (data.licenseKey) {
+            data.licenseKey = SecurityManager.encrypt(data.licenseKey);
+        }
 
-        // Encrypt Profiles Sensitive Data
-        if (dataToSave.profiles) {
-            for (const profile of dataToSave.profiles) {
-                if (profile.type === 's3' && profile.s3) {
-                    if (profile.s3.secretAccessKey) profile.s3.secretAccessKey = SecurityManager.encrypt(profile.s3.secretAccessKey);
-                    if (profile.s3.accessKeyId) profile.s3.accessKeyId = SecurityManager.encrypt(profile.s3.accessKeyId);
-                }
-                if (profile.type === 'github' && profile.github) {
-                    if (profile.github.token) profile.github.token = SecurityManager.encrypt(profile.github.token);
-                }
-                if (profile.type === 'webdav' && profile.webdav) {
-                    if (profile.webdav.password) profile.webdav.password = SecurityManager.encrypt(profile.webdav.password);
-                }
-                if (profile.type === 'sftp' && profile.sftp) {
-                    if (profile.sftp.password) profile.sftp.password = SecurityManager.encrypt(profile.sftp.password);
-                    if (profile.sftp.privateKey) profile.sftp.privateKey = SecurityManager.encrypt(profile.sftp.privateKey);
-                }
+        // Encrypt Profiles Sensitive Data (Clone to avoid modifying in-memory settings)
+        // Deep clone profiles to safely encrypt
+        data.profiles = JSON.parse(JSON.stringify(this.settings.profiles));
+        for (const profile of data.profiles) {
+            if (profile.type === 's3' && profile.s3) {
+                if (profile.s3.secretAccessKey) profile.s3.secretAccessKey = SecurityManager.encrypt(profile.s3.secretAccessKey);
+                if (profile.s3.accessKeyId) profile.s3.accessKeyId = SecurityManager.encrypt(profile.s3.accessKeyId);
+            }
+            if (profile.type === 'github' && profile.github) {
+                if (profile.github.token) profile.github.token = SecurityManager.encrypt(profile.github.token);
+            }
+            if (profile.type === 'webdav' && profile.webdav) {
+                if (profile.webdav.password) profile.webdav.password = SecurityManager.encrypt(profile.webdav.password);
+            }
+            if (profile.type === 'sftp' && profile.sftp) {
+                if (profile.sftp.password) profile.sftp.password = SecurityManager.encrypt(profile.sftp.password);
+                if (profile.sftp.privateKey) profile.sftp.privateKey = SecurityManager.encrypt(profile.sftp.privateKey);
             }
         }
 
-        await this.saveData(dataToSave);
+        await this.saveData(data);
     }
 
 

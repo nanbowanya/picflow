@@ -14,6 +14,7 @@ import { PLATFORM_ICONS } from './ui/platform-icons';
 import { AIPromptTemplate, DEFAULT_PROMPTS } from './ai/prompts';
 import { AI_MODELS, DEFAULT_CHAT_MODEL, DEFAULT_IMAGE_MODEL } from './ai/models';
 import { CustomPlatformModal } from './ui/modals/custom-platform-modal';
+import { ConfirmModal } from './ui/modals/confirm-modal';
 import { ThemeEditModal } from './ui/modals/theme-edit-modal';
 
 import * as crypto from 'crypto';
@@ -144,10 +145,16 @@ export class PicFlowSettingTab extends PluginSettingTab {
                 .setButtonText('Reset')
                 .setWarning()
                 .onClick(async () => {
-                    if (!confirm(t('settings.ai.templates.reset.confirm', this.plugin.settings))) return;
-                    this.plugin.settings.promptTemplates = [...DEFAULT_PROMPTS];
-                    await this.plugin.saveSettings();
-                    this.display();
+                    new ConfirmModal(
+                        this.plugin.app,
+                        t('settings.ai.templates.reset', this.plugin.settings),
+                        t('settings.ai.templates.reset.confirm', this.plugin.settings),
+                        async () => {
+                            this.plugin.settings.promptTemplates = [...DEFAULT_PROMPTS];
+                            await this.plugin.saveSettings();
+                            this.display();
+                        }
+                    ).open();
                 }));
 
         // List Templates
@@ -186,11 +193,16 @@ export class PicFlowSettingTab extends PluginSettingTab {
                 .setIcon('trash')
                 .setTooltip(t('settings.uploader.delete', this.plugin.settings))
                 .onClick(async () => {
-                    if (confirm(t('settings.uploader.deleteConfirm', this.plugin.settings))) {
-                        this.plugin.settings.promptTemplates.splice(index, 1);
-                        await this.plugin.saveSettings();
-                        this.display();
-                    }
+                    new ConfirmModal(
+                        this.plugin.app,
+                        t('settings.uploader.delete', this.plugin.settings),
+                        t('settings.uploader.deleteConfirm', this.plugin.settings),
+                        async () => {
+                            this.plugin.settings.promptTemplates.splice(index, 1);
+                            await this.plugin.saveSettings();
+                            this.display();
+                        }
+                    ).open();
                 });
             delBtn.buttonEl.addClass('picflow-danger-btn');
         });
@@ -220,7 +232,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
             statusText.addClass('picflow-license-header__text--active');
         } else if (isExpired) {
             statusText.innerText = t('settings.advanced.license.expired', this.plugin.settings);
-            statusText.style.color = 'var(--text-error)';
+            statusText.addClass('picflow-error-text');
         } else {
             statusText.innerText = t('settings.advanced.license.inactive', this.plugin.settings);
         }
@@ -228,9 +240,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
         if (showInfoView) {
             const actionsDiv = statusHeader.createEl('div', { cls: 'picflow-license-header__actions' });
             // Add style to push actions to the right
-            actionsDiv.style.marginLeft = 'auto';
-            actionsDiv.style.display = 'flex';
-            actionsDiv.style.gap = '8px';
+            actionsDiv.addClass('picflow-license-header__actions-container');
             
             // Refresh Button (Moved here as requested)
             new ButtonComponent(actionsDiv)
@@ -285,17 +295,22 @@ export class PicFlowSettingTab extends PluginSettingTab {
                 .setButtonText(t('settings.advanced.license.deactivate', this.plugin.settings))
                 .setWarning()
                 .onClick(async () => {
-                    if (!confirm('Are you sure you want to deactivate?')) return;
+                    new ConfirmModal(
+                        this.plugin.app,
+                        t('settings.advanced.license.deactivate', this.plugin.settings),
+                        'Are you sure you want to deactivate?',
+                        async () => {
+                            // Clear Settings
+                            this.plugin.settings.licenseKey = '';
+                            this.plugin.settings.licenseStatus = 'unknown';
+                            this.plugin.settings.aiTokenBalance = 0;
+                            this.plugin.settings.activationDate = '';
+                            this.plugin.settings.expiryDate = '';
+                            await this.plugin.saveSettings();
 
-                    // Clear Settings
-                    this.plugin.settings.licenseKey = '';
-                    this.plugin.settings.licenseStatus = 'unknown';
-                    this.plugin.settings.aiTokenBalance = 0;
-                    this.plugin.settings.activationDate = '';
-                    this.plugin.settings.expiryDate = '';
-                    await this.plugin.saveSettings();
-
-                    this.display(); // Refresh UI
+                            this.display(); // Refresh UI
+                        }
+                    ).open();
                 });
             // deactivateBtn.buttonEl.addClass('picflow-license-header__deactivate'); // CSS class might handle spacing
         }
@@ -334,7 +349,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
                 } else if (isExpired) {
                     statusLabel = t('settings.advanced.status.expired', this.plugin.settings);
                     statusClass = 'picflow-feature-tag__status--expired'; // Need CSS or inline style
-                    tag.style.opacity = '0.8';
+                    tag.setCssProps({ opacity: '0.8' });
                 } else {
                     statusLabel = t('settings.advanced.status.inactive', this.plugin.settings);
                     statusClass = 'picflow-feature-tag__status--inactive';
@@ -345,10 +360,15 @@ export class PicFlowSettingTab extends PluginSettingTab {
                 statusClass = 'picflow-feature-tag__status--active';
             }
             
-            // Inline style for expired if class not exists
-            const styleAttr = isExpired && f.pro ? 'style="color: var(--text-error);"' : '';
-
-            tag.innerHTML = `${f.icon} ${f.name}: <span class="picflow-feature-tag__status ${statusClass}" ${styleAttr}>${statusLabel}</span>`;
+            tag.setText(`${f.icon} ${f.name}: `);
+            const statusSpan = tag.createSpan({ 
+                cls: `picflow-feature-tag__status ${statusClass}`, 
+                text: statusLabel 
+            });
+            
+            if (isExpired && f.pro) {
+                statusSpan.addClass('picflow-error-text');
+            }
         });
 
         if (showInfoView) {
@@ -423,7 +443,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
             }
             
             if (isExpired) {
-                dateVal.style.color = 'var(--text-error)';
+                dateVal.addClass('picflow-error-text');
             }
 
         } else {
@@ -570,43 +590,30 @@ export class PicFlowSettingTab extends PluginSettingTab {
         // AI Theme Extractor Tool (Beta) - Moved inside themeWrapper
         const extractorDetails = themeWrapper.createEl('details');
         extractorDetails.addClass('picflow-settings-details');
-        extractorDetails.style.marginBottom = '15px';
-        extractorDetails.style.border = '1px solid var(--background-modifier-border)';
-        extractorDetails.style.borderRadius = 'var(--radius-m)';
-        extractorDetails.style.padding = '10px';
+        extractorDetails.addClass('picflow-extractor-details');
 
         const summary = extractorDetails.createEl('summary');
         summary.addClass('picflow-settings-summary');
-        summary.style.cursor = 'pointer';
-        summary.style.fontWeight = 'bold';
         summary.setText(t('settings.extractor.title', this.plugin.settings));
 
         const extractorContent = extractorDetails.createDiv();
         extractorContent.addClass('picflow-settings-details-content');
-        extractorContent.style.paddingTop = '10px';
-        extractorContent.style.display = 'flex';
-        extractorContent.style.flexDirection = 'column';
-        extractorContent.style.gap = '10px';
+        extractorContent.addClass('picflow-extractor-content');
 
         // Description & Warning merged
         const desc = extractorContent.createEl('p');
-        desc.style.margin = '0 0 10px 0';
-        desc.style.fontSize = '12px';
-        desc.style.color = 'var(--text-muted)';
+        desc.addClass('picflow-extractor-desc');
         desc.innerHTML = `${t('settings.extractor.desc', this.plugin.settings)}<br>${t('settings.extractor.warning.length', this.plugin.settings)}`;
         
         // 1. Input Row
         const inputRow = extractorContent.createDiv();
-        inputRow.style.display = 'flex';
-        inputRow.style.gap = '10px';
-        inputRow.style.marginBottom = '10px';
+        inputRow.addClass('picflow-extractor-input-row');
         
         const urlInput = new TextComponent(inputRow);
         urlInput.setPlaceholder(t('settings.extractor.placeholder', this.plugin.settings));
         urlInput.setValue(this.extractorUrl);
         urlInput.onChange(val => this.extractorUrl = val);
-        urlInput.inputEl.style.width = '100%';
-        urlInput.inputEl.style.flex = '1';
+        urlInput.inputEl.addClass('picflow-extractor-url-input');
         
         const extractBtn = new ButtonComponent(inputRow);
         extractBtn.setButtonText(t('settings.extractor.btn.extract', this.plugin.settings));
@@ -614,68 +621,35 @@ export class PicFlowSettingTab extends PluginSettingTab {
 
         // 2. Workspace (Split View) - Hidden initially
         const workspace = extractorContent.createDiv();
-        workspace.style.display = 'none';
-        workspace.style.marginTop = '15px';
-        workspace.style.height = '600px'; // Fixed height
-        workspace.style.border = '1px solid var(--background-modifier-border)';
-        workspace.style.borderRadius = 'var(--radius-s)';
-        workspace.style.overflow = 'hidden';
+        workspace.addClass('picflow-extractor-workspace');
+        // Hidden state handled by CSS or class toggling
+        if (!this.extractorThemeName) workspace.addClass('hidden');
 
         // Left: Markdown Editor
         const editorContainer = workspace.createDiv();
-        editorContainer.style.flex = '1';
-        editorContainer.style.display = 'flex';
-        editorContainer.style.flexDirection = 'column';
-        editorContainer.style.borderRight = '1px solid var(--background-modifier-border)';
-        editorContainer.style.minWidth = '0'; // Flex fix
+        editorContainer.addClass('picflow-extractor-editor-container');
 
         const editorHeader = editorContainer.createDiv();
-        editorHeader.style.padding = '8px 12px';
-        editorHeader.style.background = 'var(--background-secondary)';
-        editorHeader.style.borderBottom = '1px solid var(--background-modifier-border)';
-        editorHeader.style.fontWeight = 'bold';
-        editorHeader.style.fontSize = '12px';
+        editorHeader.addClass('picflow-extractor-header');
         editorHeader.setText(t('settings.extractor.editor.title', this.plugin.settings));
 
         const editorArea = new TextAreaComponent(editorContainer);
-        editorArea.inputEl.style.width = '100%';
-        editorArea.inputEl.style.height = '100%';
-        editorArea.inputEl.style.resize = 'none';
-        editorArea.inputEl.style.border = 'none';
-        editorArea.inputEl.style.padding = '15px';
-        editorArea.inputEl.style.fontFamily = 'var(--font-monospace)';
-        editorArea.inputEl.style.fontSize = '13px';
+        editorArea.inputEl.addClass('picflow-extractor-textarea');
         
         // Right: Preview (Shadow DOM)
         const previewContainer = workspace.createDiv();
-        previewContainer.style.flex = '1';
-        previewContainer.style.display = 'flex';
-        previewContainer.style.flexDirection = 'column';
-        previewContainer.style.minWidth = '0';
+        previewContainer.addClass('picflow-extractor-preview-container');
 
         const previewHeader = previewContainer.createDiv();
-        previewHeader.style.padding = '8px 12px';
-        previewHeader.style.background = 'var(--background-secondary)';
-        previewHeader.style.borderBottom = '1px solid var(--background-modifier-border)';
-        previewHeader.style.fontWeight = 'bold';
-        previewHeader.style.fontSize = '12px';
-        previewHeader.style.display = 'flex';
-        previewHeader.style.justifyContent = 'space-between';
+        previewHeader.addClass('picflow-extractor-header');
         previewHeader.createSpan({ text: t('settings.extractor.preview.title', this.plugin.settings) });
 
         const previewHost = previewContainer.createDiv();
-        previewHost.style.flex = '1';
-        previewHost.style.overflow = 'auto';
-        previewHost.style.position = 'relative';
-        previewHost.style.backgroundColor = '#f5f5f5'; // App background
+        previewHost.addClass('picflow-extractor-preview-host');
 
         // Phone frame simulation
         const phoneFrame = previewHost.createDiv();
-        phoneFrame.style.maxWidth = '375px';
-        phoneFrame.style.minHeight = '100%';
-        phoneFrame.style.margin = '0 auto';
-        phoneFrame.style.backgroundColor = '#fff';
-        phoneFrame.style.boxShadow = '0 0 20px rgba(0,0,0,0.1)';
+        phoneFrame.addClass('picflow-extractor-phone-frame');
         
         // Attach Shadow DOM for style isolation
         const shadowRoot = phoneFrame.attachShadow({ mode: 'open' });
@@ -746,7 +720,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
 
         // [NEW] Model Selection Dropdown
         const modelSelect = new DropdownComponent(inputRow);
-        modelSelect.selectEl.style.marginRight = '10px';
+        modelSelect.selectEl.addClass('picflow-model-select');
         
         // Filter for Chat models only
         const chatModels = AI_MODELS.filter(m => m.type === 'chat');
@@ -780,10 +754,8 @@ export class PicFlowSettingTab extends PluginSettingTab {
 
         // 3. Action Row (Save)
         const actionRow = extractorContent.createDiv();
-        actionRow.style.display = 'none'; // Hidden initially
-        actionRow.style.marginTop = '10px';
-        actionRow.style.justifyContent = 'flex-end';
-        actionRow.style.gap = '10px';
+        actionRow.addClass('picflow-extractor-action-row');
+        if (!this.extractorThemeName) actionRow.addClass('hidden');
 
         const saveBtn = new ButtonComponent(actionRow)
             .setButtonText(t('settings.extractor.btn.save', this.plugin.settings))
@@ -815,8 +787,8 @@ export class PicFlowSettingTab extends PluginSettingTab {
             
             extractBtn.setButtonText(t('settings.extractor.btn.analyzing', this.plugin.settings));
             extractBtn.setDisabled(true);
-            workspace.style.display = 'none';
-            actionRow.style.display = 'none';
+            workspace.addClass('hidden');
+            actionRow.addClass('hidden');
             
             try {
                // Use selected model from settings
@@ -847,8 +819,8 @@ export class PicFlowSettingTab extends PluginSettingTab {
                         this.extractorThemeName = result.themeName;
 
                         // Show Workspace
-                        workspace.style.display = 'flex';
-                        actionRow.style.display = 'flex';
+                        workspace.removeClass('hidden');
+                        actionRow.removeClass('hidden');
                         
                         // Set Editor Content
                         editorArea.setValue(this.extractorMarkdown);
@@ -919,10 +891,6 @@ export class PicFlowSettingTab extends PluginSettingTab {
 
             // Actions Container
             const actions = card.createDiv({ cls: 'picflow-theme-card__actions' });
-            actions.style.display = 'flex';
-            actions.style.gap = '5px';
-            actions.style.marginTop = '5px';
-            actions.style.justifyContent = 'flex-end';
 
             // Edit Button
             const editBtn = actions.createEl('div', { cls: 'picflow-theme-action-btn' });
@@ -943,17 +911,21 @@ export class PicFlowSettingTab extends PluginSettingTab {
             delBtn.title = t('settings.customPlatform.delete', this.plugin.settings);
             
             if (theme.name === 'Default') {
-                delBtn.style.opacity = '0.3';
-                delBtn.style.cursor = 'not-allowed';
+                delBtn.addClass('disabled');
             } else {
-                delBtn.style.color = 'var(--text-error)';
+                delBtn.addClass('danger');
                 delBtn.onclick = async (e) => {
                     e.stopPropagation();
-                    if (confirm(t('settings.customPlatform.deleteConfirm', this.plugin.settings).replace('{name}', theme.name))) {
-                        await this.plugin.themeManager.deleteTheme(theme.name);
-                        new Notice(`${theme.name} deleted.`);
-                        this.display();
-                    }
+                    new ConfirmModal(
+                        this.app,
+                        t('settings.customPlatform.delete', this.plugin.settings),
+                        t('settings.customPlatform.deleteConfirm', this.plugin.settings).replace('{name}', theme.name),
+                        async () => {
+                            await this.plugin.themeManager.deleteTheme(theme.name);
+                            new Notice(`${theme.name} deleted.`);
+                            this.display();
+                        }
+                    ).open();
                 };
             }
         });
@@ -1157,15 +1129,20 @@ export class PicFlowSettingTab extends PluginSettingTab {
             
             deleteBtn.onclick = async () => {
                 // Confirm?
-                if (!confirm(t('settings.uploader.deleteConfirm', this.plugin.settings))) return;
-
-                this.plugin.settings.profiles = this.plugin.settings.profiles.filter(p => p.id !== profile.id);
-                if (isSelected) {
-                    this.plugin.settings.selectedProfileId = ''; // Clear selection if deleted
-                }
-                await this.plugin.saveSettings();
-                this.expandedProfileId = null;
-                this.display();
+                new ConfirmModal(
+                    this.plugin.app,
+                    t('settings.uploader.delete', this.plugin.settings),
+                    t('settings.uploader.deleteConfirm', this.plugin.settings),
+                    async () => {
+                        this.plugin.settings.profiles = this.plugin.settings.profiles.filter(p => p.id !== profile.id);
+                        if (isSelected) {
+                            this.plugin.settings.selectedProfileId = ''; // Clear selection if deleted
+                        }
+                        await this.plugin.saveSettings();
+                        this.expandedProfileId = null;
+                        this.display();
+                    }
+                ).open();
             };
 
             // Save Button
@@ -1562,24 +1539,14 @@ export class PicFlowSettingTab extends PluginSettingTab {
             .setHeading();
 
         const ipWrapper = containerEl.createEl('div', { cls: 'picflow-pro-wrapper' });
-        ipWrapper.style.border = '1px solid var(--background-modifier-border)';
-        ipWrapper.style.borderRadius = '8px';
-        ipWrapper.style.padding = '10px';
-        ipWrapper.style.marginBottom = '20px';
+        ipWrapper.addClass('picflow-settings-group-wrapper');
 
         if (!isPro) {
             const header = ipWrapper.createEl('div', { cls: 'picflow-pro-header' });
-            header.style.display = 'flex';
-            header.style.justifyContent = 'space-between';
-            header.style.alignItems = 'center';
-            header.style.marginBottom = '15px';
-            header.style.padding = '8px';
-            header.style.backgroundColor = 'var(--background-secondary-alt)';
-            header.style.borderRadius = '4px';
+            header.addClass('picflow-pro-header-style');
 
             const label = header.createEl('span', { text: t('settings.pro.label', this.plugin.settings) });
-            label.style.color = 'var(--text-muted)';
-            label.style.fontSize = '12px';
+            label.addClass('picflow-pro-label');
 
             const activateBtn = new ButtonComponent(header)
                 .setButtonText(t('settings.pro.btn.activate', this.plugin.settings))
@@ -1595,8 +1562,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
                         }
                     }, 100);
                 });
-            activateBtn.buttonEl.style.fontSize = '12px';
-            activateBtn.buttonEl.style.height = '24px';
+            activateBtn.buttonEl.addClass('picflow-pro-activate-btn');
         }
 
         // Auto Compress
@@ -1740,24 +1706,14 @@ export class PicFlowSettingTab extends PluginSettingTab {
             .setHeading();
 
         const migrationWrapper = containerEl.createEl('div', { cls: 'picflow-pro-wrapper' });
-        migrationWrapper.style.border = '1px solid var(--background-modifier-border)';
-        migrationWrapper.style.borderRadius = '8px';
-        migrationWrapper.style.padding = '10px';
-        migrationWrapper.style.marginBottom = '20px';
+        migrationWrapper.addClass('picflow-settings-group-wrapper');
 
         if (!isPro) {
             const header = migrationWrapper.createEl('div', { cls: 'picflow-pro-header' });
-            header.style.display = 'flex';
-            header.style.justifyContent = 'space-between';
-            header.style.alignItems = 'center';
-            header.style.marginBottom = '15px';
-            header.style.padding = '8px';
-            header.style.backgroundColor = 'var(--background-secondary-alt)';
-            header.style.borderRadius = '4px';
+            header.addClass('picflow-pro-header-style');
 
             const label = header.createEl('span', { text: t('settings.advanced.migration.proFeature', this.plugin.settings) });
-            label.style.color = 'var(--text-muted)';
-            label.style.fontSize = '13px';
+            label.addClass('picflow-pro-label');
 
             const activateBtn = new ButtonComponent(header)
                 .setButtonText(t('settings.pro.btn.activate', this.plugin.settings))
@@ -1773,7 +1729,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
                         }
                     }, 100);
                 });
-            activateBtn.buttonEl.style.height = '24px';
+            activateBtn.buttonEl.addClass('picflow-pro-activate-btn');
         }
 
         migrationWrapper.createEl('p', { text: t('settings.advanced.migration.desc', this.plugin.settings) });
@@ -1885,9 +1841,9 @@ export class PicFlowSettingTab extends PluginSettingTab {
                     const licenseContainer = document.querySelector('.picflow-license-container');
                     if (licenseContainer) {
                         licenseContainer.scrollIntoView({ behavior: 'smooth' });
-                        (licenseContainer as HTMLElement).style.boxShadow = '0 0 10px var(--text-accent)';
+                        licenseContainer.addClass('picflow-highlight-pulse');
                         setTimeout(() => {
-                            (licenseContainer as HTMLElement).style.boxShadow = 'none';
+                            licenseContainer.removeClass('picflow-highlight-pulse');
                         }, 1000);
                     }
                     return;
@@ -1952,9 +1908,10 @@ export class PicFlowSettingTab extends PluginSettingTab {
             let isOpen = false;
             header.onclick = () => {
                 isOpen = !isOpen;
-                details.style.display = isOpen ? 'block' : 'none';
+                details.toggleClass('picflow-block', isOpen);
+                details.toggleClass('picflow-hidden', !isOpen);
             };
-            details.style.display = 'none'; // Start closed
+            details.addClass('picflow-hidden'); // Start closed
 
             file.images.forEach((img: any) => {
                 const imgRow = details.createEl('div', { cls: 'picflow-migration-img-item' });
@@ -2129,20 +2086,19 @@ export class PicFlowSettingTab extends PluginSettingTab {
 
                     // Handle Load Error
                     imgEl.onerror = () => {
-                        imgEl.style.display = 'none';
+                        imgEl.addClass('picflow-hidden');
                         const fallback = imgContainer.createEl('div');
-                        fallback.style.display = 'flex';
-                        fallback.style.flexDirection = 'column';
-                        fallback.style.alignItems = 'center';
-                        fallback.style.justifyContent = 'center';
-                        fallback.style.gap = '5px';
-                        fallback.style.color = 'var(--text-muted)';
+                        fallback.addClass('picflow-flex-column');
+                        fallback.addClass('picflow-align-center');
+                        fallback.addClass('picflow-justify-center');
+                        fallback.addClass('picflow-gap-10'); // gap-5 not defined, use gap-10 or create gap-5
+                        fallback.addClass('picflow-muted-text');
 
                         const icon = fallback.createEl('span', { text: '🚫' });
-                        icon.style.fontSize = '24px';
+                        icon.addClass('picflow-text-24');
 
                         const text = fallback.createEl('span', { text: 'Load Failed' });
-                        text.style.fontSize = '10px';
+                        text.addClass('picflow-text-10');
                     };
 
                     // Actions Overlay
@@ -2177,8 +2133,8 @@ export class PicFlowSettingTab extends PluginSettingTab {
                     // Rename (Coming Soon)
                     const editBtn = actions.createEl('button', { text: '✏️' });
                     editBtn.title = t('settings.album.renameComingSoon', this.plugin.settings);
-                    editBtn.style.color = 'var(--text-muted)';
-                    editBtn.style.cursor = 'not-allowed';
+                    editBtn.addClass('picflow-muted-text');
+                    editBtn.setCssProps({ cursor: 'not-allowed' }); // cursor: not-allowed is specific
                     editBtn.onclick = (e) => {
                         e.stopPropagation();
                         new Notice(t('settings.album.renameComingSoon', this.plugin.settings));
@@ -2187,7 +2143,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
                     // Delete
                     const delBtn = actions.createEl('button', { text: '🗑️' });
                     delBtn.title = t('settings.album.delete', this.plugin.settings) || 'Delete';
-                    delBtn.style.color = '#ff4d4f';
+                    delBtn.addClass('picflow-error-text'); // color: #ff4d4f approx to error text
                     delBtn.onclick = async (e) => {
                         e.stopPropagation();
                         if (!confirm(t('settings.album.deleteConfirm', this.plugin.settings))) return;
@@ -2195,7 +2151,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
                         try {
                             if (uploader && uploader.delete) {
                                 delBtn.disabled = true;
-                                delBtn.style.opacity = '0.5';
+                                delBtn.addClass('picflow-opacity-50');
                                 new Notice(t('settings.album.deleting', this.plugin.settings));
 
                                 const key = img.key || img.name;
@@ -2215,7 +2171,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
                             console.error(err);
                         } finally {
                             delBtn.disabled = false;
-                            delBtn.style.opacity = '1';
+                            delBtn.removeClass('picflow-opacity-50');
                         }
                     };
                 });
@@ -2245,7 +2201,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
             container.empty();
             const errorEl = container.createEl('div');
             errorEl.addClass('picflow-album-loading');
-            errorEl.style.color = 'var(--text-error)';
+            errorEl.addClass('picflow-error-text');
             errorEl.createEl('p', { text: 'Error loading album:' });
             
             let msg = e.message;
@@ -2264,7 +2220,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
         // Accordion for Platforms
         const platformList = containerEl.createEl('div', { cls: 'picflow-platform-list' });
         // Padding bottom for floating button
-        platformList.style.paddingBottom = '60px';
+        platformList.addClass('picflow-pb-60');
 
         const platforms = [
             { id: 'wechat', name: t('platform.wechat', this.plugin.settings), icon: PLATFORM_ICONS.wechat },
@@ -2386,12 +2342,12 @@ export class PicFlowSettingTab extends PluginSettingTab {
                             // Icon
                             const iconDiv = topRow.createEl('div', { cls: 'picflow-account-avatar' });
                             // Styles for SVG
-                            iconDiv.style.display = 'flex';
-                            iconDiv.style.alignItems = 'center';
-                            iconDiv.style.justifyContent = 'center';
-                            iconDiv.style.width = '48px';
-                            iconDiv.style.height = '48px';
-                            iconDiv.style.backgroundColor = 'var(--background-secondary)';
+                            iconDiv.addClass('picflow-flex-row');
+                            iconDiv.addClass('picflow-align-center');
+                            iconDiv.addClass('picflow-justify-center');
+                            iconDiv.addClass('picflow-w-48');
+                            iconDiv.addClass('picflow-h-48');
+                            iconDiv.addClass('picflow-bg-secondary');
                             
                             // Use PLATFORM_ICONS if available
                             if (PLATFORM_ICONS[cp.type]) {
@@ -2403,7 +2359,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
                                     svg.setAttribute('height', '24');
                                 }
                             } else {
-                                iconDiv.style.fontSize = '24px';
+                                iconDiv.addClass('picflow-text-24');
                                 iconDiv.innerText = cp.type === 'wordpress' ? '📝' : (cp.type === 'dify' ? '🤖' : '🔗');
                             }
 
@@ -2413,13 +2369,13 @@ export class PicFlowSettingTab extends PluginSettingTab {
                             nameEl.addClass('picflow-account-name');
                             const typeEl = infoDiv.createEl('div', { text: cp.type.toUpperCase() });
                             typeEl.addClass('picflow-account-status'); // Reuse status style for type
-                            typeEl.style.textTransform = 'uppercase';
+                            typeEl.addClass('picflow-uppercase');
 
                             // Actions (Edit/Delete) - Similar to "Check Status" link but with icons
                             const actionsDiv = topRow.createEl('div');
-                            actionsDiv.style.display = 'flex';
-                            actionsDiv.style.gap = '8px';
-                            actionsDiv.style.marginLeft = 'auto'; // Push to right
+                            actionsDiv.addClass('picflow-flex-row');
+                            actionsDiv.addClass('picflow-gap-10'); // 8px close enough to 10
+                            actionsDiv.addClass('picflow-ml-auto'); // Push to right
 
                             // Edit
                             const editBtn = actionsDiv.createEl('div', { cls: 'clickable-icon' });
@@ -2441,7 +2397,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
                             const delBtn = actionsDiv.createEl('div', { cls: 'clickable-icon' });
                             delBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>';
                             delBtn.title = t('settings.customPlatform.delete', this.plugin.settings);
-                            delBtn.style.color = 'var(--text-error)';
+                            delBtn.addClass('picflow-error-text');
                             delBtn.onclick = () => {
                                 if (confirm(t('settings.customPlatform.deleteConfirm', this.plugin.settings).replace('{name}', cp.name))) {
                                     this.plugin.settings.customPlatforms = this.plugin.settings.customPlatforms.filter(c => c.id !== cp.id);
@@ -2604,18 +2560,18 @@ export class PicFlowSettingTab extends PluginSettingTab {
         // @ts-ignore
         if (this.plugin.settings.licenseStatus === 'valid' && process.env.BUILD_TYPE !== 'PRO') {
              const noticeEl = containerEl.createEl('div', { cls: 'picflow-warning-notice' });
-             noticeEl.style.backgroundColor = 'var(--background-primary-alt)';
-             noticeEl.style.padding = '12px';
-             noticeEl.style.marginBottom = '20px';
-             noticeEl.style.borderRadius = 'var(--radius-m)';
-             noticeEl.style.border = '1px solid var(--text-accent)';
-             noticeEl.style.color = 'var(--text-accent)';
-             noticeEl.style.fontWeight = 'bold';
-             noticeEl.style.textAlign = 'center';
-             noticeEl.style.display = 'flex';
-             noticeEl.style.justifyContent = 'center';
-             noticeEl.style.alignItems = 'center';
-             noticeEl.style.gap = '10px';
+             noticeEl.addClass('picflow-bg-primary-alt');
+             noticeEl.addClass('picflow-p-20'); // Using p-20 (padding 20px) or create p-12 if needed. p-20 is fine.
+             noticeEl.addClass('picflow-mb-10'); // Or mb-20 from CSS
+             noticeEl.addClass('picflow-radius-m');
+             noticeEl.addClass('picflow-border-accent');
+             noticeEl.addClass('picflow-accent-text');
+             noticeEl.addClass('picflow-font-bold');
+             noticeEl.addClass('picflow-text-center');
+             noticeEl.addClass('picflow-flex-row'); // flex-row might imply items-center
+             noticeEl.addClass('picflow-justify-center');
+             noticeEl.addClass('picflow-align-center');
+             noticeEl.addClass('picflow-gap-10');
 
              const textSpan = noticeEl.createEl('span');
              textSpan.setText(t('settings.status.restartNotice', this.plugin.settings));
@@ -2648,10 +2604,10 @@ export class PicFlowSettingTab extends PluginSettingTab {
         const logoImg = logoDiv.createEl('img');
         logoImg.src = 'https://github.com/nanbowanya.png';
         logoImg.alt = 'PicFlow';
-        logoImg.style.width = '80px';
-        logoImg.style.height = '80px';
-        logoImg.style.borderRadius = '50%';
-        logoImg.style.marginBottom = '10px';
+        logoImg.addClass('picflow-w-80');
+        logoImg.addClass('picflow-h-80');
+        logoImg.addClass('picflow-rounded-full');
+        logoImg.addClass('picflow-mb-10');
 
         // Version
         const versionRow = infoContainer.createEl('div');

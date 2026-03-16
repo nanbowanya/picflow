@@ -33,12 +33,11 @@ export class CustomPlatformModal extends Modal {
             contentEl.createEl('h2', { text: t('settings.pro.label', this.plugin.settings) });
             
             const noticeEl = contentEl.createDiv({ cls: 'picflow-warning-notice' });
-            noticeEl.style.padding = '20px';
-            noticeEl.style.textAlign = 'center';
-            noticeEl.style.display = 'flex';
-            noticeEl.style.flexDirection = 'column';
-            noticeEl.style.alignItems = 'center';
-            noticeEl.style.gap = '15px';
+            noticeEl.addClass('picflow-p-20');
+            noticeEl.addClass('picflow-text-center');
+            noticeEl.addClass('picflow-flex-column');
+            noticeEl.addClass('picflow-align-center');
+            noticeEl.addClass('picflow-gap-10'); // 15px close enough to 10 or add 15
 
             noticeEl.createEl('p', { text: t('settings.pro.desc', this.plugin.settings) });
 

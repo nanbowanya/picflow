@@ -35,7 +35,8 @@ export class CoverInputModal extends Modal {
         // Hidden file input
         const fileInput = contentEl.createEl('input', { type: 'file' });
         fileInput.accept = 'image/*';
-        fileInput.style.display = 'none';
+        fileInput.addClass('picflow-hidden');
+        // fileInput.style.display = 'none';
         
         fileInput.onchange = async (e) => {
             const files = (e.target as HTMLInputElement).files;

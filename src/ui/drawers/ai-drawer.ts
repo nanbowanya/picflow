@@ -1,15 +1,16 @@
 
-import { ButtonComponent, Notice, TextAreaComponent, MarkdownView, MarkdownRenderer, Setting, requestUrl } from "obsidian";
+import { ButtonComponent, Notice, TextAreaComponent, MarkdownView, MarkdownRenderer, Setting, requestUrl, Component } from "obsidian";
 import PicFlowPlugin from "../../../main";
 import { t } from "../../i18n";
-import { AIModel, AI_MODELS } from "../../ai/models";
-import { MessageBubble, ChatMessage } from "../../ai/chat/message-bubble";
-import { InputArea, QuoteMetadata } from "../../ai/chat/input-area";
+import { AIModel, AI_MODELS, ChatMessage, QuoteMetadata } from "../../ai/models";
+import { MessageBubble } from "../../ai/chat/message-bubble";
+import { InputArea } from "../../ai/chat/input-area";
 import { IAIService } from "../../interfaces";
 import { StubAIService } from "../../ai/stub-service";
 
 export class AIDrawer {
     plugin: PicFlowPlugin;
+    parentComponent: Component;
     container: HTMLElement;
     aiService: IAIService;
 
@@ -22,8 +23,9 @@ export class AIDrawer {
     inputArea: InputArea;
     messagesContainer: HTMLElement;
 
-    constructor(plugin: PicFlowPlugin, container: HTMLElement) {
+    constructor(plugin: PicFlowPlugin, parentComponent: Component, container: HTMLElement) {
         this.plugin = plugin;
+        this.parentComponent = parentComponent;
         this.container = container;
         
         // Dynamic load AI Service
@@ -74,7 +76,7 @@ export class AIDrawer {
         this.inputArea = new InputArea(
             this.plugin, 
             inputContainer, 
-            (prompt, model, quotes) => this.handleSend(prompt, model, quotes),
+            (prompt, model, quotes) => { this.handleSend(prompt, model, quotes).catch(console.error); },
             (model) => this.handleModelChange(model),
             () => this.handleStop() // Pass stop callback
         );
@@ -103,9 +105,10 @@ export class AIDrawer {
         this.messages.forEach(msg => {
             new MessageBubble(
                 this.plugin, 
+                this.parentComponent,
                 this.messagesContainer, 
                 msg,
-                () => this.handleRetry(msg)
+                () => { this.handleRetry(msg).catch(console.error); }
             ).render();
         });
         this.scrollToBottom();
@@ -153,9 +156,10 @@ export class AIDrawer {
         
         new MessageBubble(
             this.plugin, 
+            this.parentComponent,
             this.messagesContainer, 
             assistantMsg,
-            () => this.handleRetry(assistantMsg)
+            () => { this.handleRetry(assistantMsg).catch(console.error); }
         ).render();
         this.scrollToBottom();
 
@@ -288,6 +292,7 @@ export class AIDrawer {
         
         new MessageBubble(
             this.plugin, 
+            this.parentComponent,
             this.messagesContainer, 
             userMsg,
             () => {} // No retry on own message

@@ -1,4 +1,4 @@
-import { App, MarkdownView, Notice, TFile, Editor } from 'obsidian';
+import { App, MarkdownView, Notice, TFile, Editor, requestUrl } from 'obsidian';
 import * as crypto from 'crypto';
 import PicFlowPlugin from '../../main';
 import { ImageProcessor } from '../utils/image-processor';
@@ -157,10 +157,11 @@ export class UploadHandler {
 
         try {
             // 1. Download
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
-            const blob = await response.blob();
-            const buffer = await blob.arrayBuffer();
+            const response = await requestUrl({ url });
+            if (response.status >= 400) throw new Error(`Failed to fetch image: ${response.status}`);
+            
+            const buffer = response.arrayBuffer;
+            const contentType = response.headers['content-type'] || 'application/octet-stream';
 
             let filename = url.split('/').pop()?.split('?')[0];
             if (!filename || filename.length < 3) {
@@ -175,7 +176,7 @@ export class UploadHandler {
             }
 
             if (!filename.includes('.')) {
-                const type = blob.type.split('/')[1] || 'png';
+                const type = contentType.split('/')[1] || 'png';
                 filename += `.${type}`;
             }
 
@@ -186,7 +187,7 @@ export class UploadHandler {
             }
             const stableLastModified = Math.abs(urlHash) * 1000;
 
-            const file = new File([buffer], filename, { type: blob.type, lastModified: stableLastModified });
+            const file = new File([buffer], filename, { type: contentType, lastModified: stableLastModified });
 
             // 3. Upload
             if (returnUrlOnly) {

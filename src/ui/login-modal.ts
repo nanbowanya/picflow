@@ -79,10 +79,8 @@ export class LoginModal extends Modal {
         const { contentEl, modalEl } = this;
         
         // Adjust modal size for better visibility
-        modalEl.style.width = '80vw';
-        modalEl.style.height = '80vh';
-        modalEl.style.maxWidth = '1000px';
-        modalEl.style.maxHeight = '800px';
+        modalEl.addClass('picflow-modal-large');
+        // Styles moved to CSS class .picflow-modal-large
 
         contentEl.empty();
         contentEl.addClass('picflow-modal-content');
@@ -304,7 +302,7 @@ export class LoginModal extends Modal {
                     for (let i = 0; i < cookies.length; i++) {
                         const cookie = cookies[i];
                         const eqPos = cookie.indexOf("=");
-                        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                        const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
                         document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
                     }
                     localStorage.clear();

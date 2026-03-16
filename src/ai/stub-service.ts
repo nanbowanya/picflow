@@ -4,16 +4,17 @@ import { IAIService } from "../interfaces";
 import { AIModel } from "./models";
 
 export class StubAIService implements IAIService {
-    async generateImage(settings: any, modelOrOptions: any, prompt?: string): Promise<string | null> {
+    generateImage(settings: any, modelOrOptions: any, prompt?: string): Promise<string | null> {
         new Notice("AI Image Generation is a Pro feature. Please upgrade to unlock.");
         this.openSettings();
-        return null;
+        return Promise.resolve(null);
     }
 
-    async chatCompletionStream(settings: any, model: AIModel, history: any[], onChunk: (chunk: string) => void): Promise<void> {
+    chatCompletionStream(settings: any, model: AIModel, history: any[], onChunk: (chunk: string) => void, signal?: AbortSignal): Promise<void> {
         new Notice("AI Chat is a Pro feature. Please upgrade to unlock.");
         this.openSettings();
         onChunk("AI features are available in PicFlow Pro. Please upgrade to unlock.");
+        return Promise.resolve();
     }
 
     private openSettings() {

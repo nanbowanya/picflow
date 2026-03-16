@@ -11,7 +11,7 @@ export interface IAIManager {
 
 export interface IAIService {
     generateImage(settings: any, modelOrOptions: AIModel | any, prompt?: string): Promise<string | null>;
-    chatCompletionStream(settings: any, model: AIModel, history: any[], onChunk: (chunk: string) => void): Promise<void>;
+    chatCompletionStream(settings: any, model: AIModel, history: any[], onChunk: (chunk: string) => void, signal?: AbortSignal): Promise<void>;
 }
 
 export interface IPlatformPublisher {
@@ -57,6 +57,3 @@ export interface IThemeExtractorManager {
     saveTheme(name: string, css: string): Promise<void>;
 }
 
-export interface IAIService {
-    // Add methods as needed
-}

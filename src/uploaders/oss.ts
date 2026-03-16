@@ -3,6 +3,7 @@ import { S3Client, PutObjectCommand, HeadObjectCommand, ListObjectsV2Command, De
 import { OSSConfig, Uploader, UploadedImage } from "../settings";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 import * as https from "https";
+import * as http from "http";
 
 export class OSSUploader implements Uploader {
     private config: OSSConfig;
@@ -67,7 +68,7 @@ export class OSSUploader implements Uploader {
             httpsAgent: new https.Agent({
                 rejectUnauthorized: true // OSS usually has valid certs
             }),
-            httpAgent: new (require('http').Agent)()
+            httpAgent: new http.Agent()
         });
 
         // Determine Region

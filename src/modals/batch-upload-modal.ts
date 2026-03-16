@@ -92,38 +92,36 @@ export class BatchUploadModal extends Modal {
 
             // Status
             const statusDiv = row.createEl('div');
-            statusDiv.style.width = '100px';
-            statusDiv.style.textAlign = 'right';
+            statusDiv.addClass('picflow-batch-status-div');
+            // Styles moved to CSS class .picflow-batch-status-div
             
             if (img.status === 'pending') {
                 statusDiv.setText(t('batch.status.pending', this.plugin.settings));
-                statusDiv.style.color = 'var(--text-muted)';
+                statusDiv.addClass('picflow-muted-text');
             } else if (img.status === 'uploading') {
                 statusDiv.setText(t('batch.status.uploading', this.plugin.settings));
-                statusDiv.style.color = 'var(--text-accent)';
+                statusDiv.addClass('picflow-accent-text');
             } else if (img.status === 'success') {
                 statusDiv.setText(t('batch.status.success', this.plugin.settings));
-                statusDiv.style.color = 'var(--text-success)';
+                statusDiv.addClass('picflow-success-text');
             } else if (img.status === 'error') {
                 statusDiv.setText(t('batch.status.error', this.plugin.settings));
-                statusDiv.style.color = 'var(--text-error)';
+                statusDiv.addClass('picflow-error-text');
                 statusDiv.title = img.errorMsg || 'Unknown error';
             }
         });
 
         // Footer Actions
         const footer = contentEl.createEl('div');
-        footer.style.display = 'flex';
-        footer.style.justifyContent = 'space-between';
-        footer.style.alignItems = 'center';
-        footer.style.marginTop = '10px';
+        footer.addClass('picflow-batch-footer');
+        // Styles moved to CSS class .picflow-batch-footer
 
         const profileName = this.plugin.settings.profiles.find(p => p.id === this.plugin.settings.selectedProfileId)?.name || 'Unknown';
-        footer.createEl('span', { text: t('batch.footer.target', this.plugin.settings).replace('{name}', profileName) }).style.color = 'var(--text-muted)';
+        footer.createEl('span', { text: t('batch.footer.target', this.plugin.settings).replace('{name}', profileName) }).addClass('picflow-muted-text');
 
         const btnGroup = footer.createEl('div');
-        btnGroup.style.display = 'flex';
-        btnGroup.style.gap = '10px';
+        btnGroup.addClass('picflow-batch-btn-group');
+        // Styles moved to CSS class .picflow-batch-btn-group
 
         // Minimize / Background Button
         const minimizeBtn = btnGroup.createEl('button', { text: t('batch.btn.background', this.plugin.settings) });

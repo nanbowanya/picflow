@@ -1,4 +1,4 @@
-import { Editor, MarkdownView, Notice } from 'obsidian';
+import { Editor, MarkdownView, Notice, requestUrl } from 'obsidian';
 import PicFlowPlugin from '../../main';
 import { UploadHandler } from './upload-handler';
 import { ImageGenerationOptions } from '../ai/models';
@@ -13,16 +13,22 @@ export class EventHandler {
     constructor(plugin: PicFlowPlugin, uploadHandler: UploadHandler) {
         this.plugin = plugin;
         this.uploadHandler = uploadHandler;
+        // Default to Stub initially to ensure aiService is never undefined
+        this.aiService = new StubAIService();
+    }
 
+    async load() {
         // Dynamic load AI Service
         // @ts-ignore
         if (process.env.BUILD_TYPE === 'PRO') {
             try {
-                const { AIService } = require('../core/ai/service');
+                const { AIService } = await import('../core/ai/service');
                 // Wrap static methods to match interface
                 this.aiService = {
                     generateImage: AIService.generateImage,
-                    chatCompletionStream: AIService.chatCompletionStream
+                    chatCompletionStream: async (settings, model, history, onChunk) => {
+                        await AIService.chatCompletionStream(settings, model, history, onChunk);
+                    }
                 };
             } catch (e) {
                 console.error("Failed to load AIService:", e);
@@ -139,8 +145,8 @@ export class EventHandler {
 
             // 3. Download Image to Blob/File
             new Notice('Downloading generated image...');
-            const response = await fetch(imageUrl);
-            const blob = await response.blob();
+            const response = await requestUrl({ url: imageUrl });
+            const blob = new Blob([response.arrayBuffer], { type: response.headers['content-type'] });
 
             // 4. Upload to current profile
             const file = new File([blob], `ai-gen-${Date.now()}.png`, { type: 'image/png' });

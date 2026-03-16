@@ -437,7 +437,7 @@ export class PublishDrawer {
                 shadow.innerHTML = inlinedHtml;
             } catch (e) {
                 loading.setText('Error rendering: ' + e.message);
-                loading.style.color = 'red';
+                loading.addClass('picflow-error-text');
             }
 
         } else {
@@ -452,14 +452,13 @@ export class PublishDrawer {
     // Helper: Render Cover Image Control
     private renderCoverImageControl(container: HTMLElement, file: any) {
         const coverArea = container.createDiv({ cls: 'picflow-field-wrapper' });
-        coverArea.style.display = 'flex';
-        coverArea.style.flexDirection = 'column';
+        // Style handled by class
         
         // Removed Label as requested
         // this.createLabel(coverArea, t('publish.drawer.cover', this.plugin.settings));
         
         // Fixed height for cover preview
-        coverArea.style.height = '60px';
+        coverArea.addClass('picflow-h-60');
         
         // Get Metadata
         let coverUrl = '';
@@ -469,23 +468,13 @@ export class PublishDrawer {
         }
 
         // Cover Preview Box
-        const coverBox = coverArea.createDiv({ cls: 'picflow-cover-box' });
-        coverBox.style.width = '100%';
-        coverBox.style.height = '100%';
-        coverBox.style.borderRadius = '4px';
-        coverBox.style.border = '1px dashed var(--background-modifier-border)';
-        coverBox.style.display = 'flex';
-        coverBox.style.alignItems = 'center';
-        coverBox.style.justifyContent = 'center';
-        coverBox.style.cursor = 'pointer';
-        coverBox.style.overflow = 'hidden';
+        const coverBox = coverArea.createDiv({ cls: 'picflow-cover-preview-box' });
+        // Styles moved to CSS class .picflow-cover-preview-box
 
         if (coverUrl) {
             const img = coverBox.createEl('img');
             img.addClass('picflow-cover-image');
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'cover';
+            // Styles moved to CSS class .picflow-cover-image
             
             if (coverUrl.startsWith('data:')) {
                 img.src = coverUrl;
@@ -496,8 +485,8 @@ export class PublishDrawer {
             }
         } else {
             const icon = coverBox.createDiv({ text: '+' });
-            icon.style.fontSize = '20px';
-            icon.style.color = 'var(--text-muted)';
+            icon.addClass('picflow-cover-upload-icon');
+            // Styles moved to CSS class .picflow-cover-upload-icon
         }
 
         coverBox.onclick = () => {
@@ -516,22 +505,17 @@ export class PublishDrawer {
         const platform = this.platforms.find(p => p.id === this.selectedPlatformId);
         if (!platform) return;
 
-        const configArea = container.createDiv({ cls: 'publish-config-area' });
-        // Remove grid layout from configArea to allow flexible rows
-        configArea.style.display = 'flex';
-        configArea.style.flexDirection = 'column';
-        configArea.style.gap = '12px';
+        const configArea = container.createDiv({ cls: 'picflow-publish-config-area' });
+        // Styles moved to CSS class .picflow-publish-config-area
 
         // 1. Top Row: Cover (Optional) + Account Selector
         const topRow = configArea.createDiv({ cls: 'picflow-config-row' });
-        topRow.style.display = 'flex';
-        topRow.style.gap = '12px';
-        topRow.style.alignItems = 'flex-start'; // Align top
+        // Styles moved to CSS class .picflow-config-row
 
         // Cover Image (If platform supports it)
         if (platform.showCover) {
             const coverWrapper = topRow.createDiv({ cls: 'picflow-cover-wrapper' });
-            coverWrapper.style.width = '80px'; 
+            // Styles moved to CSS class .picflow-cover-wrapper
             
             const file = this.plugin.app.workspace.getActiveFile();
             this.renderCoverImageControl(coverWrapper, file);
@@ -554,7 +538,7 @@ export class PublishDrawer {
                 const config = this.plugin.settings.customPlatforms?.find(c => c.id === currentAccId);
                 if (config && config.type === 'wordpress') {
                     const coverWrapper = topRow.createDiv({ cls: 'picflow-cover-wrapper' });
-                    coverWrapper.style.width = '80px'; 
+                    // Styles moved to CSS class .picflow-cover-wrapper
                     const file = this.plugin.app.workspace.getActiveFile();
                     this.renderCoverImageControl(coverWrapper, file);
                 }
@@ -563,14 +547,13 @@ export class PublishDrawer {
 
         // Account Selector (Takes remaining space in top row)
         const accountWrapper = topRow.createDiv({ cls: 'picflow-field-wrapper' });
-        accountWrapper.style.flex = '1';
-        accountWrapper.style.display = 'flex';
-        accountWrapper.style.flexDirection = 'column';
+        accountWrapper.addClass('picflow-flex-1');
+        // Styles moved to CSS class .picflow-field-wrapper and utility class .picflow-flex-1
         
         this.createLabel(accountWrapper, t('publish.drawer.account'));
         const accDropdown = new DropdownComponent(accountWrapper);
         accDropdown.selectEl.addClass('picflow-field-select');
-        accDropdown.selectEl.style.width = '100%'; // Full width
+        // Styles moved to CSS class .picflow-field-select
         
         const accounts = this.plugin.accountManager.getAccounts(this.selectedPlatformId);
         if (accounts.length === 0) {
@@ -605,24 +588,21 @@ export class PublishDrawer {
 
         // 3. Dynamic Fields & Theme
         const fieldsContainer = configArea.createDiv({ cls: 'picflow-fields-grid' });
-        fieldsContainer.style.display = 'grid';
-        fieldsContainer.style.gridTemplateColumns = 'repeat(auto-fit, minmax(120px, 1fr))'; // Adjusted min-width
-        fieldsContainer.style.gap = '12px';
+        // Styles moved to CSS class .picflow-fields-grid
 
         // A. Inject Theme Control for WeChat (as first item in grid)
         if (this.selectedPlatformId === 'wechat') {
             const themeWrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
-            themeWrapper.style.display = 'flex';
-            themeWrapper.style.flexDirection = 'column';
+            // Styles moved to CSS class .picflow-field-wrapper
             
             this.createLabel(themeWrapper, t('publish.drawer.theme'));
             
             const themeControls = themeWrapper.createDiv({ cls: 'picflow-theme-control-group' });
-            themeControls.style.width = '100%';
+            // Styles moved to CSS class .picflow-theme-control-group
 
             const themeDropdown = new DropdownComponent(themeControls);
             themeDropdown.selectEl.addClass('picflow-field-select'); // Use same class as other selects
-            themeDropdown.selectEl.style.width = '100%';
+            // Styles moved to CSS class .picflow-field-select
             
             const populateThemes = () => {
                 themeDropdown.selectEl.empty();
@@ -651,15 +631,14 @@ export class PublishDrawer {
         // B. Platform Specific Fields
         platform.fields.forEach(field => {
             const wrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
-            wrapper.style.display = 'flex';
-            wrapper.style.flexDirection = 'column';
+            // Styles moved to CSS class .picflow-field-wrapper
             
             this.createLabel(wrapper, field.label);
 
             if (field.type === 'select') {
                 const dropdown = new DropdownComponent(wrapper);
                 dropdown.selectEl.addClass('picflow-field-select');
-                dropdown.selectEl.style.width = '100%';
+                // Styles moved to CSS class .picflow-field-select
                 
                 field.options?.forEach(opt => dropdown.addOption(opt, opt));
                 
@@ -678,7 +657,7 @@ export class PublishDrawer {
             } else if (field.type === 'text') {
                 const text = new TextComponent(wrapper);
                 text.inputEl.addClass('picflow-field-input');
-                text.inputEl.style.width = '100%';
+                // Styles moved to CSS class .picflow-field-input
                 if (field.placeholder) text.setPlaceholder(field.placeholder);
 
                 const file = this.plugin.app.workspace.getActiveFile();
@@ -721,12 +700,11 @@ export class PublishDrawer {
 
                 // 2. Tags Field
                 const tagsWrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
-                tagsWrapper.style.display = 'flex';
-                tagsWrapper.style.flexDirection = 'column';
+                // Styles moved to CSS class .picflow-field-wrapper
                 this.createLabel(tagsWrapper, 'Tags');
                 const tagsText = new TextComponent(tagsWrapper);
                 tagsText.inputEl.addClass('picflow-field-input');
-                tagsText.inputEl.style.width = '100%';
+                // Styles moved to CSS class .picflow-field-input
                 tagsText.setPlaceholder('Comma separated');
                 
                 if (file) {
@@ -747,15 +725,14 @@ export class PublishDrawer {
                 // 3. Category Field (Dynamic or Text)
                 const categories = this.categoryCache[this.selectedAccountId];
                 const catWrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
-                catWrapper.style.display = 'flex';
-                catWrapper.style.flexDirection = 'column';
+                // Styles moved to CSS class .picflow-field-wrapper
                 this.createLabel(catWrapper, 'Category');
 
                 if (categories && categories.length > 0) {
                     // Dropdown
                     const dropdown = new DropdownComponent(catWrapper);
                     dropdown.selectEl.addClass('picflow-field-select');
-                    dropdown.selectEl.style.width = '100%';
+                    // Styles moved to CSS class .picflow-field-select
                     categories.forEach(c => dropdown.addOption(c, c));
                     
                     if (file) {
@@ -771,7 +748,7 @@ export class PublishDrawer {
                     // Fallback Text Input
                     const catText = new TextComponent(catWrapper);
                     catText.inputEl.addClass('picflow-field-input');
-                    catText.inputEl.style.width = '100%';
+                    // Styles moved to CSS class .picflow-field-input
                     catText.setPlaceholder('Category name');
                     
                     if (file) {
@@ -787,13 +764,12 @@ export class PublishDrawer {
 
                 // 4. Publish Status (Draft vs Publish)
                 const statusWrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
-                statusWrapper.style.display = 'flex';
-                statusWrapper.style.flexDirection = 'column';
+                // Styles moved to CSS class .picflow-field-wrapper
                 this.createLabel(statusWrapper, 'Status');
                 
                 const statusDropdown = new DropdownComponent(statusWrapper);
                 statusDropdown.selectEl.addClass('picflow-field-select');
-                statusDropdown.selectEl.style.width = '100%';
+                // Styles moved to CSS class .picflow-field-select
                 statusDropdown.addOption('draft', 'Draft (草稿)');
                 statusDropdown.addOption('publish', 'Publish (直接发布)');
                 
@@ -823,13 +799,12 @@ export class PublishDrawer {
                 // MCP Tools Selector
                 const tools = this.toolCache[this.selectedAccountId];
                 const toolWrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
-                toolWrapper.style.display = 'flex';
-                toolWrapper.style.flexDirection = 'column';
+                // Styles moved to CSS class .picflow-field-wrapper
                 this.createLabel(toolWrapper, 'MCP Tool');
 
                 const dropdown = new DropdownComponent(toolWrapper);
                 dropdown.selectEl.addClass('picflow-field-select');
-                dropdown.selectEl.style.width = '100%';
+                // Styles moved to CSS class .picflow-field-select
                 
                 // Add default "Auto" option
                 dropdown.addOption('', 'Auto Detect');
@@ -956,7 +931,7 @@ export class PublishDrawer {
             cls: 'setting-item-name'
         });
         el.addClass('picflow-field-label');
-        el.style.marginBottom = '4px'; 
+        el.addClass('picflow-mb-4');
     }
 
     private refreshPreview() {
@@ -1008,19 +983,7 @@ export class PublishDrawer {
                 new Notice(t('publish.drawer.richTextCopied'));
             } catch (err) {
                 console.error('Clipboard API failed:', err);
-                try {
-                    const listener = (e: ClipboardEvent) => {
-                        e.clipboardData?.setData('text/html', inlinedHtml);
-                        e.clipboardData?.setData('text/plain', contentBody);
-                        e.preventDefault();
-                    };
-                    document.addEventListener('copy', listener);
-                    document.execCommand('copy');
-                    document.removeEventListener('copy', listener);
-                    new Notice(t('publish.drawer.richTextCopied'));
-                } catch (e2) {
-                    new Notice(t('publish.drawer.copied'));
-                }
+                new Notice('Copy failed. Please select and copy manually.');
             }
         } else {
             navigator.clipboard.writeText(markdown);

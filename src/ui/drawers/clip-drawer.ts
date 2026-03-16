@@ -56,8 +56,8 @@ export class ClipDrawer {
                 this.clipUrl = value;
             });
         urlInput.inputEl.rows = 3;
-        urlInput.inputEl.style.width = "100%";
-        urlInput.inputEl.style.resize = "vertical";
+        urlInput.inputEl.addClass('picflow-w-100');
+        urlInput.inputEl.addClass('picflow-resize-vertical');
 
         // Preview Area
         if (this.clipResult && !this.clipIsFetching) {
@@ -100,7 +100,7 @@ export class ClipDrawer {
             .onClick(async () => {
                 await this.handlePreview(previewBtn);
             });
-        previewBtn.buttonEl.style.flex = "1";
+        previewBtn.buttonEl.addClass('picflow-flex-1');
 
         const clipBtn = new ButtonComponent(footer)
             .setButtonText(this.clipIsFetching ? t('sidebar.clip.processing', this.plugin.settings) : t('sidebar.clip.clipBtn', this.plugin.settings))
@@ -109,7 +109,7 @@ export class ClipDrawer {
             .onClick(async () => {
                 await this.handleClipToNote(clipBtn);
             });
-        clipBtn.buttonEl.style.flex = "1";
+        clipBtn.buttonEl.addClass('picflow-flex-1');
     }
 
     showProNotice() {
