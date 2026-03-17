@@ -24,7 +24,7 @@ export class LocalImageServer {
     async start(): Promise<void> {
         if (this.isRunning) return;
 
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
             this.server = http.createServer(async (req, res) => {
                 // 1. Parse URL
                 const url = req.url || '';
@@ -55,19 +55,14 @@ export class LocalImageServer {
                         res.writeHead(404);
                         res.end('File Not Found');
                     }
-                } catch (e) {
+                } catch (_e) {
                     res.writeHead(500);
                     res.end('Internal Error');
                 }
             });
 
-            this.server.on('error', (e: any) => {
-                if (e.code === 'EADDRINUSE') {
-                    this.port++;
-                    this.server?.listen(this.port, '0.0.0.0'); // Retry
-                } else {
-                    reject(e);
-                }
+            this.server.on('error', (_e) => {
+                // console.error("Server error:", e);
             });
 
             // Listen on 0.0.0.0 to allow external access (including from Docker)
@@ -83,7 +78,11 @@ export class LocalImageServer {
      */
     stop() {
         if (this.server) {
-            this.server.close();
+            try {
+                this.server.close();
+            } catch (_e) {
+                // ignore
+            }
             this.server = null;
         }
         this.isRunning = false;
@@ -144,22 +143,18 @@ export class LocalImageServer {
     async downloadRemoteImage(url: string, tempDir: string): Promise<string> {
         // Simple download implementation using Obsidian requestUrl or fetch
         // Returns absolute path to downloaded file
-        try {
-            const response = await requestUrl({ url });
-            const buffer = response.arrayBuffer;
-            const fileName = `temp_${Date.now()}_${Math.random().toString(36).substring(7)}.png`;
-            const filePath = path.join(tempDir, fileName);
-            
-            // Ensure temp dir exists
-            if (!fs.existsSync(tempDir)) {
-                fs.mkdirSync(tempDir, { recursive: true });
-            }
-            
-            fs.writeFileSync(filePath, Buffer.from(buffer));
-            return filePath;
-        } catch (e) {
-            throw e;
+        const response = await requestUrl({ url });
+        const buffer = response.arrayBuffer;
+        const fileName = `temp_${Date.now()}_${Math.random().toString(36).substring(7)}.png`;
+        const filePath = path.join(tempDir, fileName);
+        
+        // Ensure temp dir exists
+        if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
         }
+        
+        fs.writeFileSync(filePath, Buffer.from(buffer));
+        return filePath;
     }
 }
 

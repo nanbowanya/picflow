@@ -1,5 +1,5 @@
 import { PicFlowSettings, Uploader, UploadedImage } from "../settings";
-import { requestUrl, arrayBufferToBase64, Notice, RequestUrlParam } from "obsidian";
+import { requestUrl, arrayBufferToBase64 } from "obsidian";
 
 export class GitHubUploader implements Uploader {
 	private settings: PicFlowSettings;
@@ -31,12 +31,7 @@ export class GitHubUploader implements Uploader {
 		let exists = false;
 
 		try {
-			const checkReq: RequestUrlParam = {
-				url: apiUrl + `?ref=${branch}`,
-				method: "GET",
-				headers: headers,
-				throw: false
-			};
+			// const _checkReq: RequestUrlParam = { ... } // Unused
 			
 			if (proxyUrl && proxyUrl.startsWith("http")) {
                 // If using proxy, URL might need adjustment or we trust requestUrl handles it if we replace the domain?
@@ -57,7 +52,8 @@ export class GitHubUploader implements Uploader {
 				exists = true;
 				sha = checkResp.json.sha;
 			}
-		} catch (e) {
+		} catch (_e) {
+            // ignore
 		}
 
 		// Handle Upload Strategy

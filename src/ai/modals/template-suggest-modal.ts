@@ -1,5 +1,5 @@
 
-import { App, SuggestModal, MarkdownView, Editor, Notice } from 'obsidian';
+import { App, SuggestModal, Editor, Notice } from 'obsidian';
 import PicFlowPlugin from '../../../main';
 import { AIPromptTemplate } from '../prompts';
 import { VIEW_TYPE_PICFLOW_SIDEBAR, PicFlowSidebarView } from '../../ui/sidebar';
@@ -29,7 +29,7 @@ export class TemplateSuggestModal extends SuggestModal<AIPromptTemplate> {
         el.createEl("small", { text: template.description });
     }
 
-    onChooseSuggestion(template: AIPromptTemplate, evt: MouseEvent | KeyboardEvent) {
+    onChooseSuggestion(template: AIPromptTemplate, _evt: MouseEvent | KeyboardEvent) {
         const selection = this.editor.getSelection();
         if (!selection) {
             new Notice(t('ai.chat.notice.noSelection'));

@@ -1,4 +1,4 @@
-import { ButtonComponent, Notice, TextAreaComponent, MarkdownView, MarkdownRenderer, Setting } from "obsidian";
+import { ButtonComponent, Notice, TextAreaComponent, MarkdownView, MarkdownRenderer } from "obsidian";
 import PicFlowPlugin from "../../../main";
 import { t } from "../../i18n";
 import { ClipResult, IClipManager } from "../../interfaces";
@@ -23,18 +23,23 @@ export class ClipDrawer {
         this.container = container;
         this.parentComponent = parentComponent;
         
+        // Initialize with Stub
+        this.clipManager = new StubClipManager();
+
         // Dynamic load Clip Manager
+        this.loadClipManager();
+    }
+
+    async loadClipManager() {
         // @ts-ignore
         if (process.env.BUILD_TYPE === 'PRO') {
             try {
-                const { ClipManager } = require('../../core/managers/clip-manager');
-                this.clipManager = new ClipManager(plugin);
+                const { ClipManager } = await import('../../core/managers/clip-manager');
+                this.clipManager = new ClipManager(this.plugin);
             } catch (e) {
                 console.error("Failed to load ClipManager:", e);
                 this.clipManager = new StubClipManager();
             }
-        } else {
-            this.clipManager = new StubClipManager();
         }
     }
 
@@ -294,7 +299,7 @@ export class ClipDrawer {
                 let filename = (this.clipResult.title || "Untitled Clip").replace(/[\\/:*?"<>|]/g, "").trim() || "Untitled Clip";
                 const contentToInsert = `# [${this.clipResult.title}](${this.clipResult.url})\n\n${this.clipResult.markdown}`;
 
-                let fileExists = this.plugin.app.vault.getAbstractFileByPath(`${filename}.md`);
+                const fileExists = this.plugin.app.vault.getAbstractFileByPath(`${filename}.md`);
                 if (fileExists) {
                     filename = `${filename} ${Date.now()}`;
                 }

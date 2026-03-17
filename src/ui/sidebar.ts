@@ -28,19 +28,11 @@ export class PicFlowSidebarView extends ItemView {
         this.plugin = plugin;
         this.themeManager = new ThemeManager(plugin);
         
+        // Initialize with Stub first
+        this.htmlRenderer = new StubHtmlRenderer(plugin.app);
+        
         // Dynamic loading of HtmlRenderer
-        // @ts-ignore
-        if (process.env.BUILD_TYPE === 'PRO') {
-            try {
-                const { HtmlRenderer } = require('../core/publishers/renderer');
-                this.htmlRenderer = new HtmlRenderer(plugin.app, this.themeManager);
-            } catch (e) {
-                console.error("Failed to load HtmlRenderer:", e);
-                this.htmlRenderer = new StubHtmlRenderer(plugin.app);
-            }
-        } else {
-            this.htmlRenderer = new StubHtmlRenderer(plugin.app);
-        }
+        this.loadHtmlRenderer();
 
         // Drawer initialization requires their parent containers
         // Create an empty container div as placeholder until render() is called
@@ -48,6 +40,23 @@ export class PicFlowSidebarView extends ItemView {
         this.publishDrawer = new PublishDrawer(plugin, dummyContainer, this.themeManager, this.htmlRenderer);
         this.clipDrawer = new ClipDrawer(plugin, dummyContainer, this);
         this.aiDrawer = new AIDrawer(plugin, this, dummyContainer);
+    }
+
+    async loadHtmlRenderer() {
+        // @ts-ignore
+        if (process.env.BUILD_TYPE === 'PRO') {
+            try {
+                const { HtmlRenderer } = await import('../core/publishers/renderer');
+                this.htmlRenderer = new HtmlRenderer(this.plugin.app, this.themeManager);
+                // Update reference in publishDrawer
+                if (this.publishDrawer) {
+                    this.publishDrawer.htmlRenderer = this.htmlRenderer;
+                }
+            } catch (e) {
+                console.error("Failed to load HtmlRenderer:", e);
+                // Keep Stub
+            }
+        }
     }
 
     getViewType() {

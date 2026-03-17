@@ -93,12 +93,28 @@ export class EventHandler {
         }
     }
 
+    private isImageFile(file: File): boolean {
+        return file.type.startsWith('image/');
+    }
+
+    private async handleFiles(files: File[], view: MarkdownView): Promise<void> {
+        try {
+            for (const file of files) {
+                if (this.isImageFile(file)) {
+                     await this.uploadHandler.uploadImage(file, view);
+                }
+            }
+        } catch (_e) {
+             // ignore
+        }
+    }
+
     isImageUrl(url: string): boolean {
         try {
             const parsed = new URL(url);
             const path = parsed.pathname.toLowerCase();
             return /\.(png|jpg|jpeg|gif|webp|svg|bmp)$/.test(path);
-        } catch (e) {
+        } catch (_e) {
             return false;
         }
     }

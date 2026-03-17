@@ -1,4 +1,4 @@
-import { App, Modal, Notice, Setting, requestUrl, RequestUrlParam } from 'obsidian';
+import { App, Modal, Notice } from 'obsidian';
 import { Account } from '../managers/account-manager';
 import PicFlowPlugin from '../../main';
 
@@ -33,9 +33,9 @@ export abstract class Platform {
 
     /**
      * Checks if the session (cookies) is still valid.
-     * @param account The account to check
+     * @param _account The account to check
      */
-    async checkSession(account: Account): Promise<boolean> {
+    async checkSession(_account: Account): Promise<boolean> {
         return true; // Default to true if not implemented
     }
 
@@ -54,7 +54,7 @@ export abstract class Platform {
     /**
      * Optional: Extract user info from the page after login.
      */
-    async getUserInfo(win: any): Promise<any> {
+    async getUserInfo(_win: any): Promise<any> {
         return { name: 'Unknown User' };
     }
 }
@@ -115,7 +115,7 @@ export class LoginModal extends Modal {
                     this.confirmBtn.disabled = false;
                     this.confirmBtn.setText('I have logged in');
                 }
-            } catch (e) {
+            } catch (_e) {
                 // console.error('Login confirm error:', e);
                 new Notice('Error verifying login.');
                 this.confirmBtn.disabled = false;
@@ -166,7 +166,7 @@ export class LoginModal extends Modal {
             if (result && result.success) {
                 // Capture cookies
                 let cookies = [];
-                let methodUsed = '';
+                // let methodUsed = '';
                 
                 // Method 1: standard webview API
                 try {
@@ -198,16 +198,17 @@ export class LoginModal extends Modal {
                              cookies = await session.cookies.get({});
                          }
                          
-                         methodUsed = 'Standard API';
+                         // methodUsed = 'Standard API';
                     } else {
                         throw new Error('getWebContents not available');
                     }
-                } catch (err) {
+                } catch (_err) {
                     // // console.warn('[PicFlow] Method 1 failed (Standard API):', err.message);
                     
                     // Method 2: remote module
                     try {
                          // @ts-ignore
+                         // eslint-disable-next-line @typescript-eslint/no-require-imports
                          const remote = require('@electron/remote');
                          const webContents = remote.webContents.fromId(this.webview.getWebContentsId());
                          const session = webContents.session;
@@ -230,7 +231,7 @@ export class LoginModal extends Modal {
                                  'card.weibo.com', 'passport.weibo.com', 'login.sina.com.cn'
                              ];
                              
-                             let allCookies = [];
+                             const allCookies = [];
                              for (const d of domains) {
                                  const c = await session.cookies.get({ domain: d });
                                  allCookies.push(...c);
@@ -248,8 +249,8 @@ export class LoginModal extends Modal {
                          } else {
                              cookies = await session.cookies.get({});
                          }
-                         methodUsed = 'Remote API';
-                    } catch (err2) {
+                         // methodUsed = 'Remote API';
+                    } catch (_err2) {
                         // // console.warn('[PicFlow] Method 2 failed (Remote API):', err2.message);
                         
                         // Method 3: execute Javascript (Fallback)
@@ -260,9 +261,9 @@ export class LoginModal extends Modal {
                                     const [name, value] = c.split('=').map((s: string) => s.trim());
                                     return { name, value };
                                 });
-                                methodUsed = 'JS Injection';
+                                // methodUsed = 'JS Injection'; // Unused
                             }
-                        } catch (err3) {
+                        } catch (_err3) {
                             // console.error('[PicFlow] All cookie capture methods failed', err3);
                         }
                     }
@@ -287,7 +288,7 @@ export class LoginModal extends Modal {
                     new Notice('Login not detected yet. Please login first.');
                 }
             }
-        } catch (e) {
+        } catch (_e) {
             // console.error("[PicFlow] Error checking login status:", e);
         }
     }
@@ -315,7 +316,7 @@ export class LoginModal extends Modal {
                  // @ts-ignore
                  const session = this.webview.getWebContents().session;
                  await session.clearStorageData();
-             } catch(e) { 
+             } catch(_e) { 
                  // console.warn('Failed to clear session storage', e); 
              }
 
@@ -324,7 +325,7 @@ export class LoginModal extends Modal {
              this.confirmBtn.setText('I have logged in');
              this.confirmBtn.classList.remove('mod-success');
              new Notice('Logged out. Please login again.');
-        } catch(e) {
+        } catch(_e) {
             // console.error('Logout failed', e);
             new Notice('Logout failed. Please try again.');
         }
@@ -334,5 +335,14 @@ export class LoginModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
         if (this.checkInterval) clearInterval(this.checkInterval);
+
+        try {
+            // Try to clear data if possible
+            if (this.webview) {
+                // ...
+            }
+        } catch (_e) {
+            // Ignore
+        }
     }
 }

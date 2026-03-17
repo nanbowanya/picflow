@@ -1,4 +1,4 @@
-import { App, Modal, Setting, TextAreaComponent, Notice } from "obsidian";
+import { App, Modal, TextAreaComponent } from 'obsidian';
 import PicFlowPlugin from "../../../main";
 import { t } from "../../i18n";
 

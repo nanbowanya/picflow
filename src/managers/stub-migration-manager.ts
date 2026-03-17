@@ -15,12 +15,13 @@ export class StubMigrationManager implements IMigrationManager {
         this.app = plugin.app;
     }
 
-    async scanVault(includeRemote: boolean = false): Promise<any[]> {
+    async scanVault(_includeRemote: boolean = false): Promise<any[]> {
         new Notice('🔒 This feature is available in Pro version.');
-        return [];
+        return Promise.resolve([]);
     }
 
-    async startMigration(targetProfileId: string): Promise<void> {
+    async startMigration(_targetProfileId: string): Promise<void> {
         new Notice('🔒 This feature is available in Pro version.');
+        return Promise.resolve();
     }
 }

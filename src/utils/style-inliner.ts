@@ -65,7 +65,7 @@ export class StyleInliner {
                             }
                         });
                     });
-                } catch (e) {
+                } catch (_e) {
                     // Ignore invalid selectors
                     console.warn('Invalid selector in theme:', trimmedSelector);
                 }

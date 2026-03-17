@@ -1,4 +1,4 @@
-import { App, MarkdownView, Notice, setIcon, TFile } from 'obsidian';
+import { App, MarkdownView, Notice, TFile } from 'obsidian';
 // @ts-ignore
 import PicFlowPlugin from '../main';
 import { t } from '../i18n';
@@ -136,7 +136,7 @@ export class BatchUploadManager {
             const parsed = new URL(url);
             const path = parsed.pathname.toLowerCase();
             return /\.(png|jpg|jpeg|gif|webp|svg|bmp)$/.test(path);
-        } catch (e) {
+        } catch (_e) {
             return false;
         }
     }

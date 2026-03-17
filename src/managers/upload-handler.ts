@@ -1,4 +1,4 @@
-import { App, MarkdownView, Notice, TFile, Editor, requestUrl } from 'obsidian';
+import { App, MarkdownView, Notice, TFile, requestUrl } from 'obsidian';
 import * as crypto from 'crypto';
 import PicFlowPlugin from '../../main';
 import { ImageProcessor } from '../utils/image-processor';
@@ -8,7 +8,7 @@ import { OSSUploader } from '../uploaders/oss';
 import { GitHubUploader } from '../uploaders/github';
 import { WebDAVUploader } from '../uploaders/webdav';
 import { SFTPUploader } from '../uploaders/sftp';
-import { ImageGenerationOptions } from '../ai/models';
+// import { ImageGenerationOptions } from '../ai/models';
 
 export class UploadHandler {
     plugin: PicFlowPlugin;
@@ -133,7 +133,7 @@ export class UploadHandler {
             } else if (typeof error === 'object' && error !== null) {
                 try {
                     errorMessage = JSON.stringify(error);
-                } catch (e) {
+                } catch (_e) {
                     errorMessage = String(error);
                 }
             }
@@ -172,7 +172,7 @@ export class UploadHandler {
                 }
                 filename = `image-${Math.abs(hash)}.png`;
             } else {
-                try { filename = decodeURIComponent(filename); } catch (e) { }
+                try { filename = decodeURIComponent(filename); } catch (_e) { /* ignore */ }
             }
 
             if (!filename.includes('.')) {
@@ -228,7 +228,7 @@ export class UploadHandler {
         const extension = originalName.slice((originalName.lastIndexOf(".") - 1 >>> 0) + 2);
         const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName;
 
-        let format = this.plugin.settings.imageNameFormat || '{Y}{M}{D}{h}{m}{s}-{filename}';
+        const format = this.plugin.settings.imageNameFormat || '{Y}{M}{D}{h}{m}{s}-{filename}';
 
         // 1. Time Replacement
         let newName = format

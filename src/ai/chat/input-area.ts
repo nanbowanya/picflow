@@ -1,9 +1,9 @@
 
-import { DropdownComponent, TextAreaComponent, ButtonComponent, setIcon, Notice, MarkdownView, Menu } from "obsidian";
+import { DropdownComponent, ButtonComponent, setIcon, Notice, MarkdownView, Menu } from "obsidian";
 import { t } from "../../i18n";
 import { AI_MODELS, AIModel, DEFAULT_CHAT_MODEL, QuoteMetadata } from "../models";
 import { DEFAULT_PROMPTS } from "../prompts";
-import { getActiveEditor, getActiveMarkdownView } from "../../utils/editor";
+import { getActiveMarkdownView } from "../../utils/editor";
 import PicFlowPlugin from "../../../main";
 
 export class InputArea {
@@ -362,7 +362,7 @@ export class InputArea {
     private applyTemplate(templateContent: string) {
         const view = getActiveMarkdownView(this.plugin.app);
         
-        let nodesToInsert: Node[] = [];
+        const nodesToInsert: Node[] = [];
         
         if (templateContent.includes("{{selection}}")) {
              // Try to get quote from selection

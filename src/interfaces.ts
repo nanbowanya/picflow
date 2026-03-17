@@ -1,5 +1,5 @@
 
-import { App, Plugin, TFile, MarkdownView } from 'obsidian';
+import { TFile, MarkdownView } from 'obsidian';
 
 import { AIModel, QuoteMetadata, ChatMessage } from './ai/models';
 

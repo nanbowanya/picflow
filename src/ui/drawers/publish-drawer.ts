@@ -1,12 +1,12 @@
-import { ButtonComponent, DropdownComponent, Notice, Setting, TextAreaComponent, TextComponent, MarkdownView, MarkdownRenderer, Component, ToggleComponent } from "obsidian";
+import { Notice, DropdownComponent, MarkdownRenderer, ButtonComponent, TextComponent, ToggleComponent, MarkdownView, Component } from "obsidian";
 import PicFlowPlugin from "../../../main";
-import { t } from "../../i18n";
 import { ThemeManager } from "../../managers/theme-manager";
 import { IHtmlRenderer } from "../../interfaces";
-import { PlatformRegistry } from "../../platforms";
+// import { PlatformRegistry } from "../../platforms"; // Unused
+import { t } from "../../i18n";
 import { FrontmatterParser } from "../../utils/frontmatter-parser";
 
-import { StyleInliner } from "../../utils/style-inliner";
+// import { StyleInliner } from "../../utils/style-inliner";
 import { CoverInputModal } from "../modals/cover-input-modal";
 
 export interface PlatformConfig {
@@ -60,6 +60,7 @@ export class PublishDrawer {
             name: t('platform.wechat', this.plugin.settings),
             icon: 'message-square',
             type: 'html',
+            inlineStyle: true,
             showCover: true, // Needed for article type
             url: 'https://mp.weixin.qq.com/',
             fields: [
@@ -337,7 +338,7 @@ export class PublishDrawer {
                     // Try to fetch categories if not cached
                     if (!this.categoryCache[account.id]) {
                         try {
-                            const { WordPressPublisher } = require('../../core/publishers/wordpress-publisher');
+                            const { WordPressPublisher } = await import('../../core/publishers/wordpress-publisher');
                             const publisher = new WordPressPublisher(this.plugin, config.wordpress);
                             if (publisher.getCategories) {
                                 new Notice('Fetching WordPress categories...');
@@ -356,7 +357,7 @@ export class PublishDrawer {
                     if (!this.toolCache[account.id]) {
                         try {
                             // @ts-ignore
-                            const { MCPPublisher } = require('../../core/publishers/mcp-publisher');
+                            const { MCPPublisher } = await import('../../core/publishers/mcp-publisher');
                             const publisher = new MCPPublisher(this.plugin, config.mcp);
                             if (publisher.getTools) {
                                 new Notice('Fetching MCP tools...'); 
@@ -408,14 +409,16 @@ export class PublishDrawer {
         // For WeChat, we usually strip frontmatter.
         const contentBody = markdown.replace(/^---\n[\s\S]*?\n---\n/, '');
 
-        // Only WeChat needs the custom HTML + Theme preview
-        if (platform.id === 'wechat') {
+        // Use HTML Preview for all HTML-type platforms (WeChat, Bilibili, etc.)
+        if (platform.type === 'html') {
             // HTML Renderer (WeChat style)
             const wrapper = container.createDiv({ cls: 'picflow-preview-html-wrapper' });
             
             const loading = wrapper.createEl('div', { text: 'Rendering preview...' });
 
             try {
+                // Determine theme to use.
+                // For non-inline platforms (like Bilibili/Zhihu), we still render HTML but use 'Default' theme or current if needed.
                 const html = await this.htmlRenderer.render(contentBody, this.currentTheme);
                 loading.remove();
 
@@ -423,18 +426,56 @@ export class PublishDrawer {
                 const shadowHost = wrapper.createDiv();
                 const shadow = shadowHost.attachShadow({ mode: 'open' });
 
-                // For Preview: We need to inject styles because Shadow DOM stops global styles
-                // AND we want to simulate the "Inlined" look only if the platform needs it.
-                // We have two choices: 
-                // 1. Inline the styles (like we do for copy/publish)
-                // 2. Inject <style> tag (easier for preview performance)
+                // Inject Theme CSS ONLY if the platform supports/needs it (inlineStyle is true)
+                // OR if it's an HTML platform that we want to look styled.
+                // But user requested "no theme selection for others", so we should only apply theme if it's WeChat.
+                // Actually, if we render HTML, we need SOME base styles or it looks broken.
+                // But for Zhihu/Bilibili, maybe we should just render clean HTML?
+                // Let's stick to the plan: Render HTML, but only apply the Theme CSS if inlineStyle is true (WeChat).
+                
+                if (platform.inlineStyle) {
+                    const themeConfig = this.themeManager.getTheme(this.currentTheme);
+                    if (themeConfig) {
+                        const styleEl = document.createElement('style');
+                        styleEl.textContent = themeConfig.css;
+                        shadow.appendChild(styleEl);
+                    }
+                } else {
+                    // For other HTML platforms, maybe inject a minimal reset or default obsidian-like style?
+                    // Or just let it be raw HTML with default browser styles?
+                    // The user wants "Preview = Publish".
+                    // If Zhihu publishes HTML, it will be rendered by Zhihu's CSS on their site.
+                    // We can't replicate Zhihu's CSS easily.
+                    // But displaying raw unstyled HTML is better than Markdown if we are sending HTML.
+                    // However, raw HTML might look ugly (Times New Roman, no margins).
+                    // Let's add a basic readable style for non-WeChat HTML previews.
+                    const basicStyle = document.createElement('style');
+                    basicStyle.textContent = `
+                        :host { font-family: sans-serif; line-height: 1.6; color: #333; }
+                        img { max-width: 100% !important; height: auto !important; }
+                        pre { background: #f6f8fa; padding: 10px; overflow-x: auto; }
+                        blockquote { border-left: 4px solid #dfe2e5; padding-left: 10px; color: #6a737d; }
+                    `;
+                    shadow.appendChild(basicStyle);
+                }
 
-                // Let's use Inlining to be 100% WYSIWYG
-                const inlinedHtml = platform.inlineStyle
-                    ? this.themeManager.inlineStyles(html, this.currentTheme)
-                    : html;
+                // Inject default styles to fix image overflow in shadow DOM (Global fix)
+                const defaultStyleEl = document.createElement('style');
+                defaultStyleEl.textContent = `
+                    img { max-width: 100% !important; height: auto !important; }
+                    pre { white-space: pre-wrap !important; word-wrap: break-word !important; max-width: 100%; overflow-x: auto; }
+                    table { display: block; overflow-x: auto; max-width: 100%; }
+                `;
+                shadow.appendChild(defaultStyleEl);
 
-                shadow.innerHTML = inlinedHtml;
+                // For Preview: Instead of running the slow `juice` inliner,
+                // we rely on the <style> tag injected above. This is much faster
+                // and looks 99% identical in the Shadow DOM.
+                const shadowWrapper = document.createElement('div');
+                shadowWrapper.className = 'picflow-container'; // Essential for CSS selectors to match
+                shadowWrapper.id = 'picflow-article';
+                shadowWrapper.innerHTML = html;
+                shadow.appendChild(shadowWrapper);
             } catch (e) {
                 loading.setText('Error rendering: ' + e.message);
                 loading.addClass('picflow-error-text');
@@ -590,8 +631,8 @@ export class PublishDrawer {
         const fieldsContainer = configArea.createDiv({ cls: 'picflow-fields-grid' });
         // Styles moved to CSS class .picflow-fields-grid
 
-        // A. Inject Theme Control for WeChat (as first item in grid)
-        if (this.selectedPlatformId === 'wechat') {
+        // A. Inject Theme Control only for platforms with inline styles (e.g. WeChat)
+        if (platform.inlineStyle) {
             const themeWrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
             // Styles moved to CSS class .picflow-field-wrapper
             
@@ -962,7 +1003,7 @@ export class PublishDrawer {
             const fullHtml = await this.htmlRenderer.render(contentBody, themeToUse);
 
             let inlinedHtml = platform?.inlineStyle
-                ? this.themeManager.inlineStyles(fullHtml, themeToUse)
+                ? await this.themeManager.inlineStyles(fullHtml, themeToUse)
                 : fullHtml;
 
             const container = document.createElement('div');

@@ -1,5 +1,5 @@
 
-import { S3Client, PutObjectCommand, HeadObjectCommand, ListObjectsV2Command, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, HeadObjectCommand, ListObjectsV2Command, DeleteObjectCommand, GetBucketLocationCommand, GetBucketLocationCommandOutput } from "@aws-sdk/client-s3";
 import { OSSConfig, Uploader, UploadedImage } from "../settings";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 import * as https from "https";
@@ -156,7 +156,7 @@ export class OSSUploader implements Uploader {
     async upload(file: File, fileName: string): Promise<string> {
         const client = this.getClient();
         const bucketName = this.getBucketName();
-        const { pathPrefix, customDomain, uploadStrategy } = this.config;
+        const { pathPrefix, uploadStrategy } = this.config;
 
         // Normalize Path Prefix
         let sanitizedPrefix = pathPrefix.replace(/^\/+/, "");
@@ -179,7 +179,7 @@ export class OSSUploader implements Uploader {
                 if (uploadStrategy === 'skip') {
                     return this.generateUrl(key);
                 }
-            } catch (error: any) {
+            } catch (_error: any) {
                 // Ignore 404
             }
         }
@@ -201,7 +201,7 @@ export class OSSUploader implements Uploader {
     }
 
     private generateUrl(key: string): string {
-        const { customDomain, provider, region, bucket, autoDomain } = this.config;
+        const { customDomain, provider, region } = this.config;
         const bucketName = this.getBucketName();
         // Ensure path doesn't start with slash to avoid double slashes
         const path = key.replace(/^\//, "");
@@ -224,7 +224,7 @@ export class OSSUploader implements Uploader {
     }
 
     async autoFetchDomain(): Promise<string | null> {
-         const { provider, bucket, accessKeyId, accessKeySecret } = this.config;
+         const { provider, accessKeyId, accessKeySecret } = this.config;
          const bucketName = this.getBucketName();
 
          // Temporary Client just for Location
@@ -245,7 +245,7 @@ export class OSSUploader implements Uploader {
 
          const requestHandler = new NodeHttpHandler({
             httpsAgent: new https.Agent({ rejectUnauthorized: true }),
-            httpAgent: new (require('http').Agent)()
+            httpAgent: new http.Agent()
         });
 
          const client = new S3Client({
@@ -261,12 +261,12 @@ export class OSSUploader implements Uploader {
 
          try {
              // Attempt to get bucket location
-             const locationCommand = new (require("@aws-sdk/client-s3").GetBucketLocationCommand)({
+             const locationCommand = new GetBucketLocationCommand({
                  Bucket: bucketName
              });
-             const response: any = await client.send(locationCommand);
+             const response: GetBucketLocationCommandOutput = await client.send(locationCommand);
              
-             let detectedRegion = response.LocationConstraint;
+             const detectedRegion = response.LocationConstraint;
              
              // Log for debugging
 
@@ -313,7 +313,7 @@ export class OSSUploader implements Uploader {
         // Check if we have a standard region to fallback to.
         const { region, provider, accessKeyId, accessKeySecret } = this.config;
         let listClient = this.getClient(); // Default client
-        let listBucketName = this.getBucketName();
+        const listBucketName = this.getBucketName();
         
         // If we are using Custom Domain (which implies bucketEndpoint=true in current getClient),
         // try to construct a standard client for listing if possible.
@@ -330,7 +330,7 @@ export class OSSUploader implements Uploader {
              if (standardEndpoint) {
                  const requestHandler = new NodeHttpHandler({
                     httpsAgent: new https.Agent({ rejectUnauthorized: true }),
-                    httpAgent: new (require('http').Agent)()
+                    httpAgent: new http.Agent()
                 });
                 
                  listClient = new S3Client({

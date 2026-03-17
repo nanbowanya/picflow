@@ -1,11 +1,11 @@
-import { App, Notice, Plugin, MarkdownView, Editor, TFile, moment, WorkspaceLeaf } from 'obsidian';
+import { Notice, Plugin, MarkdownView, Editor, TFile, WorkspaceLeaf } from 'obsidian';
 import { PicFlowSettings, DEFAULT_SETTINGS, PicFlowSettingTab } from './src/settings';
-import { S3Uploader } from './src/uploaders/s3';
-import { GitHubUploader } from './src/uploaders/github';
-import { WebDAVUploader } from './src/uploaders/webdav';
-import { SFTPUploader } from './src/uploaders/sftp';
+// import { S3Uploader } from './src/uploaders/s3';
+// import { GitHubUploader } from './src/uploaders/github';
+// import { WebDAVUploader } from './src/uploaders/webdav';
+// import { SFTPUploader } from './src/uploaders/sftp';
 import { SecurityManager } from './src/utils/security';
-import { ImageProcessor } from './src/utils/image-processor';
+// import { ImageProcessor } from './src/utils/image-processor';
 // import { AIService } from './src/core/ai/service'; // Removed for conditional loading
 // import { PromptModal, ImageGenerationOptions } from './src/ai/ui'; // Removed missing file import
 import { PicFlowSidebarView, VIEW_TYPE_PICFLOW_SIDEBAR } from './src/ui/sidebar';
@@ -170,7 +170,7 @@ export default class PicFlowPlugin extends Plugin {
         this.addCommand({
             id: 'ai-quick-action',
             name: t('command.aiQuickAction'),
-            editorCallback: (editor: Editor, view: MarkdownView) => {
+            editorCallback: (editor: Editor, _view: MarkdownView) => {
                 new TemplateSuggestModal(this.app, this, editor).open();
             }
         });
@@ -180,12 +180,26 @@ export default class PicFlowPlugin extends Plugin {
 
         // Register Paste Event
         this.registerEvent(
-            this.app.workspace.on('editor-paste', this.eventHandler.handlePaste.bind(this.eventHandler))
+            this.app.workspace.on('editor-paste', (evt, editor, info) => {
+                if (info instanceof MarkdownView) {
+                    this.eventHandler.handlePaste(evt, editor, info);
+                }
+            })
         );
 
         // Register Drop Event
         this.registerEvent(
-            this.app.workspace.on('editor-drop', this.eventHandler.handleDrop.bind(this.eventHandler))
+            this.app.workspace.on('editor-drop', (evt, editor, info) => {
+                if (info instanceof MarkdownView) {
+                    this.eventHandler.handleDrop(evt, editor, info);
+                }
+            })
+        );
+
+        this.registerEvent(
+            this.app.workspace.on('active-leaf-change', async (_view) => {
+                // await this.updateContextButtons();
+            })
         );
     }
 
@@ -267,7 +281,7 @@ export default class PicFlowPlugin extends Plugin {
                     forcePathStyle: true,
                     useSSL: true,
                     bypassCertificateValidation: false,
-                    uploadStrategy: 'rename' as 'rename'
+                    uploadStrategy: 'rename' as const
                 }
             };
             this.settings.profiles.push(s3Profile);

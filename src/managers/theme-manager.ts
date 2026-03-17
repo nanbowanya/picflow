@@ -1,6 +1,6 @@
-import { App, Notice, TFile, FileSystemAdapter, requestUrl, Component, MarkdownRenderer } from "obsidian";
+import { Notice, FileSystemAdapter, requestUrl, Component, MarkdownRenderer } from "obsidian";
 import PicFlowPlugin from "../../main";
-import * as path from "path";
+// import * as path from 'path'; // Unused
 
 export interface ThemeConfig {
     name: string;
@@ -37,9 +37,9 @@ export class ThemeManager {
         
         const adapter = this.plugin.app.vault.adapter;
         if (!(adapter instanceof FileSystemAdapter)) {
-            console.warn("PicFlow: Non-filesystem adapter not fully supported for theme loading.");
-            this.themes.set("Default", { name: "Default", css: this.FALLBACK_CSS, isDark: false });
-            return;
+             console.warn("PicFlow: Non-filesystem adapter not fully supported for theme loading.");
+             // this.themes.set("Default", { name: "Default", css: this.FALLBACK_CSS, isDark: false });
+             return;
         }
 
         // Get plugin base path. Usually .obsidian/plugins/PicFlow
@@ -214,7 +214,7 @@ export class ThemeManager {
     }
 
     // [NEW] Added render method
-    async render(markdown: string, themeName: string = 'Default'): Promise<string> {
+    async render(markdown: string, _themeName: string = 'Default'): Promise<string> {
         // 1. Render Markdown to HTML
         // Use Obsidian's MarkdownRenderer
         // But MarkdownRenderer requires a container element.
@@ -241,7 +241,7 @@ export class ThemeManager {
             component
         );
         
-        let html = container.innerHTML;
+        const html = container.innerHTML;
         
         // 2. Apply Theme CSS (Inline Styles)
         // This is tricky. We need to parse CSS and apply it to elements.
@@ -283,8 +283,8 @@ export class ThemeManager {
      * Inlines CSS styles into HTML elements.
      * Required for platforms like WeChat that strip <style> tags.
      */
-    inlineStyles(html: string, themeName: string): string {
-        const theme = this.getTheme(themeName) || this.getTheme("Default");
+    async inlineStyles(html: string, _themeName: string): Promise<string> {
+        const theme = this.getTheme(_themeName) || this.getTheme("Default");
         if (!theme) return html;
 
         // Wrap content first to match selectors like .picflow-container h1
@@ -298,7 +298,10 @@ export class ThemeManager {
         // options: { inlinePseudoElements: true } allows inlining ::before/::after content (limited support in email clients but useful)
         try {
             // Lazy Load juice to avoid startup OOM (depends on cheerio/parse5)
-            const juice = require("juice");
+            const juiceImport = await import("juice");
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const juice: any = juiceImport.default || juiceImport;
+            
             const inlinedHtml = juice(wrappedHtml, { 
                 extraCss: theme.css,
                 applyStyleTags: true,

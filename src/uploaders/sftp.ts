@@ -1,5 +1,5 @@
 import { SFTPConfig, Uploader, UploadedImage } from "../settings";
-import { Notice } from "obsidian";
+// import { Notice } from "obsidian";
 
 export class SFTPUploader implements Uploader {
     private config: SFTPConfig;
@@ -28,10 +28,10 @@ export class SFTPUploader implements Uploader {
     }
 
     async upload(file: File, fileName: string): Promise<string> {
-        const { uploadPath, customDomain, host, uploadStrategy } = this.config;
+        const { uploadPath, uploadStrategy } = this.config;
         
         // Lazy Load SFTP Client to avoid startup OOM
-        const Client = require('ssh2-sftp-client');
+        const { default: Client } = await import('ssh2-sftp-client');
         const client = new Client();
         
         try {
@@ -44,7 +44,7 @@ export class SFTPUploader implements Uploader {
             try {
                 const type = await client.exists(remotePath);
                 if (type) exists = true;
-            } catch (e) {
+            } catch (_e) {
                 // Ignore error, assume not exists or permission issue
             }
 
@@ -93,13 +93,13 @@ export class SFTPUploader implements Uploader {
             // But we need to check if client is connected. 
             // ssh2-sftp-client doesn't have isConnected? 
             // Safe to call end() multiple times? Usually yes.
-            try { await client.end(); } catch (e) {}
+            try { await client.end(); } catch (_e) { /* ignore */ }
         }
     }
 
     async list(offset: number = 0, limit: number = 20): Promise<UploadedImage[]> {
         const { uploadPath } = this.config;
-        const Client = require('ssh2-sftp-client');
+        const { default: Client } = await import('ssh2-sftp-client');
         const client = new Client();
 
         try {
@@ -134,7 +134,7 @@ export class SFTPUploader implements Uploader {
     }
 
     async delete(key: string): Promise<boolean> {
-        const Client = require('ssh2-sftp-client');
+        const { default: Client } = await import('ssh2-sftp-client');
         const client = new Client();
         
         try {
@@ -150,7 +150,7 @@ export class SFTPUploader implements Uploader {
     }
 
     async testConnection(): Promise<{ success: boolean; message: string }> {
-        const Client = require('ssh2-sftp-client');
+        const { default: Client } = await import('ssh2-sftp-client');
         const client = new Client();
         try {
             await this.connect(client);

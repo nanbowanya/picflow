@@ -1,4 +1,4 @@
-import { Notice, Setting } from 'obsidian';
+import { Notice } from 'obsidian';
 import PicFlowPlugin from '../../main';
 import { PlatformRegistry } from '../platforms';
 import { LoginModal } from '../ui/login-modal';
@@ -29,11 +29,15 @@ export class AccountManager {
   }
 
   async load() {
-    const data = await this.plugin.loadData();
-    if (data && data.accounts) {
-      this.accounts = data.accounts;
-    } else {
+    try {
+      const data = await this.plugin.loadData();
+      if (data && data.accounts) {
+        this.accounts = data.accounts;
+      } else {
         this.accounts = [];
+      }
+    } catch (_e) {
+      new Notice("Failed to load accounts.");
     }
   }
 
@@ -126,7 +130,7 @@ export class AccountManager {
     if (!text) return '';
     try {
         return Buffer.from(text, 'base64').toString('utf-8');
-    } catch (e) {
+    } catch (_e) {
         return text; // Fallback if not encoded
     }
   }

@@ -1,8 +1,9 @@
 
-import { MarkdownRenderer, setIcon, Notice, MarkdownView, Editor, requestUrl, Component } from "obsidian";
+import { Component, MarkdownRenderer, setIcon, Notice, requestUrl } from "obsidian";
+// import { MarkdownView, Editor } from "obsidian";
 import PicFlowPlugin from "../../../main";
 import { t } from "../../i18n";
-import { getActiveEditor, getActiveMarkdownView } from "../../utils/editor";
+import { getActiveMarkdownView } from "../../utils/editor";
 import { ChatMessage } from "../models";
 
 export class MessageBubble {
@@ -75,7 +76,7 @@ export class MessageBubble {
                     let node: Node | null;
                     const nodesToReplace: { node: Node, content: string }[] = [];
                     
-                    while (node = walker.nextNode()) {
+                    while ((node = walker.nextNode())) {
                         if (node.nodeValue && node.nodeValue.includes("📎 [")) {
                             nodesToReplace.push({ node: node, content: node.nodeValue });
                         }

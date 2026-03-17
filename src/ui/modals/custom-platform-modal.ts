@@ -3,7 +3,6 @@ import { App, Modal, Setting, Notice } from 'obsidian';
 // @ts-ignore
 import PicFlowPlugin from '../../main';
 import { CustomPlatformConfig, CustomPlatformType } from '../../settings';
-import * as crypto from 'crypto';
 import { t } from '../../i18n';
 
 export class CustomPlatformModal extends Modal {
@@ -284,16 +283,16 @@ export class CustomPlatformModal extends Modal {
                 let publisher: any = null;
                 try {
                     if (this.config.type === 'wordpress') {
-                        const { WordPressPublisher } = require('../../core/publishers/wordpress-publisher');
+                        const { WordPressPublisher } = await import('../../core/publishers/wordpress-publisher');
                         if (WordPressPublisher) publisher = new WordPressPublisher(this.plugin, this.config.wordpress);
                     } else if (this.config.type === 'dify') {
-                        const { DifyPublisher } = require('../../core/publishers/dify-publisher');
+                        const { DifyPublisher } = await import('../../core/publishers/dify-publisher');
                         if (DifyPublisher) publisher = new DifyPublisher(this.plugin, this.config.dify);
                     } else if (this.config.type === 'webhook') {
-                        const { WebhookPublisher } = require('../../core/publishers/webhook-publisher');
+                        const { WebhookPublisher } = await import('../../core/publishers/webhook-publisher');
                         if (WebhookPublisher) publisher = new WebhookPublisher(this.plugin, this.config.webhook);
                     } else if (this.config.type === 'mcp') {
-                        const { MCPPublisher } = require('../../core/publishers/mcp-publisher');
+                        const { MCPPublisher } = await import('../../core/publishers/mcp-publisher');
                         if (MCPPublisher) publisher = new MCPPublisher(this.plugin, this.config.mcp);
                     }
                 } catch (err) {

@@ -62,7 +62,7 @@ export class BatchUploadModal extends Modal {
         headerRow.createEl('span', { text: t('batch.header.status', this.plugin.settings), cls: 'picflow-batch-header-status' });
 
         // Image Rows
-        this.manager.images.forEach((img, index) => {
+        this.manager.images.forEach((img, _index) => {
             const row = listContainer.createEl('div', { cls: 'picflow-batch-row' });
             // row:nth-child(odd) handled in CSS
 

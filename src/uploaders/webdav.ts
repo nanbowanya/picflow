@@ -1,6 +1,6 @@
 import { createClient, WebDAVClient, FileStat } from "webdav";
 import { WebDAVConfig, Uploader, UploadedImage } from "../settings";
-import { Notice, requestUrl } from "obsidian";
+import * as https from "https";
 
 export class WebDAVUploader implements Uploader {
     private config: WebDAVConfig;
@@ -20,9 +20,9 @@ export class WebDAVUploader implements Uploader {
         let httpsAgent;
         if (bypassCertificateValidation) {
             try {
-                const https = require('https');
                 httpsAgent = new https.Agent({ rejectUnauthorized: false });
-            } catch (e) {
+            } catch (_e) {
+                // ignore
             }
         }
 
@@ -34,7 +34,7 @@ export class WebDAVUploader implements Uploader {
     }
 
     async upload(file: File, fileName: string): Promise<string> {
-        const { uploadPath, customDomain, host, uploadStrategy } = this.config;
+        const { uploadPath, uploadStrategy } = this.config;
         const client = this.getClient();
 
         // Ensure upload path exists (WebDAV doesn't always auto-create folders, but creating them recursively is complex. 
@@ -58,7 +58,7 @@ export class WebDAVUploader implements Uploader {
                     const newName = `${name}-${Date.now()}.${ext}`;
                     return this.upload(file, newName);
                 }
-            } catch (e) {
+            } catch (_e) {
                 // If error is 404, file doesn't exist, proceed.
                 // webdav client throws Error object.
             }

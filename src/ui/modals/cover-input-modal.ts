@@ -14,7 +14,10 @@ export class CoverInputModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
         
-        contentEl.createEl("h2", { text: "Set Cover Image" });
+        const titleDiv = contentEl.createDiv('picflow-modal-title');
+        // const icon = titleDiv.createEl('span', { cls: 'picflow-modal-icon' });
+        // setIcon(icon, 'image'); 
+        titleDiv.createEl('h2', { text: "Set Cover Image" });
         
         // 1. Text Input Area
         new Setting(contentEl)
@@ -28,7 +31,7 @@ export class CoverInputModal extends Modal {
         // 2. Drag & Drop Area
         const dropZone = contentEl.createDiv({ cls: 'picflow-drop-zone' });
         
-        const icon = dropZone.createDiv({ text: '📂', cls: 'picflow-drop-icon' });
+        dropZone.createDiv({ text: '📂', cls: 'picflow-drop-icon' });
         
         dropZone.createDiv({ text: 'Click or Drag image here to upload' });
         
@@ -90,7 +93,7 @@ export class CoverInputModal extends Modal {
         }
 
         // Use absolute path directly (No saving to vault)
-        let path = (file as any).path;
+        const path = (file as any).path;
         
         if (path) {
             new Notice('Local image selected.');

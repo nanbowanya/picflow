@@ -3,6 +3,7 @@ import { PicFlowSettings, Uploader, UploadedImage } from "../settings";
 import { Notice } from "obsidian";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 import * as https from "https";
+import * as http from "http";
 
 export class S3Uploader implements Uploader {
 	private settings: PicFlowSettings;
@@ -37,7 +38,7 @@ export class S3Uploader implements Uploader {
 			httpsAgent: new https.Agent({
 				rejectUnauthorized: !s3BypassCertificateValidation
 			}),
-			httpAgent: new (require('http').Agent)() // Support http as well
+			httpAgent: new http.Agent() // Support http as well
 		});
 
 		const client = new S3Client({
@@ -90,13 +91,8 @@ export class S3Uploader implements Uploader {
                         return `${endpoint}/${s3Bucket}/${path}`;
                     }
                 } 
-            } catch (error: any) {
+            } catch (_e) {
                 // If 404, file doesn't exist, proceed to upload.
-                if (error.name !== 'NotFound' && error.$metadata?.httpStatusCode !== 404) {
-                    // Real error?
-                    // We proceed to try upload anyway? Or throw? 
-                    // Let's proceed, maybe upload works.
-                }
             }
         }
 
@@ -196,7 +192,7 @@ export class S3Uploader implements Uploader {
 				} else {
 					try {
 						errorMessage = JSON.stringify(error);
-					} catch (e) {
+					} catch (_e) {
 						errorMessage = "Unknown error (cannot stringify)";
 					}
 				}
@@ -221,7 +217,7 @@ export class S3Uploader implements Uploader {
 			httpsAgent: new https.Agent({
 				rejectUnauthorized: !s3BypassCertificateValidation
 			}),
-			httpAgent: new (require('http').Agent)()
+			httpAgent: new http.Agent()
 		});
 
 		const client = new S3Client({
@@ -328,7 +324,7 @@ export class S3Uploader implements Uploader {
 			httpsAgent: new https.Agent({
 				rejectUnauthorized: !s3BypassCertificateValidation
 			}),
-			httpAgent: new (require('http').Agent)()
+			httpAgent: new http.Agent()
 		});
 
 		const client = new S3Client({
@@ -348,7 +344,7 @@ export class S3Uploader implements Uploader {
 		});
 
 		try {
-			const response = await client.send(command);
+			const _response = await client.send(command);
 			// S3 DeleteObject is idempotent and returns 204 No Content typically, 
 			// or 200 even if object didn't exist.
 			// It throws mainly on permissions or network errors.

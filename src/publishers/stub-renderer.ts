@@ -9,7 +9,7 @@ export class StubHtmlRenderer implements IHtmlRenderer {
         this.app = app;
     }
 
-    async render(markdown: string, themeName: string = "Default"): Promise<string> {
+    async render(markdown: string, _themeName: string = "Default"): Promise<string> {
         // Simple fallback rendering using Obsidian's built-in renderer
         // No custom theme processing or specific WeChat wrappers
         const container = document.createElement("div");
