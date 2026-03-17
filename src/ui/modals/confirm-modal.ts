@@ -22,10 +22,6 @@ export class ConfirmModal extends Modal {
         contentEl.createEl('p', { text: this.message });
 
         const buttonContainer = contentEl.createDiv({ cls: 'picflow-confirm-modal-buttons' });
-        buttonContainer.style.display = 'flex';
-        buttonContainer.style.justifyContent = 'flex-end';
-        buttonContainer.style.gap = '10px';
-        buttonContainer.style.marginTop = '20px';
 
         new ButtonComponent(buttonContainer)
             .setButtonText('Cancel')

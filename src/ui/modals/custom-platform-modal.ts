@@ -90,7 +90,7 @@ export class CustomPlatformModal extends Modal {
         this.renderDynamicFields(dynamicContainer);
 
         // Actions
-        const actions = contentEl.createDiv({ cls: 'modal-button-container' });
+        const actions = contentEl.createDiv({ cls: 'picflow-custom-platform-modal-buttons' });
         
         const submitBtn = actions.createEl('button', { text: t('settings.customPlatform.add', this.plugin.settings), cls: 'mod-cta' });
         submitBtn.onclick = () => {
@@ -268,8 +268,6 @@ export class CustomPlatformModal extends Modal {
 
         // Add Test Connection Button
         const testContainer = container.createDiv({ cls: 'picflow-test-connection-container' });
-        testContainer.style.marginTop = '15px';
-        testContainer.style.marginBottom = '15px';
         
         const testBtn = testContainer.createEl('button', { text: t('settings.customPlatform.modal.test', this.plugin.settings) });
         testBtn.onclick = async () => {

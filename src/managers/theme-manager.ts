@@ -299,7 +299,6 @@ export class ThemeManager {
         try {
             // Lazy Load juice to avoid startup OOM (depends on cheerio/parse5)
             const juiceImport = await import("juice");
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const juice: any = juiceImport.default || juiceImport;
             
             const inlinedHtml = juice(wrappedHtml, { 
@@ -309,8 +308,8 @@ export class ThemeManager {
                 preserveMediaQueries: true
             });
             return inlinedHtml;
-        } catch (e) {
-            console.error("[PicFlow] Failed to inline styles:", e);
+        } catch (error: any) {
+            console.error("[PicFlow] Failed to inline styles:", error);
             return wrappedHtml; // Fallback to non-inlined
         }
     }

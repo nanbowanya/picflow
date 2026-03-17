@@ -13,7 +13,10 @@ export class StubHtmlRenderer implements IHtmlRenderer {
         // Simple fallback rendering using Obsidian's built-in renderer
         // No custom theme processing or specific WeChat wrappers
         const container = document.createElement("div");
-        await MarkdownRenderer.render(this.app, markdown, container, "/", new Component());
+        const tempComponent = new Component();
+        tempComponent.load();
+        await MarkdownRenderer.render(this.app, markdown, container, "/", tempComponent);
+        tempComponent.unload();
         
         // Return basic HTML wrapped in a div
         return `<div class="picflow-lite-preview">${container.innerHTML}</div>`;

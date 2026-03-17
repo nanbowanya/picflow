@@ -22,7 +22,6 @@ export function getActiveMarkdownView(app: App): MarkdownView | null {
     let lastActiveView: MarkdownView | null = null;
 
     // Helper to check for last active file safely
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const lastFile = (workspace as any).getLastActiveFile?.();
 
     for (const leaf of leaves) {

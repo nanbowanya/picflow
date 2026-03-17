@@ -74,7 +74,17 @@ export type TranslationKey =
 	| 'notice.s3ConfigIncomplete'
 	| 'notice.githubNotImplemented'
 	| 'notice.settingsSaved'
-	| 'notice.saveButton';
+	| 'notice.saveButton'
+
+	// Publish Drawer
+	| 'publish.drawer.tags'
+	| 'publish.drawer.tagsPlaceholder'
+	| 'publish.drawer.category'
+	| 'publish.drawer.status'
+	| 'publish.drawer.statusDraft'
+	| 'publish.drawer.statusPublish'
+	| 'publish.drawer.mcpTool'
+	| 'publish.drawer.mcpToolAuto';
 
 export interface Translations {
 	[key: string]: string;

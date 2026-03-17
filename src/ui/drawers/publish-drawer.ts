@@ -338,6 +338,7 @@ export class PublishDrawer {
                     // Try to fetch categories if not cached
                     if (!this.categoryCache[account.id]) {
                         try {
+                            // @ts-ignore
                             const { WordPressPublisher } = await import('../../core/publishers/wordpress-publisher');
                             const publisher = new WordPressPublisher(this.plugin, config.wordpress);
                             if (publisher.getCategories) {
@@ -348,8 +349,9 @@ export class PublishDrawer {
                                     this.render(); // Re-render to show categories
                                 }
                             }
-                        } catch (e) {
+                        } catch (e: any) {
                             console.error("Failed to load WP categories", e);
+                            new Notice(`Failed to fetch WordPress categories: ${e.message}`);
                         }
                     }
                 } else if (config && config.type === 'mcp') {
@@ -373,8 +375,9 @@ export class PublishDrawer {
                                     }
                                 }
                             }
-                        } catch (e) {
+                        } catch (e: any) {
                             console.error("Failed to load MCP tools", e);
+                            new Notice(`Failed to fetch MCP tools: ${e.message}`);
                         }
                     }
                 }
@@ -436,9 +439,13 @@ export class PublishDrawer {
                 if (platform.inlineStyle) {
                     const themeConfig = this.themeManager.getTheme(this.currentTheme);
                     if (themeConfig) {
-                        const styleEl = document.createElement('style');
-                        styleEl.textContent = themeConfig.css;
-                        shadow.appendChild(styleEl);
+                        try {
+                            const sheet = new CSSStyleSheet();
+                            sheet.replaceSync(themeConfig.css);
+                            shadow.adoptedStyleSheets = [...shadow.adoptedStyleSheets, sheet];
+                        } catch(e) {
+                            console.error("Constructable stylesheets not supported", e);
+                        }
                     }
                 } else {
                     // For other HTML platforms, maybe inject a minimal reset or default obsidian-like style?
@@ -449,24 +456,32 @@ export class PublishDrawer {
                     // But displaying raw unstyled HTML is better than Markdown if we are sending HTML.
                     // However, raw HTML might look ugly (Times New Roman, no margins).
                     // Let's add a basic readable style for non-WeChat HTML previews.
-                    const basicStyle = document.createElement('style');
-                    basicStyle.textContent = `
-                        :host { font-family: sans-serif; line-height: 1.6; color: #333; }
-                        img { max-width: 100% !important; height: auto !important; }
-                        pre { background: #f6f8fa; padding: 10px; overflow-x: auto; }
-                        blockquote { border-left: 4px solid #dfe2e5; padding-left: 10px; color: #6a737d; }
-                    `;
-                    shadow.appendChild(basicStyle);
+                    try {
+                        const sheet = new CSSStyleSheet();
+                        sheet.replaceSync(`
+                            :host { font-family: sans-serif; line-height: 1.6; color: #333; }
+                            img { max-width: 100% !important; height: auto !important; }
+                            pre { background: #f6f8fa; padding: 10px; overflow-x: auto; }
+                            blockquote { border-left: 4px solid #dfe2e5; padding-left: 10px; color: #6a737d; }
+                        `);
+                        shadow.adoptedStyleSheets = [...shadow.adoptedStyleSheets, sheet];
+                    } catch(e) {
+                        console.error("Constructable stylesheets not supported", e);
+                    }
                 }
 
                 // Inject default styles to fix image overflow in shadow DOM (Global fix)
-                const defaultStyleEl = document.createElement('style');
-                defaultStyleEl.textContent = `
-                    img { max-width: 100% !important; height: auto !important; }
-                    pre { white-space: pre-wrap !important; word-wrap: break-word !important; max-width: 100%; overflow-x: auto; }
-                    table { display: block; overflow-x: auto; max-width: 100%; }
-                `;
-                shadow.appendChild(defaultStyleEl);
+                try {
+                    const defaultStyleSheet = new CSSStyleSheet();
+                    defaultStyleSheet.replaceSync(`
+                        img { max-width: 100% !important; height: auto !important; }
+                        pre { white-space: pre-wrap !important; word-wrap: break-word !important; max-width: 100%; overflow-x: auto; }
+                        table { display: block; overflow-x: auto; max-width: 100%; }
+                    `);
+                    shadow.adoptedStyleSheets = [...shadow.adoptedStyleSheets, defaultStyleSheet];
+                } catch(e) {
+                    console.error("Constructable stylesheets not supported", e);
+                }
 
                 // For Preview: Instead of running the slow `juice` inliner,
                 // we rely on the <style> tag injected above. This is much faster
@@ -486,7 +501,9 @@ export class PublishDrawer {
             const wrapper = container.createDiv({ cls: 'picflow-preview-md-wrapper' });
 
             // Render using Obsidian's MarkdownRenderer
-            await MarkdownRenderer.render(this.plugin.app, contentBody, wrapper, file.path, new Component());
+            const tempComponent = new Component();
+            tempComponent.load();
+            await MarkdownRenderer.render(this.plugin.app, contentBody, wrapper, file.path, tempComponent);
         }
     }
 
@@ -742,11 +759,11 @@ export class PublishDrawer {
                 // 2. Tags Field
                 const tagsWrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
                 // Styles moved to CSS class .picflow-field-wrapper
-                this.createLabel(tagsWrapper, 'Tags');
+                this.createLabel(tagsWrapper, t('publish.drawer.tags', this.plugin.settings) || 'Tags');
                 const tagsText = new TextComponent(tagsWrapper);
                 tagsText.inputEl.addClass('picflow-field-input');
                 // Styles moved to CSS class .picflow-field-input
-                tagsText.setPlaceholder('Comma separated');
+                tagsText.setPlaceholder(t('publish.drawer.tagsPlaceholder', this.plugin.settings) || 'Comma separated');
                 
                 if (file) {
                     const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as any;
@@ -767,7 +784,7 @@ export class PublishDrawer {
                 const categories = this.categoryCache[this.selectedAccountId];
                 const catWrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
                 // Styles moved to CSS class .picflow-field-wrapper
-                this.createLabel(catWrapper, 'Category');
+                this.createLabel(catWrapper, t('publish.drawer.category', this.plugin.settings) || 'Category');
 
                 if (categories && categories.length > 0) {
                     // Dropdown
@@ -806,13 +823,13 @@ export class PublishDrawer {
                 // 4. Publish Status (Draft vs Publish)
                 const statusWrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
                 // Styles moved to CSS class .picflow-field-wrapper
-                this.createLabel(statusWrapper, 'Status');
+                this.createLabel(statusWrapper, t('publish.drawer.status', this.plugin.settings) || 'Status');
                 
                 const statusDropdown = new DropdownComponent(statusWrapper);
                 statusDropdown.selectEl.addClass('picflow-field-select');
                 // Styles moved to CSS class .picflow-field-select
-                statusDropdown.addOption('draft', 'Draft (草稿)');
-                statusDropdown.addOption('publish', 'Publish (直接发布)');
+                statusDropdown.addOption('draft', t('publish.drawer.statusDraft', this.plugin.settings) || 'Draft (草稿)');
+                statusDropdown.addOption('publish', t('publish.drawer.statusPublish', this.plugin.settings) || 'Publish (直接发布)');
                 
                 // Initialize from state or frontmatter
                 // If frontmatter has publish_mode: direct -> publish, else draft
@@ -841,14 +858,14 @@ export class PublishDrawer {
                 const tools = this.toolCache[this.selectedAccountId];
                 const toolWrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
                 // Styles moved to CSS class .picflow-field-wrapper
-                this.createLabel(toolWrapper, 'MCP Tool');
+                this.createLabel(toolWrapper, t('publish.drawer.mcpTool', this.plugin.settings) || 'MCP Tool');
 
                 const dropdown = new DropdownComponent(toolWrapper);
                 dropdown.selectEl.addClass('picflow-field-select');
                 // Styles moved to CSS class .picflow-field-select
                 
                 // Add default "Auto" option
-                dropdown.addOption('', 'Auto Detect');
+                dropdown.addOption('', t('publish.drawer.mcpToolAuto', this.plugin.settings) || 'Auto Detect');
                 
                 // Add fetched tools
                 if (tools && tools.length > 0) {

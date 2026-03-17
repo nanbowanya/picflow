@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting, Notice, ButtonComponent, TextComponent, TextAreaComponent, MarkdownRenderer, FileSystemAdapter, DropdownComponent, setIcon, MarkdownView } from 'obsidian';
+import { App, PluginSettingTab, Setting, Notice, ButtonComponent, TextComponent, TextAreaComponent, MarkdownRenderer, FileSystemAdapter, DropdownComponent, setIcon, MarkdownView, Component } from 'obsidian';
 import PicFlowPlugin from '../main';
 import { t } from './i18n';
 import { KeyBridgeClient } from './api/keybridge-client';
@@ -54,7 +54,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-        containerEl.createEl('h2', { text: t('settings.title', this.plugin.settings) });
+        new Setting(containerEl).setName(t('settings.title', this.plugin.settings)).setHeading();
 
         // License Card Removed from Top
 
@@ -116,7 +116,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
 
     renderAITab(containerEl: HTMLElement) {
         // 1. Prompt Templates Management
-        containerEl.createEl('h3', { text: t('settings.ai.templates.title', this.plugin.settings) });
+        new Setting(containerEl).setName(t('settings.ai.templates.title', this.plugin.settings)).setHeading();
         containerEl.createEl('p', { text: t('settings.ai.templates.desc', this.plugin.settings), cls: 'setting-item-description' });
 
         const templatesContainer = containerEl.createDiv();
@@ -666,13 +666,21 @@ export class PicFlowSettingTab extends PluginSettingTab {
 
             // Render MD to temp div using Obsidian renderer
             const tempDiv = document.createElement('div');
-            await MarkdownRenderer.render(this.plugin.app, md, tempDiv, '/', this.plugin);
+            // We need a proper component for rendering, but plugin instance is too long-lived.
+            // In settings tab we can use `this` (the setting tab) or create a dummy component.
+            const tempComponent = new Component();
+            tempComponent.load();
+            await MarkdownRenderer.render(this.plugin.app, md, tempDiv, '/', tempComponent);
 
             // Inject into Shadow DOM
              shadowRoot.innerHTML = ''; // Clear
              
-             const style = document.createElement('style');
-             style.textContent = `
+             // Instead of creating <style> element directly, we apply classes
+             // For shadow DOM, we might need a different approach to apply styles safely
+             // For now, we will add a CSS file link if possible, or use constructable stylesheets
+             try {
+                const sheet = new CSSStyleSheet();
+                sheet.replaceSync(`
                     :host { 
                         display: block; 
                         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
@@ -715,17 +723,20 @@ export class PicFlowSettingTab extends PluginSettingTab {
                     
                     /* Extracted CSS (Higher Specificity due to .picflow-container) */
                     ${this.extractorCss}
-             `;
-             shadowRoot.appendChild(style);
+                `);
+                shadowRoot.adoptedStyleSheets = [sheet];
+             } catch(e) {
+                 console.error("Constructable stylesheets not supported", e);
+             }
 
              const container = document.createElement('div');
              container.className = 'wechat-article picflow-container';
-             // Safe to use innerHTML here as content comes from MarkdownRenderer (already sanitized/safe)
-             // or we can iterate children of tempDiv
+             
              while (tempDiv.firstChild) {
                  container.appendChild(tempDiv.firstChild);
              }
              shadowRoot.appendChild(container);
+             tempComponent.unload();
         };
 
         // Bind editor change
@@ -870,7 +881,6 @@ export class PicFlowSettingTab extends PluginSettingTab {
                         // Open in system explorer
                         // Use Obsidian's open API if available, or Electron's shell
                         // @ts-ignore
-                        // eslint-disable-next-line @typescript-eslint/no-require-imports
                         const shell = window.electron?.remote?.shell || window.require('electron').shell;
                         const fullPath = adapter.getFullPath(themeDir);
                         shell.openPath(fullPath);
@@ -878,17 +888,6 @@ export class PicFlowSettingTab extends PluginSettingTab {
                         new Notice('FileSystemAdapter not available.');
                     }
                 }))
-            .addButton(btn => btn
-                .setTooltip('Reset & Download Themes from GitHub')
-                .setIcon('refresh-cw')
-                .onClick(async () => {
-                    new Notice('Resetting themes from GitHub...');
-                    // Pass true to force checking/downloading
-                    await this.plugin.themeManager.fetchDefaultThemes(true);
-                    await this.plugin.themeManager.loadThemes();
-                    new Notice('Themes reset and reloaded');
-                    this.display();
-                }));
 
         const themes = this.plugin.themeManager.getAllThemes();
         

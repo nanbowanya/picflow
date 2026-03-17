@@ -500,4 +500,14 @@ export const en: Translations = {
     'publish.field.originalLink': 'Original Link',
     'publish.field.zone': 'Zone',
     'publish.field.content': 'Content',
+
+    // Publish Drawer
+	'publish.drawer.tags': 'Tags',
+	'publish.drawer.tagsPlaceholder': 'Comma separated',
+	'publish.drawer.category': 'Category',
+	'publish.drawer.status': 'Status',
+	'publish.drawer.statusDraft': 'Draft',
+	'publish.drawer.statusPublish': 'Publish Directly',
+	'publish.drawer.mcpTool': 'MCP Tool',
+	'publish.drawer.mcpToolAuto': 'Auto Detect'
 };
