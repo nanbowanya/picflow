@@ -139,7 +139,7 @@ export default class PicFlowPlugin extends Plugin {
 
         // Add Ribbon Icon
                                   // eslint-disable-next-line obsidianmd/ui/sentence-case
-        this.addRibbonIcon('zap', 'PicFlow Unified Sidebar', () => {
+        this.addRibbonIcon('zap', 'PicFlow unified sidebar', () => {
             void this.activateSidebarView();
         });
 

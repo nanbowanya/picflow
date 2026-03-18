@@ -17,13 +17,13 @@ export class StubMigrationManager implements IMigrationManager {
     }
 
     scanVault(_includeRemote: boolean = false): Promise<unknown[]> {
-                   // eslint-disable-next-line obsidianmd/ui/sentence-case
+        // eslint-disable-next-line obsidianmd/ui/sentence-case
         new Notice('🔒 This feature is available in Pro version.');
         return Promise.resolve([]);
     }
 
     startMigration(_targetProfileId: string): Promise<void> {
-                   // eslint-disable-next-line obsidianmd/ui/sentence-case
+        // eslint-disable-next-line obsidianmd/ui/sentence-case
         new Notice('🔒 This feature is available in Pro version.');
         return Promise.resolve();
     }

@@ -134,7 +134,7 @@ export class ThemeManager {
         }
 
         if (themesToDownload.length === 0) {
-                       // eslint-disable-next-line obsidianmd/ui/sentence-case
+            // eslint-disable-next-line obsidianmd/ui/sentence-case
             new Notice("[PicFlow] No themes found to download.");
             return;
         }
@@ -168,12 +168,11 @@ export class ThemeManager {
         }
 
         if (downloadedCount > 0) {
-            new Notice(`[PicFlow] Downloaded ${downloadedCount} new themes.`);
+            new Notice(`Downloaded ${downloadedCount} new themes.`);
             // Reload to apply
             await this.loadThemes();
         } else if (force) {
-                       // eslint-disable-next-line obsidianmd/ui/sentence-case
-            new Notice("[PicFlow] Themes are up to date.");
+            new Notice("Themes are up to date.");
         }
     }
 

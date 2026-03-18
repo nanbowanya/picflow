@@ -29,8 +29,7 @@ export class InputArea {
     // Track cursor position
     private lastRange: Range | null = null;
 
-                           // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-    private debounceTimer: unknown | null = null;
+    private debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
     constructor(plugin: PicFlowPlugin, container: HTMLElement, onSend: (prompt: string, model: AIModel, quotes: QuoteMetadata[]) => void, onModelChange: (model: AIModel) => void, onStop: () => void) {
         this.plugin = plugin;
@@ -430,15 +429,18 @@ export class InputArea {
     private handleSend() {
         // License Check
         if (this.plugin.settings.licenseStatus !== 'valid') {
-                       // eslint-disable-next-line obsidianmd/ui/sentence-case
+            // eslint-disable-next-line obsidianmd/ui/sentence-case
             new Notice("Pro feature: Please activate license in Settings.");
             // Redirect to Status Tab
+            // @ts-expect-error - Internal Obsidian API
             this.plugin.app.setting.open();
+            // @ts-expect-error - Internal Obsidian API
             const settingTab = this.plugin.app.setting.pluginTabs.find(t => t.id === this.plugin.manifest.id);
             if (settingTab) {
                 settingTab.currentTab = 'Status';
                 settingTab.display();
             }
+            // @ts-expect-error - Internal Obsidian API
             this.plugin.app.setting.openTabById(this.plugin.manifest.id);
             return;
         }

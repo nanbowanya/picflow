@@ -284,7 +284,7 @@ export class PublishManager {
         }
 
         if (!licenseKey) {
-                       // eslint-disable-next-line obsidianmd/ui/sentence-case
+            // eslint-disable-next-line obsidianmd/ui/sentence-case
             new Notice("Please activate PicFlow license first to use cloud publishing.");
             // Open Settings Tab to Status Tab
             if (this.app.setting) {

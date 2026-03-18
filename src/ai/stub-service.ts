@@ -5,14 +5,14 @@ import { AIModel } from "./models";
 
 export class StubAIService implements IAIService {
     generateImage(_settings: unknown, _modelOrOptions: unknown, _prompt?: string): Promise<string | null> {
-                   // eslint-disable-next-line obsidianmd/ui/sentence-case
+        // eslint-disable-next-line obsidianmd/ui/sentence-case
         new Notice("AI Image Generation is a Pro feature. Please upgrade to unlock.");
         this.openSettings();
         return Promise.resolve(null);
     }
 
     chatCompletionStream(_settings: unknown, _model: AIModel, _history: unknown[], onChunk: (chunk: string) => void, _signal?: AbortSignal): Promise<void> {
-                   // eslint-disable-next-line obsidianmd/ui/sentence-case
+        // eslint-disable-next-line obsidianmd/ui/sentence-case
         new Notice("AI Chat is a Pro feature. Please upgrade to unlock.");
         this.openSettings();
         onChunk("AI features are available in PicFlow Pro. Please upgrade to unlock.");

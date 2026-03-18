@@ -145,17 +145,16 @@ export class PicFlowSettingTab extends PluginSettingTab {
             .addButton(btn => btn
                 .setButtonText('Reset to defaults')
                 .setWarning()
-                                  // eslint-disable-next-line @typescript-eslint/require-await
-                .onClick(async () => {
+                .onClick(() => {
                     new ConfirmModal(
                         this.plugin.app,
                         t('settings.ai.templates.reset', this.plugin.settings),
                         t('settings.ai.templates.reset.confirm', this.plugin.settings),
-                        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                        async () => {
+                        () => {
                             this.plugin.settings.promptTemplates = [...DEFAULT_PROMPTS];
-                            await this.plugin.saveSettings();
-                            this.display();
+                            void this.plugin.saveSettings().then(() => {
+                                this.display();
+                            });
                         }
                     ).open();
                 }));
@@ -195,17 +194,16 @@ export class PicFlowSettingTab extends PluginSettingTab {
             const delBtn = new ButtonComponent(actionRow)
                 .setIcon('trash')
                 .setTooltip(t('settings.uploader.delete', this.plugin.settings))
-                                  // eslint-disable-next-line @typescript-eslint/require-await
-                .onClick(async () => {
+                .onClick(() => {
                     new ConfirmModal(
                         this.plugin.app,
                         t('settings.uploader.delete', this.plugin.settings),
                         t('settings.uploader.deleteConfirm', this.plugin.settings),
-                        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                        async () => {
+                        () => {
                             this.plugin.settings.promptTemplates.splice(index, 1);
-                            await this.plugin.saveSettings();
-                            this.display();
+                            void this.plugin.saveSettings().then(() => {
+                                this.display();
+                            });
                         }
                     ).open();
                 });
@@ -300,23 +298,21 @@ export class PicFlowSettingTab extends PluginSettingTab {
             new ButtonComponent(actionsDiv)
                 .setButtonText(t('settings.advanced.license.deactivate', this.plugin.settings))
                 .setWarning()
-                                  // eslint-disable-next-line @typescript-eslint/require-await
-                .onClick(async () => {
+                .onClick(() => {
                     new ConfirmModal(
                         this.plugin.app,
                         t('settings.advanced.license.deactivate', this.plugin.settings),
                         'Are you sure you want to deactivate?',
-                        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                        async () => {
+                        () => {
                             // Clear Settings
                             this.plugin.settings.licenseKey = '';
                             this.plugin.settings.licenseStatus = 'unknown';
                             this.plugin.settings.aiTokenBalance = 0;
                             this.plugin.settings.activationDate = '';
                             this.plugin.settings.expiryDate = '';
-                            await this.plugin.saveSettings();
-
-                            this.display(); // Refresh UI
+                            void this.plugin.saveSettings().then(() => {
+                                this.display(); // Refresh UI
+                            });
                         }
                     ).open();
                 });
@@ -464,8 +460,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
             input.type = 'text';
             input.placeholder = t('settings.advanced.license.placeholder', this.plugin.settings);
             input.value = this.plugin.settings.licenseKey;
-                                      // eslint-disable-next-line @typescript-eslint/require-await
-            input.onchange = async () => {
+            input.onchange = () => {
                 this.plugin.settings.licenseKey = input.value.trim();
             };
 
@@ -894,8 +889,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
                             shell.openPath(fullPath);
                         }
                     } else {
-                                   // eslint-disable-next-line obsidianmd/ui/sentence-case
-                        new Notice('FileSystemAdapter not available');
+                        new Notice('File system adapter not available');
                     }
                 }))
 
@@ -921,11 +915,11 @@ export class PicFlowSettingTab extends PluginSettingTab {
             editBtn.title = t('settings.customPlatform.edit', this.plugin.settings);
             editBtn.onclick = (e) => {
                 e.stopPropagation();
-                                                                                 // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                new ThemeEditModal(this.app, this.plugin, theme.name, theme.css, async (name: string, css: string) => {
-                    await this.plugin.themeManager.saveTheme(name, css);
-                    new Notice(`${name} updated`);
-                    this.display(); // Refresh
+                new ThemeEditModal(this.app, this.plugin, theme.name, theme.css, (name: string, css: string) => {
+                    void this.plugin.themeManager.saveTheme(name, css).then(() => {
+                        new Notice(`${name} updated`);
+                        this.display(); // Refresh
+                    });
                 }).open();
             };
 
@@ -938,18 +932,17 @@ export class PicFlowSettingTab extends PluginSettingTab {
                 delBtn.addClass('disabled');
             } else {
                 delBtn.addClass('danger');
-                                           // eslint-disable-next-line @typescript-eslint/require-await
-                delBtn.onclick = async (e) => {
+                delBtn.onclick = (e) => {
                     e.stopPropagation();
                     new ConfirmModal(
                         this.app,
                         t('settings.customPlatform.delete', this.plugin.settings),
                         t('settings.customPlatform.deleteConfirm', this.plugin.settings).replace('{name}', theme.name),
-                        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                        async () => {
-                            await this.plugin.themeManager.deleteTheme(theme.name);
-                            new Notice(`${theme.name} deleted`);
-                            this.display();
+                        () => {
+                            void this.plugin.themeManager.deleteTheme(theme.name).then(() => {
+                                new Notice(`${theme.name} deleted`);
+                                this.display();
+                            });
                         }
                     ).open();
                 };
@@ -1114,8 +1107,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
                 .setName(t('settings.uploader.profileName', this.plugin.settings))
                 .addText(text => text
                     .setValue(profile.name)
-                                            // eslint-disable-next-line @typescript-eslint/require-await
-                    .onChange(async (value) => {
+                    .onChange((value) => {
                         profile.name = value;
                         // No auto-save here to prevent lag? Or save on blur? 
                         // Let's save on action buttons for better UX as requested.
@@ -1127,8 +1119,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
                 .setName(t('settings.uploader.type', this.plugin.settings))
                 .addDropdown(dropdown => dropdown
                     .addOption('s3', t('settings.uploader.s3', this.plugin.settings))
-                                      // eslint-disable-next-line obsidianmd/ui/sentence-case
-                    .addOption('oss', 'Aliyun/Tencent OSS')
+                    .addOption('oss', 'Aliyun or tencent')
                     .addOption('github', t('settings.uploader.github', this.plugin.settings))
                     .addOption('webdav', t('settings.uploader.webdav', this.plugin.settings))
                     .addOption('sftp', t('settings.uploader.sftp', this.plugin.settings))
@@ -1155,22 +1146,21 @@ export class PicFlowSettingTab extends PluginSettingTab {
             const deleteBtn = actionContainer.createEl('button', { text: t('settings.uploader.delete', this.plugin.settings), cls: 'picflow-profile-actions__delete' });
             // Styles moved to CSS class .picflow-profile-actions__delete
             
-                                         // eslint-disable-next-line @typescript-eslint/require-await
-            deleteBtn.onclick = async () => {
+            deleteBtn.onclick = () => {
                 // Confirm?
                 new ConfirmModal(
                     this.plugin.app,
                     t('settings.uploader.delete', this.plugin.settings),
                     t('settings.uploader.deleteConfirm', this.plugin.settings),
-                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                    async () => {
+                    () => {
                         this.plugin.settings.profiles = this.plugin.settings.profiles.filter(p => p.id !== profile.id);
                         if (isSelected) {
                             this.plugin.settings.selectedProfileId = ''; // Clear selection if deleted
                         }
-                        await this.plugin.saveSettings();
-                        this.expandedProfileId = null;
-                        this.display();
+                        void this.plugin.saveSettings().then(() => {
+                            this.expandedProfileId = null;
+                            this.display();
+                        });
                     }
                 ).open();
             };
@@ -1220,10 +1210,8 @@ export class PicFlowSettingTab extends PluginSettingTab {
             .setName(t('settings.uploader.oss.provider', this.plugin.settings))
             .setDesc(t('settings.uploader.oss.provider.desc', this.plugin.settings))
             .addDropdown(dropdown => dropdown
-                                     // eslint-disable-next-line obsidianmd/ui/sentence-case
-                .addOption('aliyun', 'Aliyun OSS')
-                                      // eslint-disable-next-line obsidianmd/ui/sentence-case
-                .addOption('tencent', 'Tencent COS')
+                .addOption('aliyun', 'Aliyun object storage')
+                .addOption('tencent', 'Tencent object storage')
                 .setValue(config.provider)
                 .onChange(async (value) => {
                     config.provider = value as 'aliyun' | 'tencent';
@@ -1305,8 +1293,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
                 .setTooltip('Try to fetch bucket domain')
                 .onClick(async () => {
                     if (!config.accessKeyId || !config.accessKeySecret || !config.bucket) {
-                                    // eslint-disable-next-line obsidianmd/ui/sentence-case
-                         new Notice('Please fill in Access Key, Secret and Bucket first.');
+                         new Notice('Please fill in access key, secret and bucket first.');
                          return;
                     }
 
@@ -1331,8 +1318,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
                         new Notice('Failed to fetch domain: ' + e.message);
                     } finally {
                         btn.setDisabled(false);
-                                          // eslint-disable-next-line obsidianmd/ui/sentence-case
-                        btn.setButtonText('Auto Fetch');
+                        btn.setButtonText('Auto fetch');
                     }
                 }));
 
@@ -1460,8 +1446,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
         new Setting(container).setName(t('settings.uploader.github.owner', this.plugin.settings)).addText(t => t.setValue(config.owner).onChange(v => config.owner = v));
         new Setting(container).setName(t('settings.uploader.github.repo', this.plugin.settings)).addText(t => t.setValue(config.repo).onChange(v => config.repo = v));
         new Setting(container).setName(t('settings.uploader.github.branch', this.plugin.settings)).addText(t => t.setValue(config.branch).onChange(v => config.branch = v));
-                                                                                                                                // eslint-disable-next-line obsidianmd/ui/sentence-case
-        new Setting(container).setName(t('settings.uploader.github.token', this.plugin.settings)).addText(t => t.setPlaceholder('ghp_...').setValue(config.token).onChange(v => config.token = v));
+        new Setting(container).setName(t('settings.uploader.github.token', this.plugin.settings)).addText(t => t.setPlaceholder('Access token').setValue(config.token).onChange(v => config.token = v));
 
         new Setting(container)
             .setName(t('settings.uploader.github.customDomain', this.plugin.settings))
@@ -1469,10 +1454,9 @@ export class PicFlowSettingTab extends PluginSettingTab {
             .addText(t => t.setValue(config.customDomain || '').onChange(v => config.customDomain = v));
 
         new Setting(container).setName(t('settings.uploader.github.cdnProxy', this.plugin.settings))
-                                                      // eslint-disable-next-line obsidianmd/ui/sentence-case
-            .addDropdown(d => d.addOption('jsdelivr', 'jsDelivr').addOption('custom', 'Custom').addOption('none', 'None')
-                .setValue(config.cdnProxy).onChange(v => {
-                    config.cdnProxy = v as unknown;
+            .addDropdown(d => d.addOption('jsdelivr', 'Public CDN').addOption('custom', 'Custom').addOption('none', 'None')
+                .setValue(config.cdnProxy as string).onChange(v => {
+                    config.cdnProxy = v as 'jsdelivr' | 'custom' | 'none';
                     this.display();
                 }));
 
@@ -1523,8 +1507,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
         new Setting(wrapper).setName(t('settings.uploader.sftp.port', this.plugin.settings)).addText(t => t.setValue(config.port.toString()).onChange(v => config.port = parseInt(v)));
         new Setting(wrapper).setName(t('settings.uploader.sftp.username', this.plugin.settings)).addText(t => t.setValue(config.username).onChange(v => config.username = v));
         new Setting(wrapper).setName(t('settings.uploader.sftp.password', this.plugin.settings)).addText(t => t.setPlaceholder('********').setValue(config.password).onChange(v => config.password = v));
-                                                                                                                                     // eslint-disable-next-line obsidianmd/ui/sentence-case
-        new Setting(wrapper).setName(t('settings.uploader.sftp.privateKey', this.plugin.settings)).addTextArea(t => t.setPlaceholder('-----BEGIN RSA PRIVATE KEY-----').setValue(config.privateKey).onChange(v => config.privateKey = v));
+        new Setting(wrapper).setName(t('settings.uploader.sftp.privateKey', this.plugin.settings)).addTextArea(t => t.setPlaceholder('Private key content').setValue(config.privateKey).onChange(v => config.privateKey = v));
         new Setting(wrapper).setName(t('settings.uploader.sftp.uploadPath', this.plugin.settings)).addText(t => t.setValue(config.uploadPath).onChange(v => config.uploadPath = v));
 
         new Setting(wrapper)
@@ -1924,16 +1907,13 @@ export class PicFlowSettingTab extends PluginSettingTab {
             const _errorCount = file.images.filter((i: unknown) => i.status === 'error').length;
             
             if (file.status === 'success') {
-                                   // eslint-disable-next-line obsidianmd/ui/sentence-case
-                statusSpan.setText('✅ Done');
+                statusSpan.setText('✅ done');
                 statusSpan.addClass('picflow-text-success');
             } else if (file.status === 'processing') {
-                                   // eslint-disable-next-line obsidianmd/ui/sentence-case
-                statusSpan.setText('⏳ Processing...');
+                statusSpan.setText('⏳ processing');
                 statusSpan.addClass('picflow-text-accent');
             } else if (file.status === 'error') {
-                                    // eslint-disable-next-line obsidianmd/ui/sentence-case
-                 statusSpan.setText('❌ Error');
+                 statusSpan.setText('❌ error');
                  statusSpan.addClass('picflow-text-error');
             } else {
                 statusSpan.setText(`${successCount}/${file.images.length}`);
@@ -2186,29 +2166,23 @@ export class PicFlowSettingTab extends PluginSettingTab {
                     delBtn.addClass('picflow-error-text'); // color: #ff4d4f approx to error text
                     delBtn.onclick = (e) => {
                         e.stopPropagation();
-                                                                                                                                   // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                        new ConfirmModal(this.plugin.app, 'Delete image', t('settings.album.deleteConfirm', this.plugin.settings), async () => {
-                            try {
-                                if (uploader && uploader.delete) {
-                                    // delBtn.disabled = true; // Can't disable easily inside modal callback, or access button? Closure captures it.
-                                    // But modal blocks UI.
-                                    new Notice(t('settings.album.deleting', this.plugin.settings));
-
-                                    const key = img.key || img.name;
-                                    const success = await uploader.delete(key);
-
+                        new ConfirmModal(this.plugin.app, 'Delete image', t('settings.album.deleteConfirm', this.plugin.settings), () => {
+                            if (uploader && uploader.delete) {
+                                new Notice(t('settings.album.deleting', this.plugin.settings));
+                                const key = img.key || img.name;
+                                void uploader.delete(key).then(success => {
                                     if (success) {
                                         new Notice(t('settings.album.deleted', this.plugin.settings));
                                         card.remove();
                                     } else {
                                         new Notice(t('settings.album.deleteFailed', this.plugin.settings));
                                     }
-                                } else {
-                                    new Notice(t('settings.album.deleteNotSupported', this.plugin.settings));
-                                }
-                            } catch (err: unknown) {
-                                new Notice(t('settings.album.deleteError', this.plugin.settings).replace('{error}', err.message));
-                                console.error(err);
+                                }).catch(err => {
+                                    new Notice(t('settings.album.deleteError', this.plugin.settings).replace('{error}', (err as Error).message || String(err)));
+                                    console.error(err);
+                                });
+                            } else {
+                                new Notice(t('settings.album.deleteNotSupported', this.plugin.settings));
                             }
                         }).open();
                     };
@@ -2222,8 +2196,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
                     const loadMoreWrapper = container.createEl('div', { cls: 'picflow-album-load-more' });
 
                     new ButtonComponent(loadMoreWrapper)
-                                       // eslint-disable-next-line obsidianmd/ui/sentence-case
-                        .setButtonText('Load More')
+                        .setButtonText('Load more')
                         .onClick(() => {
                             void this.loadAlbumGrid(container, profile, true);
                         });
@@ -2296,8 +2269,14 @@ export class PicFlowSettingTab extends PluginSettingTab {
             const left = header.createEl('div', { cls: 'picflow-platform-header__left' });
             
             const iconSpan = left.createEl('span', { cls: 'picflow-platform-icon' });
-            // eslint-disable-next-line @microsoft/sdl/no-inner-html
-            iconSpan.innerHTML = p.icon || '📱';
+            iconSpan.empty(); 
+            const _iconStr = p.icon || '📱';
+            if (_iconStr.includes('<svg')) {
+                const iconDoc = new DOMParser().parseFromString(_iconStr, 'image/svg+xml');
+                if (iconDoc.documentElement) iconSpan.appendChild(iconDoc.documentElement);
+            } else {
+                iconSpan.setText(_iconStr);
+            }
 
             const nameSpan = left.createEl('span', { text: p.name });
             nameSpan.addClass('picflow-platform-name');
@@ -2390,13 +2369,16 @@ export class PicFlowSettingTab extends PluginSettingTab {
                             
                             // Use PLATFORM_ICONS if available
                             if (PLATFORM_ICONS[cp.type]) {
-                                // eslint-disable-next-line @microsoft/sdl/no-inner-html
-                                iconDiv.innerHTML = PLATFORM_ICONS[cp.type];
-                                // Adjust SVG size
-                                const svg = iconDiv.querySelector('svg');
-                                if (svg) {
-                                    svg.setAttribute('width', '24');
-                                    svg.setAttribute('height', '24');
+                                iconDiv.empty(); 
+                                const svgDoc = new DOMParser().parseFromString(PLATFORM_ICONS[cp.type], 'image/svg+xml');
+                                if (svgDoc.documentElement) {
+                                    iconDiv.appendChild(svgDoc.documentElement);
+                                    // Adjust SVG size
+                                    const svg = iconDiv.querySelector('svg');
+                                    if (svg) {
+                                        svg.setAttribute('width', '24');
+                                        svg.setAttribute('height', '24');
+                                    }
                                 }
                             } else {
                                 iconDiv.addClass('picflow-text-24');
@@ -2419,8 +2401,9 @@ export class PicFlowSettingTab extends PluginSettingTab {
 
                             // Edit
                             const editBtn = actionsDiv.createEl('div', { cls: 'clickable-icon' });
-                            // eslint-disable-next-line @microsoft/sdl/no-inner-html
-                            editBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-2"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>';
+                            editBtn.empty();
+                            const _svgDoc = new DOMParser().parseFromString('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-2"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>', 'image/svg+xml');
+                            if (_svgDoc.documentElement) editBtn.appendChild(_svgDoc.documentElement);
                             editBtn.title = t('settings.customPlatform.edit', this.plugin.settings);
                             editBtn.onclick = () => {
                                 const modal = new CustomPlatformModal(this.app, this.plugin, (newConfig: CustomPlatformConfig) => {
@@ -2538,8 +2521,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
         const checkAction = topRow.createEl('div');
         const checkLink = checkAction.createEl('a', { text: t('settings.publishing.check', this.plugin.settings).toLowerCase().replace(/^./, str => str.toUpperCase()) });
         checkLink.addClass('picflow-account-check-link');
-                                     // eslint-disable-next-line @typescript-eslint/require-await
-        checkLink.onclick = async () => {
+        checkLink.onclick = () => {
             new Notice(t('settings.publishing.checkingSingle', this.plugin.settings));
             // In real app, call checkAccountStatus
         };
@@ -2586,10 +2568,10 @@ export class PicFlowSettingTab extends PluginSettingTab {
         const closeBtn = card.createEl('div', { text: '×' });
         closeBtn.addClass('picflow-account-close-btn');
         closeBtn.onclick = () => {
-                                                                                                   // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            new ConfirmModal(this.plugin.app, 'Remove account', `Remove account ${account.name}?`, async () => {
-                await this.plugin.accountManager.removeAccount(account.id);
-                this.display(); // Refresh
+            new ConfirmModal(this.plugin.app, 'Remove account', `Remove account ${account.name}?`, () => {
+                void this.plugin.accountManager.removeAccount(account.id).then(() => {
+                    this.display(); // Refresh
+                });
             }).open();
         };
     }
@@ -2620,8 +2602,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
              new ButtonComponent(noticeEl)
                 .setButtonText(t('settings.status.restartNow', this.plugin.settings))
                 .setCta()
-                                  // eslint-disable-next-line @typescript-eslint/require-await
-                .onClick(async () => {
+                .onClick(() => {
                      // Trigger Obsidian reload
                      if (this.plugin.app.commands && this.plugin.app.commands.executeCommandById) {
                          this.plugin.app.commands.executeCommandById('app:reload');
