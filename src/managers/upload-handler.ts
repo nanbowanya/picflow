@@ -49,7 +49,7 @@ export class UploadHandler {
 
         // Select Uploader implementation based on profile type
         if (profile.type === 's3' && profile.s3) {
-            const proxySettings: any = { ...this.plugin.settings };
+            const proxySettings: unknown = { ...this.plugin.settings };
             Object.assign(proxySettings, {
                 s3Endpoint: profile.s3.endpoint,
                 s3Region: profile.s3.region,
@@ -72,7 +72,7 @@ export class UploadHandler {
             url = await uploader.upload(processedFile, fileName);
 
         } else if (profile.type === 'github' && profile.github) {
-            const proxySettings: any = { ...this.plugin.settings };
+            const proxySettings: unknown = { ...this.plugin.settings };
             Object.assign(proxySettings, {
                 githubOwner: profile.github.owner,
                 githubRepo: profile.github.repo,

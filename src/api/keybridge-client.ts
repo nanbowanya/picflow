@@ -148,7 +148,7 @@ export class KeyBridgeClient {
 
     static async downloadAndInstallPro(plugin: Plugin, downloadUrls: { mainJs: string, stylesCss: string }): Promise<void> {
         try {
-            new Notice(t('settings.activation.injecting', (plugin as any).settings));
+            new Notice(t('settings.activation.injecting', (plugin as unknown).settings));
 
             const [mainJs, stylesCss] = await Promise.all([
                 requestUrl({ url: downloadUrls.mainJs }).then(res => res.text),
@@ -173,11 +173,11 @@ export class KeyBridgeClient {
             await adapter.write(mainJsPath, mainJs);
             await adapter.write(stylesCssPath, stylesCss);
             
-            new Notice(t('settings.activation.success', (plugin as any).settings));
+            new Notice(t('settings.activation.success', (plugin as unknown).settings));
 
         } catch (error) {
             console.error("[PicFlow] Activation failed:", error);
-            new Notice(t('settings.activation.failed', (plugin as any).settings) + error.message);
+            new Notice(t('settings.activation.failed', (plugin as unknown).settings) + (error as Error).message);
             throw error;
         }
     }

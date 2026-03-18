@@ -14,7 +14,7 @@ export class PublishManager {
     // Registry of publishers
     private publishers: Map<string, IPlatformPublisher> = new Map();
     public themeManager: ThemeManager; // Make public to be accessible by Publishers
-    public htmlRenderer: any; // Add renderer property
+    public htmlRenderer: unknown; // Add renderer property
 
     constructor(plugin: PicFlowPlugin) {
         this.plugin = plugin;
@@ -25,13 +25,12 @@ export class PublishManager {
         this.themeManager.loadThemes().catch(e => console.error("Failed to load themes:", e));
         
         // Expose htmlRenderer via a simple proxy or direct access if ThemeManager has it
-        // Ideally we should use a proper HtmlRenderer class, but for now we reuse ThemeManager's capability
-        this.htmlRenderer = {
-            render: async (markdown: string, themeName: string) => {
-                // @ts-ignore
-                return await this.themeManager.render(markdown, themeName);
-            }
-        };
+    // Ideally we should use a proper HtmlRenderer class, but for now we reuse ThemeManager's capability
+    this.htmlRenderer = {
+        render: async (markdown: string, themeName: string) => {
+            return await this.themeManager.render(markdown, themeName);
+        }
+    };
 
         // Initialize and register adapters
         // We cannot load Pro modules synchronously here because import() is async.
@@ -50,7 +49,7 @@ export class PublishManager {
      * 2. Process Local Images (Upload if needed)
      * 3. Return clean Markdown and Metadata
      */
-    async processContent(file: TFile, options: { skipUpload?: boolean } = {}): Promise<{ title: string, markdown: string, frontmatter: any, images: string[] }> {
+    async processContent(file: TFile, options: { skipUpload?: boolean } = {}): Promise<{ title: string, markdown: string, frontmatter: unknown, images: string[] }> {
         // 1. Get Metadata
         const frontmatter = FrontmatterParser.getMetadata(this.app, file);
         const title = frontmatter.title || file.basename;
@@ -104,9 +103,7 @@ export class PublishManager {
                 if (!imageFile) return null; // Remote url or not found
 
                 // Upload
-                // @ts-ignore
                 if (this.plugin.batchUploadManager) {
-                     // @ts-ignore
                      const result = await this.plugin.batchUploadManager.uploadFiles([imageFile]);
                      if (result && result.length > 0 && result[0].success) {
                         images.push(result[0].url);
@@ -176,7 +173,6 @@ export class PublishManager {
     }
 
     private async loadPublishers() {
-        // @ts-ignore
         if (process.env.BUILD_TYPE === 'PRO') {
             try {
                 // Use import() to load Pro modules dynamically
@@ -264,7 +260,7 @@ export class PublishManager {
      */
     async publish(platformId: string, file: TFile, accountId: string, themeName: string = 'Default'): Promise<void> {
         if (!accountId) {
-            new Notice("Please select an account first.");
+            new Notice('Please select an account first');
             return;
         }
 
@@ -288,19 +284,16 @@ export class PublishManager {
         }
 
         if (!licenseKey) {
-            new Notice("Please activate PicFlow License first to use Cloud Publishing.");
+                       // eslint-disable-next-line obsidianmd/ui/sentence-case
+            new Notice("Please activate PicFlow license first to use cloud publishing.");
             // Open Settings Tab to Status Tab
-            // @ts-ignore
             if (this.app.setting) {
-                // @ts-ignore
                 this.app.setting.open();
-                // @ts-ignore
                 const settingTab = this.plugin.app.setting.pluginTabs.find(t => t.id === this.plugin.manifest.id);
                 if (settingTab) {
                     settingTab.currentTab = 'Status';
                     settingTab.display();
                 }
-                // @ts-ignore
                 this.app.setting.openTabById(this.plugin.manifest.id);
             }
             return; 
@@ -313,7 +306,7 @@ export class PublishManager {
             // If we couldn't find the publisher, maybe it's because custom platforms weren't reloaded?
             // Try reloading custom publishers once just in case
             if (platformId === 'custom') {
-                this.loadCustomPublishers();
+                void this.loadCustomPublishers();
                 const retryPublisher = this.publishers.get(targetPublisherId);
                 if (retryPublisher) {
                     await retryPublisher.publish(file, accountId, themeName);

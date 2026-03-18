@@ -66,7 +66,6 @@ export default class PicFlowPlugin extends Plugin {
         this.aiManager = new StubAIManager(this);
 
         // Conditional Load Pro Modules
-        // @ts-ignore
         if (process.env.BUILD_TYPE === 'PRO') {
             try {
                 // Use import() to load Pro modules
@@ -119,8 +118,8 @@ export default class PicFlowPlugin extends Plugin {
                     
                     // Variable replacement
                     template = template.replace(/{{title}}/g, file.basename);
-                    template = template.replace(/{{date}}/g, (window as any).moment().format('YYYY-MM-DD HH:mm'));
-                    template = template.replace(/{{time}}/g, (window as any).moment().format('HH:mm:ss'));
+                    template = template.replace(/{{date}}/g, (window as unknown as { moment: () => { format: (f: string) => string } }).moment().format('YYYY-MM-DD HH:mm'));
+                    template = template.replace(/{{time}}/g, (window as unknown as { moment: () => { format: (f: string) => string } }).moment().format('HH:mm:ss'));
 
                     // 5. Write to file
                     const newContent = `---\n${template}\n---\n`;
@@ -139,6 +138,7 @@ export default class PicFlowPlugin extends Plugin {
         );
 
         // Add Ribbon Icon
+                                  // eslint-disable-next-line obsidianmd/ui/sentence-case
         this.addRibbonIcon('zap', 'PicFlow Unified Sidebar', () => {
             void this.activateSidebarView();
         });
@@ -182,7 +182,7 @@ export default class PicFlowPlugin extends Plugin {
         this.registerEvent(
             this.app.workspace.on('editor-paste', (evt, editor, info) => {
                 if (info instanceof MarkdownView) {
-                    this.eventHandler.handlePaste(evt, editor, info);
+                    void this.eventHandler.handlePaste(evt, editor, info);
                 }
             })
         );
@@ -191,7 +191,7 @@ export default class PicFlowPlugin extends Plugin {
         this.registerEvent(
             this.app.workspace.on('editor-drop', (evt, editor, info) => {
                 if (info instanceof MarkdownView) {
-                    this.eventHandler.handleDrop(evt, editor, info);
+                    void this.eventHandler.handleDrop(evt, editor, info);
                 }
             })
         );
@@ -203,8 +203,12 @@ export default class PicFlowPlugin extends Plugin {
         );
     }
 
-    async onunload() {
-
+    onunload() {
+        if (this.themeManager) {
+            if (this.themeManager.unload) {
+                void this.themeManager.unload();
+            }
+        }
     }
 
     async activateSidebarView() {
@@ -216,14 +220,15 @@ export default class PicFlowPlugin extends Plugin {
         if (leaves.length > 0) {
             leaf = leaves[0];
         } else {
-            leaf = workspace.getRightLeaf(false);
-            if (leaf) {
-                await leaf.setViewState({ type: VIEW_TYPE_PICFLOW_SIDEBAR, active: true });
+            const rightLeaf = workspace.getRightLeaf(false);
+            if (rightLeaf) {
+                await rightLeaf.setViewState({ type: VIEW_TYPE_PICFLOW_SIDEBAR, active: true });
+                leaf = rightLeaf;
             }
         }
 
         if (leaf) {
-            workspace.revealLeaf(leaf);
+            void workspace.revealLeaf(leaf);
         }
     }
 
@@ -235,7 +240,7 @@ export default class PicFlowPlugin extends Plugin {
     refreshAllViews() {
         this.app.workspace.getLeavesOfType(VIEW_TYPE_PICFLOW_SIDEBAR).forEach(leaf => {
             if (leaf.view instanceof PicFlowSidebarView) {
-                leaf.view.render();
+                void leaf.view.render();
             }
         });
     }

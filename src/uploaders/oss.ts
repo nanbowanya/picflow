@@ -179,7 +179,7 @@ export class OSSUploader implements Uploader {
                 if (uploadStrategy === 'skip') {
                     return this.generateUrl(key);
                 }
-            } catch (_error: any) {
+            } catch (_error: unknown) {
                 // Ignore 404
             }
         }
@@ -372,7 +372,7 @@ export class OSSUploader implements Uploader {
                 createdAt: item.LastModified?.getTime() || Date.now()
             }));
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("OSS List Error:", error);
             throw error;
         }

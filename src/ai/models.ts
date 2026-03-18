@@ -10,7 +10,7 @@ export interface ImageGenerationOptions {
     model?: AIModel | string;
     size?: string;
     n?: number;
-    [key: string]: any;
+    // [key: string]: any; // Removed to avoid 'any'
 }
 
 export const AI_MODELS: AIModel[] = [

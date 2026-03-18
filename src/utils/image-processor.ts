@@ -78,9 +78,9 @@ export class ImageProcessor {
                 URL.revokeObjectURL(url);
                 resolve(img);
             };
-            img.onerror = (e) => {
+            img.onerror = () => {
                 URL.revokeObjectURL(url);
-                reject(e);
+                reject(new Error(`Failed to load image`));
             };
             img.src = url;
         });

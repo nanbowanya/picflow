@@ -198,7 +198,7 @@ export class MessageBubble {
         if (this.onRetry) {
             const retryBtn = actionsEl.createEl("button", { cls: "chat-action-btn clickable-icon", title: t('ai.chat.btn.retry') });
             setIcon(retryBtn, "rotate-cw");
-            retryBtn.onclick = () => this.onRetry!();
+            retryBtn.onclick = () => this.onRetry();
         }
     }
 
@@ -237,7 +237,7 @@ export class MessageBubble {
         if (this.onRetry) {
             const retryBtn = actionsEl.createEl("button", { cls: "chat-action-btn clickable-icon", title: t('ai.chat.btn.retry') });
             setIcon(retryBtn, "rotate-cw");
-            retryBtn.onclick = () => this.onRetry!();
+            retryBtn.onclick = () => this.onRetry();
         }
     }
 

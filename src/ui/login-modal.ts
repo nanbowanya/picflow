@@ -4,7 +4,7 @@ import PicFlowPlugin from '../../main';
 
 export interface LoginResult {
     success: boolean;
-    cookies?: any;
+    cookies?: unknown;
     userInfo?: {
         name: string;
         avatar?: string;
@@ -29,14 +29,14 @@ export abstract class Platform {
      * @param title Title of the page
      * @param win The BrowserWindow or WebContents (typed as any to avoid Electron import issues in some contexts)
      */
-    abstract checkLoginStatus(url: string, title: string, win?: any): Promise<LoginResult | null>;
+    abstract checkLoginStatus(url: string, title: string, win?: unknown): Promise<LoginResult | null>;
 
     /**
      * Checks if the session (cookies) is still valid.
      * @param _account The account to check
      */
-    async checkSession(_account: Account): Promise<boolean> {
-        return true; // Default to true if not implemented
+    checkSession(_account: Account): Promise<boolean> {
+        return Promise.resolve(true); // Default to true if not implemented
     }
 
     /**
@@ -46,7 +46,7 @@ export abstract class Platform {
         if (!account.cookies) return '';
         if (typeof account.cookies === 'string') return account.cookies;
         if (Array.isArray(account.cookies)) {
-            return account.cookies.map((c: any) => `${c.name}=${c.value}`).join('; ');
+            return account.cookies.map((c: unknown) => `${c.name}=${c.value}`).join('; ');
         }
         return '';
     }
@@ -54,16 +54,17 @@ export abstract class Platform {
     /**
      * Optional: Extract user info from the page after login.
      */
-    async getUserInfo(_win: any): Promise<any> {
-        return { name: 'Unknown User' };
+    getUserInfo(_win: unknown): Promise<unknown> {
+        return Promise.resolve({ name: 'Unknown User' });
     }
 }
 
 export class LoginModal extends Modal {
     plugin: PicFlowPlugin;
     platform: Platform;
-    webview: any; // Electron Webview
+    webview: unknown; // Electron Webview
     onLogin: (result: LoginResult) => void;
+                   // eslint-disable-next-line no-undef
     checkInterval: NodeJS.Timeout | null = null;
     confirmBtn: HTMLButtonElement;
     currentLoginResult: LoginResult | null = null;
@@ -125,6 +126,7 @@ export class LoginModal extends Modal {
 
         // Warning/Instructions
         const info = contentEl.createDiv({ cls: 'picflow-login-info' });
+                         // eslint-disable-next-line obsidianmd/ui/sentence-case
         info.innerText = 'Please login below. Once logged in, click "Confirm" to add the account.';
 
         // Webview Container
@@ -141,15 +143,15 @@ export class LoginModal extends Modal {
 
         this.webview.addEventListener('dom-ready', () => {
             // Check login status periodically or on navigation
-            this.checkLogin();
+            void this.checkLogin();
         });
 
         this.webview.addEventListener('did-navigate', () => {
-            this.checkLogin();
+            void this.checkLogin();
         });
         
         this.webview.addEventListener('did-navigate-in-page', () => {
-            this.checkLogin();
+            void this.checkLogin();
         });
     }
 
@@ -170,9 +172,7 @@ export class LoginModal extends Modal {
                 
                 // Method 1: standard webview API
                 try {
-                    // @ts-ignore
                     if (this.webview.getWebContents) {
-                         // @ts-ignore
                          const session = this.webview.getWebContents().session;
                          
                          // Fix for CSDN: Explicitly get cookies for root domain if platform is CSDN
@@ -207,7 +207,6 @@ export class LoginModal extends Modal {
                     
                     // Method 2: remote module
                     try {
-                         // @ts-ignore
                          // eslint-disable-next-line @typescript-eslint/no-require-imports
                          const remote = require('@electron/remote');
                          const webContents = remote.webContents.fromId(this.webview.getWebContentsId());
@@ -218,7 +217,7 @@ export class LoginModal extends Modal {
                              const wwwCookies = await session.cookies.get({ domain: 'www.csdn.net' });
                              const passportCookies = await session.cookies.get({ domain: 'passport.csdn.net' });
                              const cookieMap = new Map();
-                             [...rootCookies, ...wwwCookies, ...passportCookies].forEach((c: any) => cookieMap.set(c.name, c));
+                             [...rootCookies, ...wwwCookies, ...passportCookies].forEach((c: unknown) => cookieMap.set(c.name, c));
                              cookies = Array.from(cookieMap.values());
                          } else if (this.platform.id === 'weibo') {
                              // Strategy: Capture EVERYTHING related to weibo/sina to be safe
@@ -313,7 +312,6 @@ export class LoginModal extends Modal {
              
              // Clear session storage
              try {
-                 // @ts-ignore
                  const session = this.webview.getWebContents().session;
                  await session.clearStorageData();
              } catch(_e) { 

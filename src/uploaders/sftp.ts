@@ -1,4 +1,5 @@
 import { SFTPConfig, Uploader, UploadedImage } from "../settings";
+import type SftpClient from 'ssh2-sftp-client';
 // import { Notice } from "obsidian";
 
 export class SFTPUploader implements Uploader {
@@ -8,14 +9,13 @@ export class SFTPUploader implements Uploader {
         this.config = config;
     }
 
-    private async connect(client: any) {
+    private async connect(client: SftpClient) {
         const { host, port, username, password, privateKey } = this.config;
         
         if (!host || !username || (!password && !privateKey)) {
             throw new Error("SFTP Configuration is incomplete.");
         }
 
-        
         await client.connect({
             host: host,
             port: port || 22,
@@ -82,9 +82,10 @@ export class SFTPUploader implements Uploader {
             
             return this.getPublicUrl(remotePath);
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("SFTP Upload Error:", error);
-            throw new Error(`SFTP Upload failed: ${error.message}`);
+            const msg = (error as Error).message || "Unknown SFTP Upload Error";
+            throw new Error(`SFTP Upload failed: ${msg}`);
         } finally {
             // Only end if we didn't recurse (which closes it).
             // Actually, if we recurse, we returned early.
@@ -105,12 +106,11 @@ export class SFTPUploader implements Uploader {
         try {
             await this.connect(client);
             
-            // list() returns FileInfo[]
             const list = await client.list(uploadPath);
             
             const images = list
-                .filter((item: any) => item.type !== 'd' && this.isImage(item.name))
-                .map((item: any) => {
+                .filter((item) => item.type !== 'd' && this.isImage(item.name))
+                .map((item) => {
                     const remotePath = `${uploadPath.replace(/\/$/, "")}/${item.name}`;
                     return {
                         key: remotePath,
@@ -125,9 +125,10 @@ export class SFTPUploader implements Uploader {
 
             return images.slice(offset, offset + limit);
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("SFTP List Error:", error);
-            throw new Error(`Failed to list SFTP files: ${error.message}`);
+            const msg = (error as Error).message || "Unknown SFTP List Error";
+            throw new Error(`Failed to list SFTP files: ${msg}`);
         } finally {
             await client.end();
         }
@@ -141,9 +142,10 @@ export class SFTPUploader implements Uploader {
             await this.connect(client);
             await client.delete(key);
             return true;
-        } catch (error: any) {
+        } catch (error: unknown) {
              console.error("SFTP Delete Error:", error);
-             throw new Error(`Failed to delete SFTP file: ${error.message}`);
+             const msg = (error as Error).message || "Unknown SFTP Delete Error";
+             throw new Error(`Failed to delete SFTP file: ${msg}`);
         } finally {
             await client.end();
         }
@@ -156,9 +158,10 @@ export class SFTPUploader implements Uploader {
             await this.connect(client);
             await client.list('/');
             return { success: true, message: "Connection Successful!" };
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("SFTP Test Error:", error);
-            return { success: false, message: `Connection Failed: ${error.message}` };
+            const msg = (error as Error).message || "Unknown SFTP Test Error";
+            return { success: false, message: `Connection Failed: ${msg}` };
         } finally {
             await client.end();
         }

@@ -20,32 +20,32 @@ export class StubAIManager implements IAIManager {
         this.showProNotice();
     }
 
-    async generateImage(_prompt: string, _options?: any): Promise<string> {
+    generateImage(_prompt: string, _options?: unknown): Promise<string> {
         this.showProNotice();
-        return "";
+        return Promise.resolve("");
     }
 
-    async insertImageAtCursor(_view: MarkdownView, _message: ChatMessage): Promise<void> {
+    insertImageAtCursor(_view: MarkdownView, _message: ChatMessage): Promise<void> {
         this.showProNotice();
         return Promise.resolve();
     }
 
-    async chatCompletionStream(_systemPrompt: string, _messages: ChatMessage[], _historyMessages: ChatMessage[], _callback: (chunk: string) => void): Promise<void> {
+    chatCompletionStream(_systemPrompt: string, _messages: ChatMessage[], _historyMessages: ChatMessage[], _callback: (chunk: string) => void): Promise<void> {
         this.showProNotice();
         return Promise.resolve();
     }
     
-    async analyzeImage(_imageFile: File, _prompt?: string): Promise<string> {
+    analyzeImage(_imageFile: File, _prompt?: string): Promise<string> {
         this.showProNotice();
-        return "";
+        return Promise.resolve("");
     }
     
-    async generateImageVariant(_imageFile: File, _prompt?: string): Promise<string> {
+    generateImageVariant(_imageFile: File, _prompt?: string): Promise<string> {
          this.showProNotice();
-         return "";
+         return Promise.resolve("");
     }
 
-    async quickAction(_view: MarkdownView, _text: string): Promise<void> {
+    quickAction(_view: MarkdownView, _text: string): Promise<void> {
         this.showProNotice();
         return Promise.resolve();
     }
@@ -54,12 +54,9 @@ export class StubAIManager implements IAIManager {
         new Notice(t('notice.ai.pro', this.plugin.settings));
         
         // Open Settings -> Status Tab
-        // @ts-ignore
         if (this.plugin.app.setting) {
-            // @ts-ignore
             this.plugin.app.setting.open();
-            // @ts-ignore
-            const settingTab = this.plugin.app.setting.pluginTabs.find((t: any) => t.id === this.plugin.manifest.id);
+            const settingTab = this.plugin.app.setting.pluginTabs.find((t: unknown) => t.id === this.plugin.manifest.id);
             if (settingTab) {
                 settingTab.currentTab = 'Status';
                 settingTab.display();

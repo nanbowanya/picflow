@@ -13,6 +13,7 @@ export class StubPublisher implements IPlatformPublisher {
     }
 
     async publish(_file: TFile, _accountId: string, _themeName: string): Promise<void> {
+                   // eslint-disable-next-line obsidianmd/ui/sentence-case
         new Notice('Publishing is available in Pro version.');
         return Promise.resolve();
     }

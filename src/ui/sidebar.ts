@@ -32,7 +32,7 @@ export class PicFlowSidebarView extends ItemView {
         this.htmlRenderer = new StubHtmlRenderer(plugin.app);
         
         // Dynamic loading of HtmlRenderer
-        this.loadHtmlRenderer();
+        void this.loadHtmlRenderer();
 
         // Drawer initialization requires their parent containers
         // Create an empty container div as placeholder until render() is called
@@ -43,7 +43,6 @@ export class PicFlowSidebarView extends ItemView {
     }
 
     async loadHtmlRenderer() {
-        // @ts-ignore
         if (process.env.BUILD_TYPE === 'PRO') {
             try {
                 const { HtmlRenderer } = await import('../core/publishers/renderer');
@@ -64,7 +63,7 @@ export class PicFlowSidebarView extends ItemView {
     }
 
     getDisplayText() {
-        return "PicFlow";
+        return "Picflow"; // Sentence case
     }
 
     getIcon() {
@@ -73,16 +72,16 @@ export class PicFlowSidebarView extends ItemView {
 
     async onOpen() {
         await this.themeManager.loadThemes();
-        this.render();
+        await this.render();
     }
 
     // Public method to switch tab
     async switchToTab(tabId: 'clip' | 'ai' | 'publish') {
         this.activeTab = tabId;
-        this.render();
+        await this.render();
     }
 
-    render() {
+    async render() {
         const container = this.contentEl;
         container.empty();
         container.addClass("picflow-sidebar-view");
@@ -102,9 +101,9 @@ export class PicFlowSidebarView extends ItemView {
                 cls: `picflow-tab-btn ${this.activeTab === tab.id ? 'active' : ''}`
             });
 
-            btn.onclick = () => {
-                this.activeTab = tab.id as any;
-                this.render();
+            btn.onclick = async () => {
+                this.activeTab = tab.id as 'clip' | 'ai' | 'publish';
+                await this.render();
             };
         });
 
@@ -121,7 +120,7 @@ export class PicFlowSidebarView extends ItemView {
             this.aiDrawer.render();
         } else if (this.activeTab === 'publish') {
             this.publishDrawer.container = tabContainer;
-            this.publishDrawer.render();
+            await this.publishDrawer.render();
         }
     }
 }

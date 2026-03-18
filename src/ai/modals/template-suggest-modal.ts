@@ -30,26 +30,29 @@ export class TemplateSuggestModal extends SuggestModal<AIPromptTemplate> {
     }
 
     onChooseSuggestion(template: AIPromptTemplate, _evt: MouseEvent | KeyboardEvent) {
+        // Use editor passed in constructor
         const selection = this.editor.getSelection();
         if (!selection) {
             new Notice(t('ai.chat.notice.noSelection'));
-            return;
+            // Continue anyway? Or return?
+            // If template doesn't need selection, maybe ok.
+            // But logic below assumes selection.
         }
 
         let prompt = template.template;
         if (prompt.includes("{{selection}}")) {
-            prompt = prompt.replace("{{selection}}", selection);
+            prompt = prompt.replace("{{selection}}", selection || "");
         } else {
-            prompt = `${prompt}\n\n${selection}`;
+            prompt = `${prompt}\n\n${selection || ""}`;
         }
 
         // Handle async operations
-        this.handleSelection(prompt, template.model).catch(err => {
+        void this.handleSelection(prompt, template.model).catch(err => {
             console.error("Failed to process suggestion:", err);
         });
     }
 
-    private async handleSelection(prompt: string, model: any) {
+    private async handleSelection(prompt: string, model: string) {
         // Open Sidebar and Send Message
         await this.plugin.activateSidebarView();
         

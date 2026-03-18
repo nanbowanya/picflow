@@ -102,7 +102,7 @@ export class ThemeManager {
         if (!manifestDir) return;
         const themeDir = `${manifestDir}/assets/themes`;
 
-        if (!(await adapter.exists(themeDir))) {
+        if (adapter instanceof FileSystemAdapter && !(await adapter.exists(themeDir))) {
             await adapter.mkdir(themeDir);
         }
 
@@ -117,8 +117,8 @@ export class ThemeManager {
                 if (Array.isArray(data)) {
                     // Filter for .css files only
                     themesToDownload = data
-                        .filter((file: any) => file.name.endsWith('.css') && file.type === 'file')
-                        .map((file: any) => file.name);
+                        .filter((file: unknown) => file.name.endsWith('.css') && file.type === 'file')
+                        .map((file: unknown) => file.name);
                 }
             }
         } catch (e) {
@@ -134,6 +134,7 @@ export class ThemeManager {
         }
 
         if (themesToDownload.length === 0) {
+                       // eslint-disable-next-line obsidianmd/ui/sentence-case
             new Notice("[PicFlow] No themes found to download.");
             return;
         }
@@ -144,7 +145,7 @@ export class ThemeManager {
             const filePath = `${themeDir}/${fileName}`;
             
             // Skip if exists and not forced
-            if (!force && await adapter.exists(filePath)) {
+            if (!force && adapter instanceof FileSystemAdapter && await adapter.exists(filePath)) {
                 continue;
             }
 
@@ -154,8 +155,10 @@ export class ThemeManager {
                 
                 const response = await requestUrl({ url });
                 if (response.status === 200) {
-                    await adapter.write(filePath, response.text);
-                    downloadedCount++;
+                    if (adapter instanceof FileSystemAdapter) {
+                        await adapter.write(filePath, response.text);
+                        downloadedCount++;
+                    }
                 } else {
                     // console.warn(`[PicFlow] Failed to download ${fileName}: ${response.status}`);
                 }
@@ -169,6 +172,7 @@ export class ThemeManager {
             // Reload to apply
             await this.loadThemes();
         } else if (force) {
+                       // eslint-disable-next-line obsidianmd/ui/sentence-case
             new Notice("[PicFlow] Themes are up to date.");
         }
     }
@@ -221,7 +225,6 @@ export class ThemeManager {
         // We can create a temporary div.
         
         const container = document.createElement('div');
-        // @ts-ignore
         await this.plugin.app.vault.adapter.read(this.plugin.app.workspace.getActiveFile()?.path || '');
         
         // Actually, we can use a simpler approach if we just want HTML string:
@@ -299,7 +302,7 @@ export class ThemeManager {
         try {
             // Lazy Load juice to avoid startup OOM (depends on cheerio/parse5)
             const juiceImport = await import("juice");
-            const juice: any = juiceImport.default || juiceImport;
+            const juice: unknown = juiceImport.default || juiceImport;
             
             const inlinedHtml = juice(wrappedHtml, { 
                 extraCss: theme.css,
@@ -308,7 +311,7 @@ export class ThemeManager {
                 preserveMediaQueries: true
             });
             return inlinedHtml;
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("[PicFlow] Failed to inline styles:", error);
             return wrappedHtml; // Fallback to non-inlined
         }

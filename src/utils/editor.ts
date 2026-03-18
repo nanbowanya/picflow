@@ -22,7 +22,7 @@ export function getActiveMarkdownView(app: App): MarkdownView | null {
     let lastActiveView: MarkdownView | null = null;
 
     // Helper to check for last active file safely
-    const lastFile = (workspace as any).getLastActiveFile?.();
+    const lastFile = (workspace as unknown as { getLastActiveFile?: () => unknown }).getLastActiveFile?.();
 
     for (const leaf of leaves) {
         if (leaf.view instanceof MarkdownView) {

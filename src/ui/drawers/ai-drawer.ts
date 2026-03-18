@@ -29,7 +29,7 @@ export class AIDrawer {
         this.container = container;
         
         // Dynamic load AI Service
-        this.loadAIService();
+        void this.loadAIService();
         
         // Initial welcome message
         this.messages.push({
@@ -41,7 +41,6 @@ export class AIDrawer {
     }
 
     async loadAIService() {
-        // @ts-ignore
         if (process.env.BUILD_TYPE === 'PRO') {
             try {
                 const { AIService } = await import('../../core/ai/service');

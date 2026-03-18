@@ -11,12 +11,12 @@ function arrayBufferToHex(buffer: ArrayBuffer): string {
 // Helper: HMAC-SHA256 using Web Crypto API
 async function hmacSha256(key: ArrayBuffer | Uint8Array | string, message: string): Promise<ArrayBuffer> {
     const encoder = new TextEncoder();
-    let keyData: any;
+    let keyData: BufferSource;
 
     if (typeof key === 'string') {
         keyData = encoder.encode(key);
     } else {
-        keyData = key;
+        keyData = key as BufferSource;
     }
 
     const cryptoKey = await crypto.subtle.importKey(

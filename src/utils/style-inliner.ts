@@ -5,8 +5,9 @@ export class StyleInliner {
      * This is required for platforms like WeChat that strip <style> tags.
      */
     static inline(html: string, css: string): string {
-        const container = document.createElement('div');
-        container.innerHTML = html;
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const container = doc.body;
 
         // Simple CSS Parser
         // Remove comments

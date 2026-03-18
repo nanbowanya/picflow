@@ -22,10 +22,10 @@ export class LocalImageServer {
      * Start the local server
      */
     async start(): Promise<void> {
-        if (this.isRunning) return;
+        if (this.isRunning) return Promise.resolve();
 
         return new Promise((resolve, _reject) => {
-            this.server = http.createServer(async (req, res) => {
+            this.server = http.createServer((req, res) => {
                 // 1. Parse URL
                 const url = req.url || '';
                 const token = url.replace(/^\//, ''); // simple path as token
@@ -117,7 +117,7 @@ export class LocalImageServer {
         // Exclude 127.0.0.1 and 169.254.x.x (link-local)
         
         for (const name of Object.keys(interfaces)) {
-            for (const iface of interfaces[name]!) {
+            for (const iface of interfaces[name] || []) {
                 if (iface.family === 'IPv4' && !iface.internal) {
                     const ip = iface.address;
                     

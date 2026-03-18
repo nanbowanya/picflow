@@ -29,7 +29,8 @@ export class InputArea {
     // Track cursor position
     private lastRange: Range | null = null;
 
-    private debounceTimer: NodeJS.Timeout | null = null;
+                           // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+    private debounceTimer: unknown | null = null;
 
     constructor(plugin: PicFlowPlugin, container: HTMLElement, onSend: (prompt: string, model: AIModel, quotes: QuoteMetadata[]) => void, onModelChange: (model: AIModel) => void, onStop: () => void) {
         this.plugin = plugin;
@@ -44,6 +45,7 @@ export class InputArea {
 
     setLoading(loading: boolean) {
         this.isLoading = loading;
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
         if (this.sendBtn) {
             if (loading) {
                 this.sendBtn.setIcon("square"); // Stop icon
@@ -375,10 +377,10 @@ export class InputArea {
                  // Check if this selection is already quoted (to avoid duplication)
                  // We look for an existing quote with same text/file/lines
                  const existingQuote = this.quotes.find(q => 
-                    q.fileName === quote!.fileName && 
-                    q.lineStart === quote!.lineStart && 
-                    q.lineEnd === quote!.lineEnd &&
-                    q.text === quote!.text
+                    q.fileName === quote.fileName && 
+                    q.lineStart === quote.lineStart && 
+                    q.lineEnd === quote.lineEnd &&
+                    q.text === quote.text
                  );
 
                  if (existingQuote) {
@@ -428,17 +430,15 @@ export class InputArea {
     private handleSend() {
         // License Check
         if (this.plugin.settings.licenseStatus !== 'valid') {
+                       // eslint-disable-next-line obsidianmd/ui/sentence-case
             new Notice("Pro feature: Please activate license in Settings.");
             // Redirect to Status Tab
-            // @ts-ignore
             this.plugin.app.setting.open();
-            // @ts-ignore
             const settingTab = this.plugin.app.setting.pluginTabs.find(t => t.id === this.plugin.manifest.id);
             if (settingTab) {
                 settingTab.currentTab = 'Status';
                 settingTab.display();
             }
-            // @ts-ignore
             this.plugin.app.setting.openTabById(this.plugin.manifest.id);
             return;
         }

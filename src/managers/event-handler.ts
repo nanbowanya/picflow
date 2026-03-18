@@ -19,14 +19,13 @@ export class EventHandler {
 
     async load() {
         // Dynamic load AI Service
-        // @ts-ignore
         if (process.env.BUILD_TYPE === 'PRO') {
             try {
                 const { AIService } = await import('../core/ai/service');
                 // Wrap static methods to match interface
                 this.aiService = {
                     generateImage: AIService.generateImage,
-                    chatCompletionStream: async (settings, model, history, onChunk) => {
+                    chatCompletionStream: async (settings: unknown, model: unknown, history: unknown[], onChunk: (chunk: string) => void) => {
                         await AIService.chatCompletionStream(settings, model, history, onChunk);
                     }
                 };
@@ -178,7 +177,7 @@ export class EventHandler {
         } catch (error) {
             console.error('AI Generation Error:', error);
             new Notice('Failed to generate or upload AI image.');
-            editor.replaceRange(`![AI Error: ${error.message}](${prompt})`, startPos, endPos);
+            editor.replaceRange(`![AI Error: ${(error as Error).message}](${prompt})`, startPos, endPos);
         }
     }
 }

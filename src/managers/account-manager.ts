@@ -7,16 +7,16 @@ import { t } from '../i18n';
 
 export interface Account {
   id: string;
-  platform: string; // 'wechat', 'zhihu', 'juejin', etc.
+  platform: string;
   name: string;
   avatar?: string;
-  cookies: any; // Can be string or object depending on platform
+  cookies: unknown;
   status: 'active' | 'expired';
   lastChecked: number;
   data?: {
       appId?: string;
       appSecret?: string;
-      [key: string]: any;
+      [key: string]: unknown;
   }; 
 }
 
@@ -47,7 +47,7 @@ export class AccountManager {
     await this.plugin.saveData(data);
   }
 
-  addAccount(platformId: string, onSuccess?: () => void) {
+  addAccount(platformId: string, _onSuccess?: () => void) {
       const platform = PlatformRegistry.get(platformId);
       if (!platform) {
           // If platform is not found, it likely means we are in Lite version and the core platform is not loaded.
@@ -56,17 +56,15 @@ export class AccountManager {
           new Notice(t('settings.pro.desc', this.plugin.settings)); // "This feature requires a Pro license key to use."
           
           // Redirect to Status Tab
-          // @ts-ignore
-          const settingTab = this.plugin.app.setting.settingTabs.find(tab => tab.id === this.plugin.manifest.id);
+          const settingTab = this.plugin.app.setting.settingTabs.find((tab: unknown) => tab.id === this.plugin.manifest.id);
           if (settingTab && typeof settingTab.switchToTab === 'function') {
-              // @ts-ignore
               this.plugin.app.setting.openTabById(this.plugin.manifest.id);
               settingTab.switchToTab('Status');
           }
           return;
       }
 
-      new LoginModal(this.plugin.app, this.plugin, platform, async (result) => {
+      new LoginModal(this.plugin.app, this.plugin, platform, (result) => {
           if (result.success && result.cookies) {
               const newAccount: Account = {
                   id: crypto.randomUUID(),
@@ -100,11 +98,12 @@ export class AccountManager {
                   new Notice(`Account ${newAccount.name} added!`);
               }
 
-              await this.save();
-              // Trigger UI refresh if needed
-              this.plugin.refreshAllViews();
-              
-              if (onSuccess) onSuccess();
+              void this.save().then(() => {
+                  // Trigger UI refresh if needed
+                  this.plugin.refreshAllViews();
+                  
+                  if (_onSuccess) _onSuccess();
+              });
           } else {
               new Notice('Login failed or cancelled.');
           }

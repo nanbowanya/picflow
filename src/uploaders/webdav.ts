@@ -1,4 +1,4 @@
-import { createClient, WebDAVClient, FileStat } from "webdav";
+import { createClient, WebDAVClient } from "webdav";
 import { WebDAVConfig, Uploader, UploadedImage } from "../settings";
 import * as https from "https";
 
@@ -73,8 +73,9 @@ export class WebDAVUploader implements Uploader {
             
             return this.getPublicUrl(remotePath);
 
-        } catch (error: any) {
-            throw new Error(`WebDAV Upload failed: ${error.message}`);
+        } catch (error: unknown) {
+            const msg = (error as Error).message || "Unknown WebDAV Upload Error";
+            throw new Error(`WebDAV Upload failed: ${msg}`);
         }
     }
 
@@ -84,9 +85,7 @@ export class WebDAVUploader implements Uploader {
         
         try {
             // Get directory contents
-            // Note: getDirectoryContents returns an array of items or a single item if path is a file
-            // We expect an array for a directory.
-            const contents = await client.getDirectoryContents(uploadPath) as FileStat[];
+            const contents = await client.getDirectoryContents(uploadPath) as { type: string, basename: string, filename: string, size: number, lastmod: string }[];
             
             if (!Array.isArray(contents)) {
                 return [];
@@ -109,8 +108,9 @@ export class WebDAVUploader implements Uploader {
 
             return images.slice(offset, offset + limit);
 
-        } catch (error: any) {
-            throw new Error(`Failed to list WebDAV files: ${error.message}`);
+        } catch (error: unknown) {
+            const msg = (error as Error).message || "Unknown WebDAV List Error";
+            throw new Error(`Failed to list WebDAV files: ${msg}`);
         }
     }
 
@@ -120,8 +120,9 @@ export class WebDAVUploader implements Uploader {
         try {
             await client.deleteFile(key);
             return true;
-        } catch (error: any) {
-            throw new Error(`Failed to delete file: ${error.message}`);
+        } catch (error: unknown) {
+            const msg = (error as Error).message || "Unknown WebDAV Delete Error";
+            throw new Error(`Failed to delete file: ${msg}`);
         }
     }
 
