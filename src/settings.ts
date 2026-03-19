@@ -1836,8 +1836,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
     renderMigrationResults(container: HTMLElement, files: unknown[], targetProfileId: string) {
         container.empty();
         
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const totalImages = (files as any[]).reduce((acc: number, f: any) => acc + (f.images?.length || 0), 0);
+        const totalImages = (files as { images?: unknown[] }[]).reduce((acc: number, f: { images?: unknown[] }) => acc + (f.images?.length || 0), 0);
         
         if (totalImages === 0) {
             container.createEl('div', { text: t('migration.list.empty', this.plugin.settings), cls: 'picflow-text-muted' });
@@ -1890,7 +1889,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
         // Scrollable List
         const list = container.createEl('div', { cls: 'picflow-migration-list' });
 
-        files.forEach(file => {
+        (files as { status: string, images: { status: string, originalPath: string, errorMsg?: string }[], file: { path: string } }[]).forEach(file => {
             const fileRow = list.createEl('div', { cls: 'picflow-migration-file-row' });
             
             // File Header (Click to expand)
@@ -1903,8 +1902,8 @@ export class PicFlowSettingTab extends PluginSettingTab {
             const statusSpan = header.createEl('span');
             statusSpan.addClass('picflow-migration-file-status');
             
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const successCount = (file as any).images.filter((i: any) => i.status === 'success').length;
+            const fileData = file as { status: string, images: { status: string, originalPath: string, errorMsg?: string }[], file: { path: string } };
+            const successCount = fileData.images.filter((i) => i.status === 'success').length;
             
             if (file.status === 'success') {
                 statusSpan.setText('✅ done');
@@ -1933,7 +1932,7 @@ export class PicFlowSettingTab extends PluginSettingTab {
             };
             details.addClass('picflow-hidden'); // Start closed
 
-            file.images.forEach((img: unknown) => {
+            file.images.forEach(img => {
                 const imgRow = details.createEl('div', { cls: 'picflow-migration-img-item' });
                 
                 const pathSpan = imgRow.createEl('span', { text: img.originalPath });

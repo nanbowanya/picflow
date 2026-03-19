@@ -117,8 +117,8 @@ export class ThemeManager {
                 if (Array.isArray(data)) {
                     // Filter for .css files only
                     themesToDownload = data
-                        .filter((file: unknown) => file.name.endsWith('.css') && file.type === 'file')
-                        .map((file: unknown) => file.name);
+                        .filter((file: { name: string, type: string }) => file.name.endsWith('.css') && file.type === 'file')
+                        .map((file: { name: string, type: string }) => file.name);
                 }
             }
         } catch (e) {
@@ -134,8 +134,7 @@ export class ThemeManager {
         }
 
         if (themesToDownload.length === 0) {
-            // eslint-disable-next-line obsidianmd/ui/sentence-case
-            new Notice("[PicFlow] No themes found to download.");
+            new Notice("No themes found to download.");
             return;
         }
 
@@ -168,12 +167,11 @@ export class ThemeManager {
         }
 
         if (downloadedCount > 0) {
-            new Notice(`[PicFlow] Downloaded ${downloadedCount} new themes.`);
+            new Notice(`Downloaded ${downloadedCount} new themes.`);
             // Reload to apply
             await this.loadThemes();
         } else if (force) {
-            // eslint-disable-next-line obsidianmd/ui/sentence-case
-            new Notice("[PicFlow] Themes are up to date.");
+            new Notice("Themes are up to date.");
         }
     }
 
@@ -302,7 +300,7 @@ export class ThemeManager {
         try {
             // Lazy Load juice to avoid startup OOM (depends on cheerio/parse5)
             const juiceImport = await import("juice");
-            const juice: unknown = juiceImport.default || juiceImport;
+            const juice = (juiceImport.default || juiceImport) as (html: string, options?: Record<string, unknown>) => string;
             
             const inlinedHtml = juice(wrappedHtml, { 
                 extraCss: theme.css,

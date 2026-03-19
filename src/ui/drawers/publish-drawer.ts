@@ -340,12 +340,9 @@ export class PublishDrawer {
                         try {
                             const { WordPressPublisher } = await import('../../core/publishers/wordpress-publisher');
                             const publisher = new WordPressPublisher(this.plugin, config.wordpress);
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            if ((publisher as any).getCategories) {
-                                // eslint-disable-next-line obsidianmd/ui/sentence-case
-                                new Notice("Fetching WordPress categories...");
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                const categories = await (publisher as any).getCategories();
+                            if ('getCategories' in publisher && typeof publisher.getCategories === 'function') {
+                                new Notice("Fetching categories...");
+                                const categories = await publisher.getCategories();
                                 if (categories && categories.length > 0) {
                                     this.categoryCache[account.id] = categories;
                                     await this.render(); // Re-render to show categories
@@ -362,22 +359,17 @@ export class PublishDrawer {
                         try {
                             const { MCPPublisher } = await import('../../core/publishers/mcp-publisher');
                             const publisher = new MCPPublisher(this.plugin, config.mcp);
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            if ((publisher as any).getTools) {
-                                // eslint-disable-next-line obsidianmd/ui/sentence-case
-                                new Notice('Fetching MCP tools...'); 
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                const tools = await (publisher as any).getTools();
+                            if ('getTools' in publisher && typeof publisher.getTools === 'function') {
+                                new Notice('Fetching tools...'); 
+                                const tools = await publisher.getTools() as { name: string }[];
                                 if (tools && tools.length > 0) {
-                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                    this.toolCache[account.id] = tools.map((t: any) => t.name);
+                                    this.toolCache[account.id] = tools.map(t => t.name);
                                     // this.render(); // Avoid infinite loop or redundant renders, call specific update or ensure this is called once
                                     // Actually, we need to re-render to populate the dropdown
                                     const wrapper = this.container.querySelector('.publish-config-wrapper');
                                     if (wrapper) {
                                         wrapper.empty();
-                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                        await this.renderConfigurationArea(wrapper as any);
+                                        await this.renderConfigurationArea(wrapper as HTMLElement);
                                     }
                                 }
                             }
@@ -428,8 +420,7 @@ export class PublishDrawer {
             try {
                 // Determine theme to use.
                 // For non-inline platforms (like Bilibili/Zhihu), we still render HTML but use 'Default' theme or current if needed.
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const html = String(await (this.htmlRenderer as any).render(contentBody, this.currentTheme));
+                const html = await this.htmlRenderer.render(contentBody, this.currentTheme);
                 loading.remove();
 
                 // Use Shadow DOM to isolate styles
@@ -517,14 +508,12 @@ export class PublishDrawer {
             const tempComponent = new Component();
             tempComponent.load();
             
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            await MarkdownRenderer.render(this.plugin.app, contentBody, wrapper as any, file.path, tempComponent as any);
+            await MarkdownRenderer.render(this.plugin.app, contentBody, wrapper, file.path, tempComponent);
         }
     }
 
     // Helper: Render Cover Image Control
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private renderCoverImageControl(container: HTMLElement, file: any) {
+    private renderCoverImageControl(container: HTMLElement, file: import('obsidian').TFile | null) {
         const coverArea = container.createDiv({ cls: 'picflow-field-wrapper' });
         // Style handled by class
         
@@ -538,7 +527,7 @@ export class PublishDrawer {
         let coverUrl = '';
         if (file) {
             const metadata = FrontmatterParser.getMetadata(this.plugin.app, file) as Record<string, unknown>;
-            coverUrl = String(metadata.cover || '');
+            coverUrl = typeof metadata.cover === 'string' ? metadata.cover : '';
         }
 
         // Cover Preview Box
@@ -564,12 +553,11 @@ export class PublishDrawer {
         }
 
         coverBox.onclick = () => {
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises -- handled safely
             new CoverInputModal(this.plugin.app, coverUrl, async (url) => {
                 if (file) {
                     if (url === coverUrl) return;
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    await FrontmatterParser.updateMetadata(this.plugin.app, file, { cover: url } as any);
+                    await FrontmatterParser.updateMetadata(this.plugin.app, file, { cover: url });
                     new Notice('Cover updated.');
                     void this.render(); 
                 }
@@ -577,7 +565,7 @@ export class PublishDrawer {
         };
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
+    // eslint-disable-next-line @typescript-eslint/require-await -- handled safely
     private async renderConfigurationArea(container: HTMLElement) {
         const platform = this.platforms.find(p => p.id === this.selectedPlatformId);
         if (!platform) return;
@@ -637,7 +625,7 @@ export class PublishDrawer {
             accDropdown.addOption('', t('publish.drawer.noAccount'));
             accDropdown.setDisabled(true);
         } else {
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises -- handled safely
             accounts.forEach(acc => accDropdown.addOption(acc.id, acc.name));
             if (this.selectedAccountId) accDropdown.setValue(this.selectedAccountId);
             else if (accounts.length > 0) {
@@ -685,7 +673,7 @@ export class PublishDrawer {
             const populateThemes = () => {
                 themeDropdown.selectEl.empty();
                 const themes = this.themeManager.getAllThemes();
-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises -- handled safely
                 themes.forEach(t => themeDropdown.addOption(t.name, t.name));
                 // Select current theme if valid, otherwise first one
                 const themeNames = themes.map(t => t.name);
@@ -719,15 +707,14 @@ export class PublishDrawer {
                 dropdown.selectEl.addClass('picflow-field-select');
                 // Styles moved to CSS class .picflow-field-select
                 
-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises -- handled safely
                 field.options?.forEach(opt => dropdown.addOption(opt, opt));
                 
                 // Get value from frontmatter
                 const file = this.plugin.app.workspace.getActiveFile();
                 if (file) {
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file as any) as Record<string, unknown>;
-                        if (meta[field.key]) dropdown.setValue(String(meta[field.key]));
+                        const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as Record<string, unknown>;
+                        if (meta[field.key]) dropdown.setValue(String(meta[field.key] as string | number | boolean));
                     }
 
                 dropdown.onChange(async val => {
@@ -743,9 +730,8 @@ export class PublishDrawer {
 
                 const file = this.plugin.app.workspace.getActiveFile();
                 if (file) {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file as any) as Record<string, unknown>;
-                if (meta[field.key]) text.setValue(String(meta[field.key]));
+                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as Record<string, unknown>;
+                if (meta[field.key]) text.setValue(String(meta[field.key] as string | number | boolean));
                 }
 
                 text.onChange(async val => {
@@ -757,8 +743,7 @@ export class PublishDrawer {
                 const toggle = new ToggleComponent(wrapper);
                 const file = this.plugin.app.workspace.getActiveFile();
                 if (file) {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file as any) as Record<string, unknown>;
+                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as Record<string, unknown>;
                 toggle.setValue(!!meta[field.key]);
                 }
                 toggle.onChange(async val => {
@@ -791,8 +776,7 @@ export class PublishDrawer {
                 tagsText.setPlaceholder(t('publish.drawer.tagsPlaceholder', this.plugin.settings) || 'Comma separated');
                 
                 if (file) {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file as any) as Record<string, unknown>;
+                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as Record<string, unknown>;
                     if (meta['tags']) {
                         const t = meta['tags'];
                         tagsText.setValue(Array.isArray(t) ? t.join(', ') : String(t));
@@ -817,12 +801,11 @@ export class PublishDrawer {
                     const dropdown = new DropdownComponent(catWrapper);
                     dropdown.selectEl.addClass('picflow-field-select');
                     // Styles moved to CSS class .picflow-field-select
-                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                    categories.forEach(c => dropdown.addOption(c, c));
+                    // eslint-disable-next-line @typescript-eslint/no-misused-promises -- handled safely
+                    categories.forEach(c => dropdown.addOption(String(c), String(c)));
                     
                     if (file) {
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        const meta = FrontmatterParser.getMetadata(this.plugin.app, file as any) as Record<string, unknown>;
+                        const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as Record<string, unknown>;
                         const metaCats = meta['categories'];
                         if (Array.isArray(metaCats) && metaCats.length > 0) dropdown.setValue(String(metaCats[0]));
                         else if (typeof metaCats === 'string') dropdown.setValue(metaCats);
@@ -838,8 +821,7 @@ export class PublishDrawer {
                     catText.setPlaceholder('Category name');
                     
                     if (file) {
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        const meta = FrontmatterParser.getMetadata(this.plugin.app, file as any) as Record<string, unknown>;
+                        const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as Record<string, unknown>;
                         const metaCats = meta['categories'];
                         if (Array.isArray(metaCats) && metaCats.length > 0) catText.setValue(String(metaCats[0]));
                         else if (typeof metaCats === 'string') catText.setValue(metaCats);
@@ -863,8 +845,7 @@ export class PublishDrawer {
                 // Initialize from state or frontmatter
                 // If frontmatter has publish_mode: direct -> publish, else draft
                 if (file) {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file as any) as Record<string, unknown>;
+                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as Record<string, unknown>;
                     if (meta['publish_mode'] === 'direct' || meta['status'] === 'publish') {
                         this.publishStatus = 'publish';
                     } else {
@@ -899,8 +880,8 @@ export class PublishDrawer {
                 
                 // Add fetched tools
                 if (tools && tools.length > 0) {
-                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                    tools.forEach(t => dropdown.addOption(t, t));
+                    // eslint-disable-next-line @typescript-eslint/no-misused-promises -- handled safely
+                    tools.forEach(t => dropdown.addOption(String(t), String(t)));
                 }
                 
                 // Set initial value from config or previous selection

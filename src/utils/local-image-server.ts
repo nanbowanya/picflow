@@ -55,7 +55,7 @@ export class LocalImageServer {
                         res.writeHead(404);
                         res.end('File Not Found');
                     }
-                } catch (_e) {
+                } catch {
                     res.writeHead(500);
                     res.end('Internal Error');
                 }
@@ -80,7 +80,7 @@ export class LocalImageServer {
         if (this.server) {
             try {
                 this.server.close();
-            } catch (_e) {
+            } catch {
                 // ignore
             }
             this.server = null;

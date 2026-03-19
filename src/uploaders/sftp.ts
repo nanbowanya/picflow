@@ -44,7 +44,7 @@ export class SFTPUploader implements Uploader {
             try {
                 const type = await client.exists(remotePath);
                 if (type) exists = true;
-            } catch (_e) {
+            } catch {
                 // Ignore error, assume not exists or permission issue
             }
 
@@ -94,7 +94,7 @@ export class SFTPUploader implements Uploader {
             // But we need to check if client is connected. 
             // ssh2-sftp-client doesn't have isConnected? 
             // Safe to call end() multiple times? Usually yes.
-            try { await client.end(); } catch (_e) { /* ignore */ }
+            try { await client.end(); } catch { /* ignore */ }
         }
     }
 

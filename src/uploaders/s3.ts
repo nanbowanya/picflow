@@ -91,7 +91,7 @@ export class S3Uploader implements Uploader {
                         return `${endpoint}/${s3Bucket}/${path}`;
                     }
                 } 
-            } catch (_e) {
+            } catch {
                 // If 404, file doesn't exist, proceed to upload.
             }
         }
@@ -194,7 +194,7 @@ export class S3Uploader implements Uploader {
 				} else {
 					try {
 						errorMessage = JSON.stringify(error);
-					} catch (_e) {
+					} catch {
 						errorMessage = "Unknown error (cannot stringify)";
 					}
 				}
@@ -308,7 +308,7 @@ export class S3Uploader implements Uploader {
 				};
 			});
 		} catch (error: unknown) {
-			throw new Error(`Failed to list images: ${(error as Error).message || String(error)}`);
+			throw new Error(`Failed to list images: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
 		}
 	}
 
@@ -352,7 +352,7 @@ export class S3Uploader implements Uploader {
 			// It throws mainly on permissions or network errors.
 			return true;
 		} catch (error: unknown) {
-			throw new Error(`Failed to delete file: ${(error as Error).message || String(error)}`);
+			throw new Error(`Failed to delete file: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
 		}
 	}
 }

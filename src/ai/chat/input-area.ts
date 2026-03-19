@@ -44,8 +44,7 @@ export class InputArea {
 
     setLoading(loading: boolean) {
         this.isLoading = loading;
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        if (this.sendBtn) {
+        if (this.sendBtn !== undefined) {
             if (loading) {
                 this.sendBtn.setIcon("square"); // Stop icon
                 this.sendBtn.setTooltip("Stop generation");

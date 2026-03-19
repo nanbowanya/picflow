@@ -63,8 +63,7 @@ export class CustomPlatformModal extends Modal {
             .setName(t('settings.customPlatform.modal.name', this.plugin.settings))
             .setDesc(t('settings.customPlatform.modal.name.desc', this.plugin.settings))
             .addText(text => text
-                                // eslint-disable-next-line obsidianmd/ui/sentence-case
-                .setPlaceholder('My Blog')
+                .setPlaceholder('My blog')
                 .setValue(this.config.name || '')
                 .onChange(value => {
                     this.config.name = value;
@@ -75,12 +74,10 @@ export class CustomPlatformModal extends Modal {
             .setName(t('settings.customPlatform.modal.type', this.plugin.settings))
             .setDesc(t('settings.customPlatform.modal.type.desc', this.plugin.settings))
             .addDropdown(dropdown => dropdown
-                                        // eslint-disable-next-line obsidianmd/ui/sentence-case
-                .addOption('wordpress', 'WordPress / Typecho (MetaWeblog/XML-RPC)')
-                .addOption('dify', 'Dify (AI knowledge base / workflow)')
-                .addOption('webhook', 'Custom webhook (HTTP request)')
-                                  // eslint-disable-next-line obsidianmd/ui/sentence-case
-                .addOption('mcp', 'MCP server (Model Context Protocol)')
+                .addOption('wordpress', 'Wordpress')
+                .addOption('dify', 'Dify')
+                .addOption('webhook', 'Custom webhook')
+                .addOption('mcp', 'Mcp server')
                 .setValue(this.config.type || 'wordpress')
                 .onChange((value: string) => {
                     this.config.type = value as CustomPlatformType;
@@ -123,25 +120,22 @@ export class CustomPlatformModal extends Modal {
     validateConfig(): boolean {
         if (this.config.type === 'wordpress') {
             if (!this.config.wordpress?.endpoint || !this.config.wordpress?.username || !this.config.wordpress?.password) {
-                           // eslint-disable-next-line obsidianmd/ui/sentence-case
-                new Notice('Please fill in all WordPress fields');
+                new Notice('Please fill in all fields');
                 return false;
             }
         } else if (this.config.type === 'dify') {
             if (!this.config.dify?.apiKey) {
-                           // eslint-disable-next-line obsidianmd/ui/sentence-case
-                new Notice('Please enter Dify API key');
+                new Notice('Please enter the key');
                 return false;
             }
         } else if (this.config.type === 'webhook') {
             if (!this.config.webhook?.url) {
-                new Notice('Please enter webhook URL');
+                new Notice('Please enter the link');
                 return false;
             }
         } else if (this.config.type === 'mcp') {
             if (!this.config.mcp?.endpoint) {
-                           // eslint-disable-next-line obsidianmd/ui/sentence-case
-                new Notice('Please enter MCP endpoint URL');
+                new Notice('Please enter the endpoint');
                 return false;
             }
         }
@@ -154,8 +148,7 @@ export class CustomPlatformModal extends Modal {
         if (this.config.type === 'wordpress') {
             this.config.wordpress = this.config.wordpress || { endpoint: '', username: '', password: '' };
             
-                                             // eslint-disable-next-line obsidianmd/ui/sentence-case
-            container.createEl('h3', { text: 'WordPress configuration' });
+            container.createEl('h3', { text: 'Wordpress configuration' });
             
             new Setting(container)
                 .setName(t('settings.customPlatform.wp.endpoint', this.plugin.settings))
@@ -169,8 +162,7 @@ export class CustomPlatformModal extends Modal {
                 .setName(t('settings.customPlatform.wp.username', this.plugin.settings))
                  
                 .addText(text => text
-                                    // eslint-disable-next-line obsidianmd/ui/sentence-case
-                    .setPlaceholder('admin')
+                    .setPlaceholder('Enter username')
                     .setValue(this.config.wordpress.username)
                     .onChange(value => this.config.wordpress.username = value));
 
@@ -191,8 +183,7 @@ export class CustomPlatformModal extends Modal {
                 .setName(t('settings.customPlatform.dify.apiKey', this.plugin.settings))
                  
                 .addText(text => text
-                                    // eslint-disable-next-line obsidianmd/ui/sentence-case
-                    .setPlaceholder('sk-...')
+                    .setPlaceholder('Enter key')
                     .setValue(this.config.dify.apiKey)
                     .onChange(value => this.config.dify.apiKey = value));
 
@@ -254,10 +245,8 @@ export class CustomPlatformModal extends Modal {
                 .setName(t('settings.customPlatform.mcp.transportType', this.plugin.settings))
                 .setDesc(t('settings.customPlatform.mcp.transportType.desc', this.plugin.settings))
                 .addDropdown(dropdown => dropdown
-                                      // eslint-disable-next-line obsidianmd/ui/sentence-case
-                    .addOption('sse', 'SSE (Server-Sent Events)')
-                                       // eslint-disable-next-line obsidianmd/ui/sentence-case
-                    .addOption('http', 'HTTP (Stateless POST)')
+                    .addOption('sse', 'SSE')
+                    .addOption('http', 'HTTP')
                     .setValue(this.config.mcp.transportType || 'sse') // Default to SSE
                     .onChange((value: string) => this.config.mcp.transportType = value as 'sse' | 'http'));
 
@@ -266,8 +255,7 @@ export class CustomPlatformModal extends Modal {
                 .setDesc(t('settings.customPlatform.mcp.endpoint.desc', this.plugin.settings))
                  
                 .addText(text => text
-                                    // eslint-disable-next-line obsidianmd/ui/sentence-case
-                    .setPlaceholder('http://localhost:3000/sse or /mcp')
+                    .setPlaceholder('Enter endpoint')
                     .setValue(this.config.mcp.endpoint)
                     .onChange(value => this.config.mcp.endpoint = value));
 
@@ -276,8 +264,7 @@ export class CustomPlatformModal extends Modal {
                 .setDesc(t('settings.customPlatform.mcp.toolName.desc', this.plugin.settings))
                  
                 .addText(text => text
-                                    // eslint-disable-next-line obsidianmd/ui/sentence-case
-                    .setPlaceholder('create_note')
+                    .setPlaceholder('Tool name')
                     .setValue(this.config.mcp.toolName || '')
                     .onChange(value => this.config.mcp.toolName = value));
         }

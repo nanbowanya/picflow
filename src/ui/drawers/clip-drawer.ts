@@ -133,8 +133,7 @@ export class ClipDrawer {
     async handlePreview(btn: ButtonComponent) {
         // License Check
         if (this.plugin.settings.licenseStatus !== 'valid') {
-                       // eslint-disable-next-line obsidianmd/ui/sentence-case
-            new Notice("Pro feature: Please activate license in Settings.");
+            new Notice("Pro feature: please activate license in settings.");
             // Redirect to Status Tab
             this.plugin.app.setting.open();
             const settingTab = this.plugin.app.setting.pluginTabs.find(t => t.id === this.plugin.manifest.id);
@@ -175,8 +174,7 @@ export class ClipDrawer {
     async handleClipToNote(btn: ButtonComponent) {
         // License Check
         if (this.plugin.settings.licenseStatus !== 'valid') {
-                       // eslint-disable-next-line obsidianmd/ui/sentence-case
-            new Notice("Pro feature: Please activate license in Settings.");
+            new Notice("Pro feature: please activate license in settings.");
             // Redirect to Status Tab
             this.plugin.app.setting.open();
             const settingTab = this.plugin.app.setting.pluginTabs.find(t => t.id === this.plugin.manifest.id);
@@ -254,9 +252,9 @@ export class ClipDrawer {
                 if (this.plugin.settings.autoUpload && this.clipResult.images.length > 0) {
                     // Trigger Batch Upload for the newly inserted images
                     // We need to wait a bit for the editor to update
-                               // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                    setTimeout(async () => {
-                        if (!view) return;
+                    setTimeout(() => {
+                        void (async () => {
+                            if (!view) return;
                         
                         // Scan images in the view
                         await this.plugin.batchUploadManager.scanImages(view);
@@ -285,6 +283,7 @@ export class ClipDrawer {
                             new Notice(`Auto-uploading ${countToUpload} clipped images...`);
                             void this.plugin.batchUploadManager.startUpload();
                         }
+                        })();
                     }, 500);
                 }
 
@@ -305,8 +304,8 @@ export class ClipDrawer {
                     
                     // Also trigger auto upload for new file
                     if (this.plugin.settings.autoUpload && this.clipResult.images.length > 0) {
-                                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                         setTimeout(async () => {
+                         setTimeout(() => {
+                            void (async () => {
                             const newView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
                             if (newView) {
                                 await this.plugin.batchUploadManager.scanImages(newView);
@@ -324,6 +323,7 @@ export class ClipDrawer {
                                      void this.plugin.batchUploadManager.startUpload();
                                 }
                             }
+                            })();
                          }, 500);
                     }
 

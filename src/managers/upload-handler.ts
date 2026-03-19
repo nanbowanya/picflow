@@ -133,7 +133,7 @@ export class UploadHandler {
             } else if (typeof error === 'object' && error !== null) {
                 try {
                     errorMessage = JSON.stringify(error);
-                } catch (_e) {
+                } catch {
                     errorMessage = String(error);
                 }
             }

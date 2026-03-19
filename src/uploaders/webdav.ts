@@ -21,7 +21,7 @@ export class WebDAVUploader implements Uploader {
         if (bypassCertificateValidation) {
             try {
                 httpsAgent = new https.Agent({ rejectUnauthorized: false });
-            } catch (_e) {
+            } catch {
                 // ignore
             }
         }
@@ -58,7 +58,7 @@ export class WebDAVUploader implements Uploader {
                     const newName = `${name}-${Date.now()}.${ext}`;
                     return this.upload(file, newName);
                 }
-            } catch (_e) {
+            } catch {
                 // If error is 404, file doesn't exist, proceed.
                 // webdav client throws Error object.
             }

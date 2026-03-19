@@ -115,7 +115,7 @@ export class LoginModal extends Modal {
                     this.confirmBtn.disabled = false;
                     this.confirmBtn.setText('I have logged in');
                 }
-            } catch (_e) {
+            } catch {
                 // console.error('Login confirm error:', e);
                 new Notice('Error verifying login.');
                 this.confirmBtn.disabled = false;
@@ -125,8 +125,7 @@ export class LoginModal extends Modal {
 
         // Warning/Instructions
         const info = contentEl.createDiv({ cls: 'picflow-login-info' });
-                         // eslint-disable-next-line obsidianmd/ui/sentence-case
-        info.innerText = 'Please login below. Once logged in, click "Confirm" to add the account.';
+        info.innerText = 'Please login below. Once logged in, click confirm to add the account.';
 
         // Webview Container
         const webviewContainer = contentEl.createDiv({ cls: 'picflow-webview-container' });
@@ -201,12 +200,12 @@ export class LoginModal extends Modal {
                     } else {
                         throw new Error('getWebContents not available');
                     }
-                } catch (_err) {
+                } catch {
                         // // console.warn('[PicFlow] Method 1 failed (Standard API):', err.message);
                         
                         // Method 2: remote module
                     try {
-                         // eslint-disable-next-line @typescript-eslint/no-require-imports
+                         // eslint-disable-next-line @typescript-eslint/no-require-imports -- handled safely
                          const remote = require('@electron/remote');
                          const webContents = remote.webContents.fromId(this.webview.getWebContentsId());
                          const session = webContents.session;
@@ -286,7 +285,7 @@ export class LoginModal extends Modal {
                     new Notice('Login not detected yet. Please login first.');
                 }
             }
-        } catch (_e) {
+        } catch {
             // console.error("[PicFlow] Error checking login status:", e);
         }
     }
@@ -313,7 +312,7 @@ export class LoginModal extends Modal {
              try {
                  const session = this.webview.getWebContents().session;
                  await session.clearStorageData();
-             } catch(_e) { 
+             } catch { 
                  // console.warn('Failed to clear session storage', e); 
              }
 
@@ -322,7 +321,7 @@ export class LoginModal extends Modal {
              this.confirmBtn.setText('I have logged in');
              this.confirmBtn.classList.remove('mod-success');
              new Notice('Logged out. Please login again.');
-        } catch(_e) {
+        } catch {
             // console.error('Logout failed', e);
             new Notice('Logout failed. Please try again.');
         }
@@ -338,7 +337,7 @@ export class LoginModal extends Modal {
             if (this.webview) {
                 // ...
             }
-        } catch (_e) {
+        } catch {
             // Ignore
         }
     }
