@@ -1,6 +1,6 @@
-import { App, Notice, TFile, FileSystemAdapter, requestUrl } from "obsidian";
+import { Notice, FileSystemAdapter, requestUrl, Component, MarkdownRenderer } from "obsidian";
 import PicFlowPlugin from "../../main";
-import * as path from "path";
+// import * as path from 'path'; // Unused
 
 export interface ThemeConfig {
     name: string;
@@ -37,9 +37,9 @@ export class ThemeManager {
         
         const adapter = this.plugin.app.vault.adapter;
         if (!(adapter instanceof FileSystemAdapter)) {
-            console.warn("PicFlow: Non-filesystem adapter not fully supported for theme loading.");
-            this.themes.set("Default", { name: "Default", css: this.FALLBACK_CSS, isDark: false });
-            return;
+             console.warn("PicFlow: Non-filesystem adapter not fully supported for theme loading.");
+             // this.themes.set("Default", { name: "Default", css: this.FALLBACK_CSS, isDark: false });
+             return;
         }
 
         // Get plugin base path. Usually .obsidian/plugins/PicFlow
@@ -102,7 +102,7 @@ export class ThemeManager {
         if (!manifestDir) return;
         const themeDir = `${manifestDir}/assets/themes`;
 
-        if (!(await adapter.exists(themeDir))) {
+        if (adapter instanceof FileSystemAdapter && !(await adapter.exists(themeDir))) {
             await adapter.mkdir(themeDir);
         }
 
@@ -117,8 +117,8 @@ export class ThemeManager {
                 if (Array.isArray(data)) {
                     // Filter for .css files only
                     themesToDownload = data
-                        .filter((file: any) => file.name.endsWith('.css') && file.type === 'file')
-                        .map((file: any) => file.name);
+                        .filter((file: unknown) => file.name.endsWith('.css') && file.type === 'file')
+                        .map((file: unknown) => file.name);
                 }
             }
         } catch (e) {
@@ -134,6 +134,7 @@ export class ThemeManager {
         }
 
         if (themesToDownload.length === 0) {
+            // eslint-disable-next-line obsidianmd/ui/sentence-case
             new Notice("[PicFlow] No themes found to download.");
             return;
         }
@@ -144,7 +145,7 @@ export class ThemeManager {
             const filePath = `${themeDir}/${fileName}`;
             
             // Skip if exists and not forced
-            if (!force && await adapter.exists(filePath)) {
+            if (!force && adapter instanceof FileSystemAdapter && await adapter.exists(filePath)) {
                 continue;
             }
 
@@ -154,8 +155,10 @@ export class ThemeManager {
                 
                 const response = await requestUrl({ url });
                 if (response.status === 200) {
-                    await adapter.write(filePath, response.text);
-                    downloadedCount++;
+                    if (adapter instanceof FileSystemAdapter) {
+                        await adapter.write(filePath, response.text);
+                        downloadedCount++;
+                    }
                 } else {
                     // console.warn(`[PicFlow] Failed to download ${fileName}: ${response.status}`);
                 }
@@ -169,6 +172,7 @@ export class ThemeManager {
             // Reload to apply
             await this.loadThemes();
         } else if (force) {
+            // eslint-disable-next-line obsidianmd/ui/sentence-case
             new Notice("[PicFlow] Themes are up to date.");
         }
     }
@@ -214,14 +218,13 @@ export class ThemeManager {
     }
 
     // [NEW] Added render method
-    async render(markdown: string, themeName: string = 'Default'): Promise<string> {
+    async render(markdown: string, _themeName: string = 'Default'): Promise<string> {
         // 1. Render Markdown to HTML
         // Use Obsidian's MarkdownRenderer
         // But MarkdownRenderer requires a container element.
         // We can create a temporary div.
         
         const container = document.createElement('div');
-        // @ts-ignore
         await this.plugin.app.vault.adapter.read(this.plugin.app.workspace.getActiveFile()?.path || '');
         
         // Actually, we can use a simpler approach if we just want HTML string:
@@ -231,9 +234,9 @@ export class ThemeManager {
         const sourcePath = activeFile ? activeFile.path : '/';
         
         // Use a Component to manage lifecycle if needed, but for string generation it's transient
-        const component = new (require('obsidian').Component)();
+        const component = new Component();
         
-        await require('obsidian').MarkdownRenderer.render(
+        await MarkdownRenderer.render(
             this.plugin.app,
             markdown,
             container,
@@ -241,7 +244,7 @@ export class ThemeManager {
             component
         );
         
-        let html = container.innerHTML;
+        const html = container.innerHTML;
         
         // 2. Apply Theme CSS (Inline Styles)
         // This is tricky. We need to parse CSS and apply it to elements.
@@ -283,8 +286,8 @@ export class ThemeManager {
      * Inlines CSS styles into HTML elements.
      * Required for platforms like WeChat that strip <style> tags.
      */
-    inlineStyles(html: string, themeName: string): string {
-        const theme = this.getTheme(themeName) || this.getTheme("Default");
+    async inlineStyles(html: string, _themeName: string): Promise<string> {
+        const theme = this.getTheme(_themeName) || this.getTheme("Default");
         if (!theme) return html;
 
         // Wrap content first to match selectors like .picflow-container h1
@@ -298,7 +301,9 @@ export class ThemeManager {
         // options: { inlinePseudoElements: true } allows inlining ::before/::after content (limited support in email clients but useful)
         try {
             // Lazy Load juice to avoid startup OOM (depends on cheerio/parse5)
-            const juice = require("juice");
+            const juiceImport = await import("juice");
+            const juice: unknown = juiceImport.default || juiceImport;
+            
             const inlinedHtml = juice(wrappedHtml, { 
                 extraCss: theme.css,
                 applyStyleTags: true,
@@ -306,8 +311,8 @@ export class ThemeManager {
                 preserveMediaQueries: true
             });
             return inlinedHtml;
-        } catch (e) {
-            console.error("[PicFlow] Failed to inline styles:", e);
+        } catch (error: unknown) {
+            console.error("[PicFlow] Failed to inline styles:", error);
             return wrappedHtml; // Fallback to non-inlined
         }
     }

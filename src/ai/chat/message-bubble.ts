@@ -1,8 +1,9 @@
 
-import { MarkdownRenderer, setIcon, Notice, MarkdownView, Editor } from "obsidian";
+import { Component, MarkdownRenderer, setIcon, Notice, requestUrl } from "obsidian";
+// import { MarkdownView, Editor } from "obsidian";
 import PicFlowPlugin from "../../../main";
 import { t } from "../../i18n";
-import { getActiveEditor, getActiveMarkdownView } from "../../utils/editor";
+import { getActiveMarkdownView } from "../../utils/editor";
 import { ChatMessage } from "../models";
 
 export class MessageBubble {
@@ -10,12 +11,15 @@ export class MessageBubble {
     container: HTMLElement;
     message: ChatMessage;
     onRetry?: () => void;
+    component: Component;
 
-    constructor(plugin: PicFlowPlugin, container: HTMLElement, message: ChatMessage, onRetry?: () => void) {
+    constructor(plugin: PicFlowPlugin, parentComponent: Component, container: HTMLElement, message: ChatMessage, onRetry?: () => void) {
         this.plugin = plugin;
         this.container = container;
         this.message = message;
         this.onRetry = onRetry;
+        this.component = new Component();
+        parentComponent.addChild(this.component);
     }
 
     render() {
@@ -64,7 +68,7 @@ export class MessageBubble {
                     displayContent,
                     contentEl,
                     "",
-                    this.plugin
+                    this.component
                 ).then(() => {
                     // Post-process to style the reference tokens
                     // We look for text nodes containing the pattern
@@ -72,7 +76,7 @@ export class MessageBubble {
                     let node: Node | null;
                     const nodesToReplace: { node: Node, content: string }[] = [];
                     
-                    while (node = walker.nextNode()) {
+                    while ((node = walker.nextNode())) {
                         if (node.nodeValue && node.nodeValue.includes("📎 [")) {
                             nodesToReplace.push({ node: node, content: node.nodeValue });
                         }
@@ -129,7 +133,7 @@ export class MessageBubble {
                         
                         node.parentNode?.replaceChild(fragment, node);
                     });
-                });
+                }).catch(console.error);
             }
 
             // Render collapsible reference if exists
@@ -144,7 +148,7 @@ export class MessageBubble {
                     referenceContent,
                     refContentEl,
                     "",
-                    this.plugin
+                    this.component
                 ).then(() => {
                     // Post-process to style the "Reference: ..." line if it exists
                     // We look for the paragraph starting with "Reference:"
@@ -156,7 +160,7 @@ export class MessageBubble {
                             // Let's make it bold via CSS class
                         }
                     });
-                });
+                }).catch(console.error);
             }
 
             this.renderTextActions(bubbleWrapper); 
@@ -179,7 +183,7 @@ export class MessageBubble {
         const copyBtn = actionsEl.createEl("button", { cls: "chat-action-btn clickable-icon", title: t('ai.chat.btn.copy') });
         setIcon(copyBtn, "copy");
         copyBtn.onclick = () => {
-            navigator.clipboard.writeText(this.message.content);
+            navigator.clipboard.writeText(this.message.content).catch(console.error);
             new Notice(t('ai.chat.notice.copied'));
         };
 
@@ -194,7 +198,7 @@ export class MessageBubble {
         if (this.onRetry) {
             const retryBtn = actionsEl.createEl("button", { cls: "chat-action-btn clickable-icon", title: t('ai.chat.btn.retry') });
             setIcon(retryBtn, "rotate-cw");
-            retryBtn.onclick = () => this.onRetry!();
+            retryBtn.onclick = () => this.onRetry();
         }
     }
 
@@ -208,8 +212,8 @@ export class MessageBubble {
         setIcon(copyBtn, "copy");
         copyBtn.onclick = async () => {
             try {
-                const response = await fetch(this.message.content);
-                const blob = await response.blob();
+                const response = await requestUrl({ url: this.message.content });
+                const blob = new Blob([response.arrayBuffer], { type: response.headers['content-type'] });
                 await navigator.clipboard.write([
                     new ClipboardItem({
                         [blob.type]: blob
@@ -233,7 +237,7 @@ export class MessageBubble {
         if (this.onRetry) {
             const retryBtn = actionsEl.createEl("button", { cls: "chat-action-btn clickable-icon", title: t('ai.chat.btn.retry') });
             setIcon(retryBtn, "rotate-cw");
-            retryBtn.onclick = () => this.onRetry!();
+            retryBtn.onclick = () => this.onRetry();
         }
     }
 

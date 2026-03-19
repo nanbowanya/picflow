@@ -15,3 +15,7 @@ manifest.json.tmp
 
 # Misc
 .env
+
+
+.eslintignore
+.eslintrc.js

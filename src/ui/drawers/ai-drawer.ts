@@ -1,15 +1,16 @@
 
-import { ButtonComponent, Notice, TextAreaComponent, MarkdownView, MarkdownRenderer, Setting, requestUrl } from "obsidian";
+import { Notice, requestUrl, Component } from "obsidian";
 import PicFlowPlugin from "../../../main";
 import { t } from "../../i18n";
-import { AIModel, AI_MODELS } from "../../ai/models";
-import { MessageBubble, ChatMessage } from "../../ai/chat/message-bubble";
-import { InputArea, QuoteMetadata } from "../../ai/chat/input-area";
+import { AIModel, AI_MODELS, ChatMessage, QuoteMetadata } from "../../ai/models";
+import { MessageBubble } from "../../ai/chat/message-bubble";
+import { InputArea } from "../../ai/chat/input-area";
 import { IAIService } from "../../interfaces";
 import { StubAIService } from "../../ai/stub-service";
 
 export class AIDrawer {
     plugin: PicFlowPlugin;
+    parentComponent: Component;
     container: HTMLElement;
     aiService: IAIService;
 
@@ -22,27 +23,13 @@ export class AIDrawer {
     inputArea: InputArea;
     messagesContainer: HTMLElement;
 
-    constructor(plugin: PicFlowPlugin, container: HTMLElement) {
+    constructor(plugin: PicFlowPlugin, parentComponent: Component, container: HTMLElement) {
         this.plugin = plugin;
+        this.parentComponent = parentComponent;
         this.container = container;
         
         // Dynamic load AI Service
-        // @ts-ignore
-        if (process.env.BUILD_TYPE === 'PRO') {
-            try {
-                const { AIService } = require('../../core/ai/service');
-                // Wrap static methods to match interface
-                this.aiService = {
-                    generateImage: AIService.generateImage,
-                    chatCompletionStream: AIService.chatCompletionStream
-                };
-            } catch (e) {
-                console.error("Failed to load AIService:", e);
-                this.aiService = new StubAIService();
-            }
-        } else {
-            this.aiService = new StubAIService();
-        }
+        void this.loadAIService();
         
         // Initial welcome message
         this.messages.push({
@@ -51,6 +38,26 @@ export class AIDrawer {
             content: t('ai.chat.welcome'),
             type: 'text'
         });
+    }
+
+    async loadAIService() {
+        if (process.env.BUILD_TYPE === 'PRO') {
+            try {
+                const { AIService } = await import('../../core/ai/service');
+                // Wrap static methods to match interface
+                this.aiService = {
+                    generateImage: AIService.generateImage,
+                    chatCompletionStream: async (s, m, h, c, sig) => {
+                         await AIService.chatCompletionStream(s, m, h, c, sig);
+                    }
+                };
+            } catch (e) {
+                console.error("Failed to load AIService:", e);
+                this.aiService = new StubAIService();
+            }
+        } else {
+            this.aiService = new StubAIService();
+        }
     }
 
     // Public method to send a message externally (e.g. from Quick Action)
@@ -74,7 +81,7 @@ export class AIDrawer {
         this.inputArea = new InputArea(
             this.plugin, 
             inputContainer, 
-            (prompt, model, quotes) => this.handleSend(prompt, model, quotes),
+            (prompt, model, quotes) => { this.handleSend(prompt, model, quotes).catch(console.error); },
             (model) => this.handleModelChange(model),
             () => this.handleStop() // Pass stop callback
         );
@@ -103,9 +110,10 @@ export class AIDrawer {
         this.messages.forEach(msg => {
             new MessageBubble(
                 this.plugin, 
+                this.parentComponent,
                 this.messagesContainer, 
                 msg,
-                () => this.handleRetry(msg)
+                () => { this.handleRetry(msg).catch(console.error); }
             ).render();
         });
         this.scrollToBottom();
@@ -153,9 +161,10 @@ export class AIDrawer {
         
         new MessageBubble(
             this.plugin, 
+            this.parentComponent,
             this.messagesContainer, 
             assistantMsg,
-            () => this.handleRetry(assistantMsg)
+            () => { this.handleRetry(assistantMsg).catch(console.error); }
         ).render();
         this.scrollToBottom();
 
@@ -238,7 +247,17 @@ export class AIDrawer {
         }
     }
 
-    private refreshMessage(msg: ChatMessage) {
+    private addMessage(role: 'user' | 'assistant', content: string, _type: 'text' | 'image' = 'text') {
+        this.messages.push({
+            id: Date.now().toString(),
+            role,
+            content,
+            type: _type
+        });
+        this.renderMessages();
+    }
+
+    private refreshMessage(_msg: ChatMessage) {
         this.renderMessages();
     }
 
@@ -248,7 +267,7 @@ export class AIDrawer {
         }, 0);
     }
 
-    private handleModelChange(model: AIModel) {
+    private handleModelChange(_model: AIModel) {
         // Optional: Show toast or update state if needed
     }
 
@@ -288,6 +307,7 @@ export class AIDrawer {
         
         new MessageBubble(
             this.plugin, 
+            this.parentComponent,
             this.messagesContainer, 
             userMsg,
             () => {} // No retry on own message

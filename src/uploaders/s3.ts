@@ -3,6 +3,7 @@ import { PicFlowSettings, Uploader, UploadedImage } from "../settings";
 import { Notice } from "obsidian";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 import * as https from "https";
+import * as http from "http";
 
 export class S3Uploader implements Uploader {
 	private settings: PicFlowSettings;
@@ -37,7 +38,7 @@ export class S3Uploader implements Uploader {
 			httpsAgent: new https.Agent({
 				rejectUnauthorized: !s3BypassCertificateValidation
 			}),
-			httpAgent: new (require('http').Agent)() // Support http as well
+			httpAgent: new http.Agent() // Support http as well
 		});
 
 		const client = new S3Client({
@@ -90,13 +91,8 @@ export class S3Uploader implements Uploader {
                         return `${endpoint}/${s3Bucket}/${path}`;
                     }
                 } 
-            } catch (error: any) {
+            } catch (_e) {
                 // If 404, file doesn't exist, proceed to upload.
-                if (error.name !== 'NotFound' && error.$metadata?.httpStatusCode !== 404) {
-                    // Real error?
-                    // We proceed to try upload anyway? Or throw? 
-                    // Let's proceed, maybe upload works.
-                }
             }
         }
 
@@ -128,11 +124,12 @@ export class S3Uploader implements Uploader {
 					Key: key,
 				});
 				await client.send(headCommand);
-			} catch (headError: any) {
+			} catch (headError: unknown) {
 				// If HeadObject fails with 404, it implies the file wasn't saved where we expected.
 				// If it fails with 403, it exists but we might not have permission (which is fine, we assume success).
 				// We won't throw here to avoid blocking "blind write" scenarios, but we log it.
-				if (headError.name === 'NotFound' || headError.$metadata?.httpStatusCode === 404) {
+				const error = headError as { name?: string; $metadata?: { httpStatusCode?: number } };
+				if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
 					throw new Error("Upload reported success, but file was not found on server immediately. Please check your Bucket/Path settings.");
 				}
 			}
@@ -185,18 +182,19 @@ export class S3Uploader implements Uploader {
 				return `${endpoint}/${s3Bucket}/${path}`;
 			}
 
-		} catch (error: any) {
+		} catch (error: unknown) {
 			// Check if error.message is undefined and try to extract useful info
-			let errorMessage = error.message;
+			const err = error as { message?: string; code?: string };
+			let errorMessage = err.message;
 			if (!errorMessage) {
-				if (error.code) {
-					errorMessage = `Error Code: ${error.code}`;
+				if (err.code) {
+					errorMessage = `Error Code: ${err.code}`;
 				} else if (typeof error === 'string') {
 					errorMessage = error;
 				} else {
 					try {
 						errorMessage = JSON.stringify(error);
-					} catch (e) {
+					} catch (_e) {
 						errorMessage = "Unknown error (cannot stringify)";
 					}
 				}
@@ -221,7 +219,7 @@ export class S3Uploader implements Uploader {
 			httpsAgent: new https.Agent({
 				rejectUnauthorized: !s3BypassCertificateValidation
 			}),
-			httpAgent: new (require('http').Agent)()
+			httpAgent: new http.Agent()
 		});
 
 		const client = new S3Client({
@@ -282,7 +280,7 @@ export class S3Uploader implements Uploader {
 			const response = await client.send(command);
 			if (!response.Contents) return [];
 
-			return response.Contents.map((item: any) => {
+			return response.Contents.map((item: { Key?: string, Size?: number, LastModified?: Date }) => {
 				const key = item.Key || "";
 				let url = "";
 
@@ -309,8 +307,8 @@ export class S3Uploader implements Uploader {
 					lastModified: item.LastModified
 				};
 			});
-		} catch (error: any) {
-			throw new Error(`Failed to list images: ${error.message || error}`);
+		} catch (error: unknown) {
+			throw new Error(`Failed to list images: ${(error as Error).message || String(error)}`);
 		}
 	}
 
@@ -328,7 +326,7 @@ export class S3Uploader implements Uploader {
 			httpsAgent: new https.Agent({
 				rejectUnauthorized: !s3BypassCertificateValidation
 			}),
-			httpAgent: new (require('http').Agent)()
+			httpAgent: new http.Agent()
 		});
 
 		const client = new S3Client({
@@ -348,13 +346,13 @@ export class S3Uploader implements Uploader {
 		});
 
 		try {
-			const response = await client.send(command);
+			await client.send(command);
 			// S3 DeleteObject is idempotent and returns 204 No Content typically, 
 			// or 200 even if object didn't exist.
 			// It throws mainly on permissions or network errors.
 			return true;
-		} catch (error: any) {
-			throw new Error(`Failed to delete file: ${error.message || error}`);
+		} catch (error: unknown) {
+			throw new Error(`Failed to delete file: ${(error as Error).message || String(error)}`);
 		}
 	}
 }

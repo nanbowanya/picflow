@@ -1,5 +1,6 @@
 import { SFTPConfig, Uploader, UploadedImage } from "../settings";
-import { Notice } from "obsidian";
+import type SftpClient from 'ssh2-sftp-client';
+// import { Notice } from "obsidian";
 
 export class SFTPUploader implements Uploader {
     private config: SFTPConfig;
@@ -8,14 +9,13 @@ export class SFTPUploader implements Uploader {
         this.config = config;
     }
 
-    private async connect(client: any) {
+    private async connect(client: SftpClient) {
         const { host, port, username, password, privateKey } = this.config;
         
         if (!host || !username || (!password && !privateKey)) {
             throw new Error("SFTP Configuration is incomplete.");
         }
 
-        
         await client.connect({
             host: host,
             port: port || 22,
@@ -28,10 +28,10 @@ export class SFTPUploader implements Uploader {
     }
 
     async upload(file: File, fileName: string): Promise<string> {
-        const { uploadPath, customDomain, host, uploadStrategy } = this.config;
+        const { uploadPath, uploadStrategy } = this.config;
         
         // Lazy Load SFTP Client to avoid startup OOM
-        const Client = require('ssh2-sftp-client');
+        const { default: Client } = await import('ssh2-sftp-client');
         const client = new Client();
         
         try {
@@ -44,7 +44,7 @@ export class SFTPUploader implements Uploader {
             try {
                 const type = await client.exists(remotePath);
                 if (type) exists = true;
-            } catch (e) {
+            } catch (_e) {
                 // Ignore error, assume not exists or permission issue
             }
 
@@ -82,9 +82,10 @@ export class SFTPUploader implements Uploader {
             
             return this.getPublicUrl(remotePath);
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("SFTP Upload Error:", error);
-            throw new Error(`SFTP Upload failed: ${error.message}`);
+            const msg = (error as Error).message || "Unknown SFTP Upload Error";
+            throw new Error(`SFTP Upload failed: ${msg}`);
         } finally {
             // Only end if we didn't recurse (which closes it).
             // Actually, if we recurse, we returned early.
@@ -93,24 +94,23 @@ export class SFTPUploader implements Uploader {
             // But we need to check if client is connected. 
             // ssh2-sftp-client doesn't have isConnected? 
             // Safe to call end() multiple times? Usually yes.
-            try { await client.end(); } catch (e) {}
+            try { await client.end(); } catch (_e) { /* ignore */ }
         }
     }
 
     async list(offset: number = 0, limit: number = 20): Promise<UploadedImage[]> {
         const { uploadPath } = this.config;
-        const Client = require('ssh2-sftp-client');
+        const { default: Client } = await import('ssh2-sftp-client');
         const client = new Client();
 
         try {
             await this.connect(client);
             
-            // list() returns FileInfo[]
             const list = await client.list(uploadPath);
             
             const images = list
-                .filter((item: any) => item.type !== 'd' && this.isImage(item.name))
-                .map((item: any) => {
+                .filter((item) => item.type !== 'd' && this.isImage(item.name))
+                .map((item) => {
                     const remotePath = `${uploadPath.replace(/\/$/, "")}/${item.name}`;
                     return {
                         key: remotePath,
@@ -125,40 +125,43 @@ export class SFTPUploader implements Uploader {
 
             return images.slice(offset, offset + limit);
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("SFTP List Error:", error);
-            throw new Error(`Failed to list SFTP files: ${error.message}`);
+            const msg = (error as Error).message || "Unknown SFTP List Error";
+            throw new Error(`Failed to list SFTP files: ${msg}`);
         } finally {
             await client.end();
         }
     }
 
     async delete(key: string): Promise<boolean> {
-        const Client = require('ssh2-sftp-client');
+        const { default: Client } = await import('ssh2-sftp-client');
         const client = new Client();
         
         try {
             await this.connect(client);
             await client.delete(key);
             return true;
-        } catch (error: any) {
+        } catch (error: unknown) {
              console.error("SFTP Delete Error:", error);
-             throw new Error(`Failed to delete SFTP file: ${error.message}`);
+             const msg = (error as Error).message || "Unknown SFTP Delete Error";
+             throw new Error(`Failed to delete SFTP file: ${msg}`);
         } finally {
             await client.end();
         }
     }
 
     async testConnection(): Promise<{ success: boolean; message: string }> {
-        const Client = require('ssh2-sftp-client');
+        const { default: Client } = await import('ssh2-sftp-client');
         const client = new Client();
         try {
             await this.connect(client);
             await client.list('/');
             return { success: true, message: "Connection Successful!" };
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("SFTP Test Error:", error);
-            return { success: false, message: `Connection Failed: ${error.message}` };
+            const msg = (error as Error).message || "Unknown SFTP Test Error";
+            return { success: false, message: `Connection Failed: ${msg}` };
         } finally {
             await client.end();
         }

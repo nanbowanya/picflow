@@ -1,5 +1,5 @@
 import { PicFlowSettings, Uploader, UploadedImage } from "../settings";
-import { requestUrl, arrayBufferToBase64, Notice, RequestUrlParam } from "obsidian";
+import { requestUrl, arrayBufferToBase64 } from "obsidian";
 
 export class GitHubUploader implements Uploader {
 	private settings: PicFlowSettings;
@@ -31,12 +31,7 @@ export class GitHubUploader implements Uploader {
 		let exists = false;
 
 		try {
-			const checkReq: RequestUrlParam = {
-				url: apiUrl + `?ref=${branch}`,
-				method: "GET",
-				headers: headers,
-				throw: false
-			};
+			// const _checkReq: RequestUrlParam = { ... } // Unused
 			
 			if (proxyUrl && proxyUrl.startsWith("http")) {
                 // If using proxy, URL might need adjustment or we trust requestUrl handles it if we replace the domain?
@@ -57,7 +52,8 @@ export class GitHubUploader implements Uploader {
 				exists = true;
 				sha = checkResp.json.sha;
 			}
-		} catch (e) {
+		} catch {
+            // ignore
 		}
 
 		// Handle Upload Strategy
@@ -96,8 +92,9 @@ export class GitHubUploader implements Uploader {
 				throw new Error(`GitHub Upload failed: ${uploadResp.status} - ${uploadResp.text}`);
 			}
 			
-		} catch (error: any) {
-			throw new Error(error.message || "Unknown GitHub Upload Error");
+		} catch (error: unknown) {
+			const msg = (error as Error).message || "Unknown GitHub Upload Error";
+			throw new Error(msg);
 		}
 
 		return this.getCDNUrl(path);
@@ -130,7 +127,7 @@ export class GitHubUploader implements Uploader {
 				throw new Error(`GitHub List failed: ${response.status}`);
 			}
 
-			const tree = response.json.tree;
+			const tree = response.json.tree as { path: string, type: string, size?: number }[];
 			if (!Array.isArray(tree)) return [];
 
 			// Filter for images and map to UploadedImage
@@ -138,15 +135,15 @@ export class GitHubUploader implements Uploader {
 			// For date sorting, we'd need commit history which is slow.
 			// Let's stick to simple listing.
 			const images = tree
-				.filter((item: any) => {
+				.filter((item) => {
 					return item.type === 'blob' && this.isImage(item.path);
 				})
-				.map((item: any) => {
+				.map((item) => {
 					return {
 						key: item.path,
-						name: item.path.split('/').pop(),
+						name: item.path.split('/').pop() || item.path,
 						url: this.getCDNUrl(item.path),
-						size: item.size,
+						size: item.size || 0,
 						lastModified: undefined as Date | undefined // Not available in Tree API
 					};
 				});
@@ -154,8 +151,9 @@ export class GitHubUploader implements Uploader {
 			// Slice for pagination (simulated)
 			return images.slice(offset, offset + limit);
 
-		} catch (error: any) {
-			throw new Error(`Failed to list GitHub images: ${error.message}`);
+		} catch (error: unknown) {
+			const msg = (error as Error).message || "Unknown GitHub List Error";
+			throw new Error(`Failed to list GitHub images: ${msg}`);
 		}
 	}
 
@@ -183,14 +181,15 @@ export class GitHubUploader implements Uploader {
 			});
 
 			if (checkResp.status === 200) {
-				sha = checkResp.json.sha;
+				sha = checkResp.json.sha as string;
 			} else if (checkResp.status === 404) {
 				return true;
 			} else {
 				throw new Error(`Failed to get file info for deletion: ${checkResp.status}`);
 			}
-		} catch (e: any) {
-			throw new Error(`Failed to get file SHA: ${e.message}`);
+		} catch (e: unknown) {
+			const msg = (e as Error).message || "Unknown Error";
+			throw new Error(`Failed to get file SHA: ${msg}`);
 		}
 
 		if (!sha) return true; // Should not happen given logic above
@@ -217,8 +216,8 @@ export class GitHubUploader implements Uploader {
 			} else {
 				throw new Error(`GitHub Delete failed: ${deleteResp.status} - ${deleteResp.text}`);
 			}
-		} catch (error: any) {
-			throw new Error(error.message || "Unknown GitHub Delete Error");
+		} catch (error: unknown) {
+			throw new Error((error as Error).message || "Unknown GitHub Delete Error");
 		}
 	}
 

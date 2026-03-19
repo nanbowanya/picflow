@@ -95,6 +95,9 @@ To accommodate different user needs, the plugin supports the following combinati
 | **Zhihu** | ✅ Supported | |
 | **Juejin** | ✅ Supported | |
 | **CSDN** | ✅ Supported | |
+| **WordPress**       | ✅ Supported | |
+| **Webhook**              | ✅ Supported | |
+| **MCP**              | ✅ Supported | |
 | **Xiaohongshu** | 📅 In Progress | |
 | **Jianshu** | 📅 In Progress | |
 | **Toutiao** | 📅 In Progress | |
@@ -118,6 +121,9 @@ To accommodate different user needs, the plugin supports the following combinati
 | **知乎 (Zhihu)**        | ✅ 已支持  |     |
 | **掘金 (Juejin)**       | ✅ 已支持  |     |
 | **CSDN**              | ✅ 已支持  |     |
+| **WordPress**       | ✅ 已支持  |     |
+| **Webhook**              | ✅ 已支持  |     |
+| **MCP**              | ✅ 已支持  |     |
 | **小红书 (Xiaohongshu)** | 📅进行中  |     |
 | **简书 (Jianshu)**      | 📅进行中  |     |
 | **今日头条 (Toutiao)**    | 📅进行中  |     |

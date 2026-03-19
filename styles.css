@@ -1908,7 +1908,8 @@
 .chat-loading-dots {
     display: flex;
     gap: 4px;
-    padding: 5px;
+    padding: 8px;
+    margin-right: 16px;
 }
 
 .chat-loading-dots span {
@@ -2281,4 +2282,523 @@
     padding-left: 4px;
     border-left: 1px solid var(--background-modifier-border-hover);
     flex-shrink: 0;
+}
+
+/* Refactor Phase 2: Utility & Component Classes */
+
+/* Text Colors */
+.picflow-error-text { color: var(--text-error); }
+.picflow-muted-text { color: var(--text-muted); }
+.picflow-accent-text { color: var(--text-accent); }
+.picflow-success-text { color: var(--text-success); }
+
+/* Layout Utilities */
+.picflow-w-100 { width: 100%; }
+.picflow-h-100 { height: 100%; }
+.picflow-flex-1 { flex: 1; }
+.picflow-flex-column { display: flex; flex-direction: column; }
+.picflow-flex-row { display: flex; flex-direction: row; }
+.picflow-gap-12 { gap: 12px; }
+.picflow-gap-10 { gap: 10px; }
+.picflow-align-center { align-items: center; }
+.picflow-justify-between { justify-content: space-between; }
+.picflow-justify-center { justify-content: center; }
+.picflow-p-20 { padding: 20px; }
+.picflow-mt-10 { margin-top: 10px; }
+.picflow-mb-10 { margin-bottom: 10px; }
+.picflow-text-center { text-align: center; }
+.picflow-overflow-hidden { overflow: hidden; }
+.picflow-cursor-pointer { cursor: pointer; }
+.picflow-font-mono { font-family: var(--font-monospace); }
+.picflow-resize-vertical { resize: vertical; }
+.picflow-object-cover { object-fit: cover; }
+
+/* Component: Modal */
+.picflow-modal-large {
+    width: 80vw;
+    height: 80vh;
+    max-width: 1000px;
+    max-height: 800px;
+}
+.picflow-modal-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Component: Cover Preview */
+.picflow-cover-preview-box {
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+    border: 1px dashed var(--background-modifier-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+}
+.picflow-cover-upload-icon {
+    font-size: 20px;
+    color: var(--text-muted);
+}
+.picflow-cover-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Component: Publish Drawer Config */
+.picflow-publish-config-area {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.picflow-config-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+.picflow-cover-wrapper {
+    width: 80px;
+    height: 60px; /* Fixed height for cover preview container */
+}
+.picflow-field-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+.picflow-field-select, .picflow-field-input {
+    width: 100%;
+}
+.picflow-fields-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+}
+.picflow-theme-control-group {
+    width: 100%;
+}
+
+/* Component: Login Modal */
+.picflow-login-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.picflow-login-title-group h3 {
+    margin: 0;
+}
+.picflow-login-action-group {
+    display: flex;
+    gap: 10px;
+}
+.picflow-login-info {
+    margin-bottom: 10px;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+.picflow-webview-container {
+    flex: 1;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    overflow: hidden;
+    background: white; /* Webviews usually need white bg */
+}
+.picflow-webview {
+    width: 100%;
+    height: 100%;
+}
+
+/* Component: Batch Upload Modal */
+.picflow-batch-list {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+}
+.picflow-batch-header {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background-color: var(--background-secondary);
+    border-bottom: 1px solid var(--background-modifier-border);
+    font-weight: bold;
+}
+.picflow-batch-row {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+.picflow-batch-row:last-child {
+    border-bottom: none;
+}
+.picflow-batch-header-check, .picflow-batch-row-check {
+    margin-right: 10px;
+}
+.picflow-batch-header-image {
+    flex: 1;
+}
+.picflow-batch-header-status {
+    width: 100px;
+    text-align: right;
+}
+.picflow-batch-row-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow: hidden;
+}
+.picflow-batch-thumb {
+    width: 30px;
+    height: 30px;
+    object-fit: cover;
+    border-radius: 2px;
+}
+.picflow-batch-placeholder {
+    width: 30px;
+    height: 30px;
+    background-color: var(--background-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+.picflow-batch-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.picflow-batch-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+.picflow-batch-btn-group {
+    display: flex;
+    gap: 10px;
+}
+.picflow-batch-status-div {
+    width: 100px;
+    text-align: right;
+}
+
+/* Component: Theme Edit Modal */
+.picflow-theme-edit-modal .picflow-theme-editor-container {
+    margin-bottom: 20px;
+}
+.picflow-theme-editor-textarea {
+    width: 100%;
+    height: 400px;
+    font-family: var(--font-monospace);
+}
+
+/* Component: Custom Platform Modal */
+.picflow-warning-notice {
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+}
+.picflow-custom-platform-fields {
+    margin-top: 20px;
+}
+
+/* Component: Drop Zone */
+.picflow-drop-zone {
+    border: 2px dashed var(--background-modifier-border);
+    border-radius: 8px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 20px;
+    background-color: var(--background-primary);
+}
+.picflow-drop-zone:hover, .picflow-drop-zone-active {
+    border-color: var(--interactive-accent);
+    background-color: var(--background-primary-alt);
+}
+.picflow-drop-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+.picflow-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* Refactor Phase 2b: More Utility Classes */
+.picflow-hidden { display: none !important; }
+.picflow-block { display: block; }
+.picflow-opacity-50 { opacity: 0.5; }
+.picflow-opacity-100 { opacity: 1; }
+.picflow-pb-60 { padding-bottom: 60px; }
+.picflow-uppercase { text-transform: uppercase; }
+.picflow-ml-auto { margin-left: auto; }
+.picflow-rounded-full { border-radius: 50%; }
+.picflow-w-48 { width: 48px; }
+.picflow-h-48 { height: 48px; }
+.picflow-w-80 { width: 80px; }
+.picflow-h-80 { height: 80px; }
+.picflow-text-24 { font-size: 24px; }
+.picflow-text-10 { font-size: 10px; }
+.picflow-bg-secondary { background-color: var(--background-secondary); }
+.picflow-bg-primary-alt { background-color: var(--background-primary-alt); }
+.picflow-border-accent { border: 1px solid var(--text-accent); }
+.picflow-radius-m { border-radius: var(--radius-m); }
+.picflow-font-bold { font-weight: bold; }
+
+/* Refactor Phase 2c: Publish Drawer Utilities */
+.picflow-mb-4 { margin-bottom: 4px; }
+.picflow-h-60 { height: 60px; }
+
+/* Extractor Tool Details & Workspace Styles */
+.picflow-extractor-details {
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.picflow-settings-summary {
+    padding: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: var(--background-secondary);
+    outline: none;
+}
+
+.picflow-extractor-content {
+    padding: 15px;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.picflow-extractor-desc {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.picflow-extractor-workspace {
+    display: flex;
+    height: 400px;
+    margin-top: 15px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.picflow-extractor-editor-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--background-modifier-border);
+}
+
+.picflow-extractor-header {
+    padding: 8px 12px;
+    background-color: var(--background-secondary);
+    font-weight: 600;
+    font-size: 12px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    color: var(--text-normal);
+}
+
+.picflow-extractor-textarea {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    border: none;
+    resize: none;
+    padding: 10px;
+    font-family: var(--font-monospace);
+    background-color: var(--background-primary);
+}
+
+.picflow-extractor-preview-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #f0f2f5; /* Light grey for contrast like WeChat preview */
+}
+
+.picflow-extractor-preview-host {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.picflow-extractor-phone-frame {
+    width: 375px;
+    min-height: 100%;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-radius: 0; /* Keep square for now or round if desired */
+    overflow: hidden;
+}
+
+/* Dark mode adjustment for preview container */
+.theme-dark .picflow-extractor-preview-container {
+    background-color: #1e1e1e;
+}
+
+.picflow-extractor-action-row {
+    margin-top: 12px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Ensure hidden utility works if not defined elsewhere */
+.hidden {
+    display: none !important;
+}
+
+/* Generic Settings Styles */
+.picflow-settings-textarea {
+    height: 120px;
+    font-family: var(--font-monospace);
+    resize: vertical;
+}
+
+/* Ensure details element behaves correctly */
+.picflow-extractor-details > summary {
+    list-style: none;
+}
+.picflow-extractor-details > summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Phase 2 Feedback Fixes - Refinement */
+
+/* 1. Extractor Summary Arrow & Layout */
+/* Override previous definitions to ensure specificity */
+.picflow-extractor-details > summary {
+    list-style: none !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 10px !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    background-color: var(--background-secondary) !important;
+    outline: none !important;
+    position: relative !important;
+}
+
+.picflow-extractor-details > summary::-webkit-details-marker {
+    display: none !important;
+}
+
+/* Add custom arrow with pseudo-element */
+.picflow-extractor-details > summary::before {
+    content: '▶';
+    font-size: 10px;
+    display: inline-block;
+    transition: transform 0.2s ease;
+    width: 12px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+/* Rotate arrow when open */
+.picflow-extractor-details[open] > summary::before {
+    transform: rotate(90deg);
+}
+
+/* 2. Extractor Input Layout (Responsive) */
+.picflow-extractor-input-row {
+    display: flex !important;
+    gap: 8px !important;
+    align-items: center !important;
+    margin-bottom: 12px !important;
+    width: 100% !important;
+}
+
+.picflow-extractor-url-input {
+    flex: 1 1 auto !important; /* Grow and shrink */
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+.picflow-model-select {
+    width: 120px !important;
+    flex: 0 0 120px !important; /* Fixed width */
+}
+
+.picflow-extractor-input-row button {
+    flex: 0 0 auto !important; /* Don't shrink */
+}
+
+/* 3. Theme Card Actions Alignment & Styles */
+.picflow-theme-card {
+    display: flex !important;
+    flex-direction: column !important; /* Stack vertically for card layout */
+    justify-content: space-between !important;
+    height: 100% !important;
+    padding: 12px !important;
+    gap: 8px !important;
+    min-width: 140px !important;
+    border: 1px solid var(--background-modifier-border) !important;
+    border-radius: 6px !important;
+    background-color: var(--background-primary) !important;
+}
+
+.picflow-theme-card__name {
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    text-align: center !important;
+    margin-bottom: 4px !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.picflow-theme-card__actions {
+    display: flex !important;
+    justify-content: center !important; /* Center buttons */
+    gap: 8px !important;
+    width: 100% !important;
+    margin-top: auto !important; /* Push to bottom */
+}
+
+.picflow-theme-action-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    color: var(--text-muted) !important;
+    padding: 6px !important; /* Larger hit area */
+    border-radius: 4px !important;
+    transition: all 0.2s ease !important;
+    background-color: var(--background-secondary) !important;
+    width: 32px !important; /* Fixed size */
+    height: 32px !important;
+}
+
+.picflow-theme-action-btn:hover {
+    color: var(--text-normal) !important;
+    background-color: var(--background-modifier-hover) !important;
+}
+
+.picflow-theme-action-btn.danger:hover {
+    color: var(--text-error) !important;
+    background-color: var(--background-modifier-error-hover) !important;
+}
+
+.picflow-theme-action-btn.disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+    background-color: transparent !important;
 }

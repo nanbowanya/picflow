@@ -1,4 +1,4 @@
-import { ButtonComponent, Notice, TextAreaComponent, MarkdownView, MarkdownRenderer, Setting } from "obsidian";
+import { ButtonComponent, Notice, TextAreaComponent, MarkdownView, MarkdownRenderer } from "obsidian";
 import PicFlowPlugin from "../../../main";
 import { t } from "../../i18n";
 import { ClipResult, IClipManager } from "../../interfaces";
@@ -15,26 +15,30 @@ export class ClipDrawer {
     // aiSummary removed
 
     // To be used by the markdown renderer
-    parentComponent: any;
+    parentComponent: unknown;
     clipManager: IClipManager;
 
-    constructor(plugin: PicFlowPlugin, container: HTMLElement, parentComponent: any) {
+    constructor(plugin: PicFlowPlugin, container: HTMLElement, parentComponent: unknown) {
         this.plugin = plugin;
         this.container = container;
         this.parentComponent = parentComponent;
         
+        // Initialize with Stub
+        this.clipManager = new StubClipManager();
+
         // Dynamic load Clip Manager
-        // @ts-ignore
+        void this.loadClipManager();
+    }
+
+    async loadClipManager() {
         if (process.env.BUILD_TYPE === 'PRO') {
             try {
-                const { ClipManager } = require('../../core/managers/clip-manager');
-                this.clipManager = new ClipManager(plugin);
+                const { ClipManager } = await import('../../core/managers/clip-manager');
+                this.clipManager = new ClipManager(this.plugin);
             } catch (e) {
                 console.error("Failed to load ClipManager:", e);
                 this.clipManager = new StubClipManager();
             }
-        } else {
-            this.clipManager = new StubClipManager();
         }
     }
 
@@ -56,8 +60,8 @@ export class ClipDrawer {
                 this.clipUrl = value;
             });
         urlInput.inputEl.rows = 3;
-        urlInput.inputEl.style.width = "100%";
-        urlInput.inputEl.style.resize = "vertical";
+        urlInput.inputEl.addClass('picflow-w-100');
+        urlInput.inputEl.addClass('picflow-resize-vertical');
 
         // Preview Area
         if (this.clipResult && !this.clipIsFetching) {
@@ -82,7 +86,7 @@ export class ClipDrawer {
 
             const markdownPreview = previewArea.createDiv({ cls: "picflow-markdown-preview markdown-preview-view" });
 
-            MarkdownRenderer.render(
+            void MarkdownRenderer.render(
                 this.plugin.app,
                 this.clipResult.markdown,
                 markdownPreview,
@@ -100,7 +104,7 @@ export class ClipDrawer {
             .onClick(async () => {
                 await this.handlePreview(previewBtn);
             });
-        previewBtn.buttonEl.style.flex = "1";
+        previewBtn.buttonEl.addClass('picflow-flex-1');
 
         const clipBtn = new ButtonComponent(footer)
             .setButtonText(this.clipIsFetching ? t('sidebar.clip.processing', this.plugin.settings) : t('sidebar.clip.clipBtn', this.plugin.settings))
@@ -109,19 +113,16 @@ export class ClipDrawer {
             .onClick(async () => {
                 await this.handleClipToNote(clipBtn);
             });
-        clipBtn.buttonEl.style.flex = "1";
+        clipBtn.buttonEl.addClass('picflow-flex-1');
     }
 
     showProNotice() {
         new Notice(t('notice.clip.pro', this.plugin.settings));
         
         // Open Settings -> Status Tab
-        // @ts-ignore
         if (this.plugin.app.setting) {
-            // @ts-ignore
             this.plugin.app.setting.open();
-            // @ts-ignore
-            const settingTab = this.plugin.app.setting.pluginTabs.find((t: any) => t.id === this.plugin.manifest.id);
+            const settingTab = this.plugin.app.setting.pluginTabs.find((t: unknown) => t.id === this.plugin.manifest.id);
             if (settingTab) {
                 settingTab.currentTab = 'Status';
                 settingTab.display();
@@ -132,17 +133,15 @@ export class ClipDrawer {
     async handlePreview(btn: ButtonComponent) {
         // License Check
         if (this.plugin.settings.licenseStatus !== 'valid') {
+                       // eslint-disable-next-line obsidianmd/ui/sentence-case
             new Notice("Pro feature: Please activate license in Settings.");
             // Redirect to Status Tab
-            // @ts-ignore
             this.plugin.app.setting.open();
-            // @ts-ignore
             const settingTab = this.plugin.app.setting.pluginTabs.find(t => t.id === this.plugin.manifest.id);
             if (settingTab) {
                 settingTab.currentTab = 'Status';
                 settingTab.display();
             }
-            // @ts-ignore
             this.plugin.app.setting.openTabById(this.plugin.manifest.id);
             return;
         }
@@ -176,17 +175,15 @@ export class ClipDrawer {
     async handleClipToNote(btn: ButtonComponent) {
         // License Check
         if (this.plugin.settings.licenseStatus !== 'valid') {
+                       // eslint-disable-next-line obsidianmd/ui/sentence-case
             new Notice("Pro feature: Please activate license in Settings.");
             // Redirect to Status Tab
-            // @ts-ignore
             this.plugin.app.setting.open();
-            // @ts-ignore
             const settingTab = this.plugin.app.setting.pluginTabs.find(t => t.id === this.plugin.manifest.id);
             if (settingTab) {
                 settingTab.currentTab = 'Status';
                 settingTab.display();
             }
-            // @ts-ignore
             this.plugin.app.setting.openTabById(this.plugin.manifest.id);
             return;
         }
@@ -251,12 +248,13 @@ export class ClipDrawer {
                 }
                 new Notice(t('sidebar.clip.clipped', this.plugin.settings));
 
-                this.plugin.app.workspace.revealLeaf(view.leaf);
+                void this.plugin.app.workspace.revealLeaf(view.leaf);
 
                 // 2. Auto Upload (if enabled)
                 if (this.plugin.settings.autoUpload && this.clipResult.images.length > 0) {
                     // Trigger Batch Upload for the newly inserted images
                     // We need to wait a bit for the editor to update
+                               // eslint-disable-next-line @typescript-eslint/no-misused-promises
                     setTimeout(async () => {
                         if (!view) return;
                         
@@ -265,7 +263,7 @@ export class ClipDrawer {
                         
                         // Filter to only upload images that were just clipped (by URL matching)
                         // This prevents uploading other random images in the document
-                        const clippedImages = new Set(this.clipResult!.images);
+                        const clippedImages = new Set(this.clipResult.images);
                         
                         this.plugin.batchUploadManager.images.forEach(img => {
                             // Only check if it's in our clipped list AND it's a remote image
@@ -285,7 +283,7 @@ export class ClipDrawer {
                         
                         if (countToUpload > 0) {
                             new Notice(`Auto-uploading ${countToUpload} clipped images...`);
-                            this.plugin.batchUploadManager.startUpload();
+                            void this.plugin.batchUploadManager.startUpload();
                         }
                     }, 500);
                 }
@@ -294,7 +292,7 @@ export class ClipDrawer {
                 let filename = (this.clipResult.title || "Untitled Clip").replace(/[\\/:*?"<>|]/g, "").trim() || "Untitled Clip";
                 const contentToInsert = `# [${this.clipResult.title}](${this.clipResult.url})\n\n${this.clipResult.markdown}`;
 
-                let fileExists = this.plugin.app.vault.getAbstractFileByPath(`${filename}.md`);
+                const fileExists = this.plugin.app.vault.getAbstractFileByPath(`${filename}.md`);
                 if (fileExists) {
                     filename = `${filename} ${Date.now()}`;
                 }
@@ -307,11 +305,12 @@ export class ClipDrawer {
                     
                     // Also trigger auto upload for new file
                     if (this.plugin.settings.autoUpload && this.clipResult.images.length > 0) {
+                                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
                          setTimeout(async () => {
                             const newView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
                             if (newView) {
                                 await this.plugin.batchUploadManager.scanImages(newView);
-                                const clippedImages = new Set(this.clipResult!.images);
+                                const clippedImages = new Set(this.clipResult.images);
                                 this.plugin.batchUploadManager.images.forEach(img => {
                                     const cleanPath = img.path.split('|')[0];
                                     if ((img.path.startsWith('http') || img.path.startsWith('https')) && clippedImages.has(cleanPath)) {
@@ -322,13 +321,13 @@ export class ClipDrawer {
                                 });
                                 if (this.plugin.batchUploadManager.images.some(i => i.checked)) {
                                      new Notice(`Auto-uploading images...`);
-                                     this.plugin.batchUploadManager.startUpload();
+                                     void this.plugin.batchUploadManager.startUpload();
                                 }
                             }
                          }, 500);
                     }
 
-                } catch (err: any) {
+                } catch (err: unknown) {
                     new Notice(t('sidebar.clip.createFailed', this.plugin.settings).replace('{error}', err.message));
                 }
             }

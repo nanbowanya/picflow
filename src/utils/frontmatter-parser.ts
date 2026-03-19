@@ -1,4 +1,4 @@
-import { App, TFile, Notice } from 'obsidian';
+import { App, TFile } from 'obsidian';
 
 export interface PublishMetadata {
     // 基础元数据
@@ -50,32 +50,32 @@ export class FrontmatterParser {
         const fm = cache.frontmatter;
         
         return {
-            title: fm.title || file.basename,
-            author: fm.author,
-            date: fm.date,
-            tags: fm.tags,
-            cover: fm.cover,
-            abstract: fm.abstract,
-            original: fm.original,
-            url: fm.url,
-            publish_mode: fm.publish_mode,
+            title: String(fm.title || file.basename),
+            author: fm.author ? String(fm.author) : undefined,
+            date: fm.date ? String(fm.date) : undefined,
+            tags: Array.isArray(fm.tags) ? fm.tags.map(String) : (typeof fm.tags === 'string' ? [fm.tags] : undefined),
+            cover: fm.cover ? String(fm.cover) : undefined,
+            abstract: fm.abstract ? String(fm.abstract) : undefined,
+            original: fm.original !== undefined ? Boolean(fm.original) : undefined,
+            url: fm.url ? String(fm.url) : undefined,
+            publish_mode: (fm.publish_mode === 'draft' || fm.publish_mode === 'direct') ? fm.publish_mode as 'draft' | 'direct' : undefined,
             
-            wx_cover_crop: fm.wx_cover_crop,
-            wx_open_comment: fm.wx_open_comment,
-            wx_fans_only_comment: fm.wx_fans_only_comment,
-            wx_scheduled_time: fm.wx_scheduled_time,
-            thumb_media_id: fm.thumb_media_id, // Add this
+            wx_cover_crop: (['center', 'top', 'bottom'].includes(String(fm.wx_cover_crop))) ? fm.wx_cover_crop as 'center' | 'top' | 'bottom' : undefined,
+            wx_open_comment: fm.wx_open_comment !== undefined ? Boolean(fm.wx_open_comment) : undefined,
+            wx_fans_only_comment: fm.wx_fans_only_comment !== undefined ? Boolean(fm.wx_fans_only_comment) : undefined,
+            wx_scheduled_time: fm.wx_scheduled_time ? String(fm.wx_scheduled_time) : undefined,
+            thumb_media_id: fm.thumb_media_id ? String(fm.thumb_media_id) : undefined, // Add this
             
-            zhihu_bio: fm.zhihu_bio,
-            zhihu_column: fm.zhihu_column,
+            zhihu_bio: fm.zhihu_bio ? String(fm.zhihu_bio) : undefined,
+            zhihu_column: fm.zhihu_column ? String(fm.zhihu_column) : undefined,
 
-            category_id: fm.category_id,
-            tag_ids: fm.tag_ids,
+            category_id: fm.category_id ? String(fm.category_id) : undefined,
+            tag_ids: Array.isArray(fm.tag_ids) ? fm.tag_ids.map(String) : undefined,
 
             // CSDN
-            categories: fm.categories,
+            categories: Array.isArray(fm.categories) ? fm.categories.map(String) : undefined,
             
-            publish_status: fm.publish_status
+            publish_status: fm.publish_status as Record<string, { status: string; id: string; link: string }> | undefined
         };
     }
 

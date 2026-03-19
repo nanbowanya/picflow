@@ -1,5 +1,5 @@
 
-import { App, Plugin, TFile, MarkdownView } from 'obsidian';
+import { TFile, MarkdownView } from 'obsidian';
 
 import { AIModel, QuoteMetadata, ChatMessage } from './ai/models';
 
@@ -10,12 +10,12 @@ export interface IAIManager {
 }
 
 export interface IAIService {
-    generateImage(settings: any, modelOrOptions: AIModel | any, prompt?: string): Promise<string | null>;
-    chatCompletionStream(settings: any, model: AIModel, history: any[], onChunk: (chunk: string) => void): Promise<void>;
+    generateImage(settings: unknown, modelOrOptions: unknown, prompt?: string): Promise<string | null>;
+    chatCompletionStream(settings: unknown, model: AIModel, history: unknown[], onChunk: (chunk: string) => void, signal?: AbortSignal): Promise<void>;
 }
 
 export interface IPlatformPublisher {
-    publish(file: TFile, accountId: string, themeName?: string, options?: any): Promise<void>;
+    publish(file: TFile, accountId: string, themeName?: string, options?: unknown): Promise<void>;
     testConnection?(): Promise<boolean>;
     getCategories?(): Promise<string[]>;
 }
@@ -39,8 +39,8 @@ export interface IClipManager {
 }
 
 export interface IMigrationManager {
-    scanVault(includeRemote?: boolean): Promise<any[]>;
-    files: any[];
+    scanVault(includeRemote?: boolean): Promise<unknown[]>;
+    files: unknown[];
     isMigrating: boolean;
     includeRemote: boolean;
     onUpdate: (() => void) | null;
@@ -57,6 +57,3 @@ export interface IThemeExtractorManager {
     saveTheme(name: string, css: string): Promise<void>;
 }
 
-export interface IAIService {
-    // Add methods as needed
-}

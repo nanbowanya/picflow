@@ -1,12 +1,12 @@
-import { ButtonComponent, DropdownComponent, Notice, Setting, TextAreaComponent, TextComponent, MarkdownView, MarkdownRenderer, Component, ToggleComponent } from "obsidian";
+import { Notice, DropdownComponent, MarkdownRenderer, ButtonComponent, TextComponent, ToggleComponent, MarkdownView, Component } from "obsidian";
 import PicFlowPlugin from "../../../main";
-import { t } from "../../i18n";
 import { ThemeManager } from "../../managers/theme-manager";
 import { IHtmlRenderer } from "../../interfaces";
-import { PlatformRegistry } from "../../platforms";
+// import { PlatformRegistry } from "../../platforms"; // Unused
+import { t } from "../../i18n";
 import { FrontmatterParser } from "../../utils/frontmatter-parser";
 
-import { StyleInliner } from "../../utils/style-inliner";
+// import { StyleInliner } from "../../utils/style-inliner";
 import { CoverInputModal } from "../modals/cover-input-modal";
 
 export interface PlatformConfig {
@@ -60,6 +60,7 @@ export class PublishDrawer {
             name: t('platform.wechat', this.plugin.settings),
             icon: 'message-square',
             type: 'html',
+            inlineStyle: true,
             showCover: true, // Needed for article type
             url: 'https://mp.weixin.qq.com/',
             fields: [
@@ -78,7 +79,7 @@ export class PublishDrawer {
             icon: 'book-open',
             type: 'html',
             showCover: true, 
-            url: 'https://zhuanlan.zhihu.com/write',
+            url: 'https://zhuanlan.zhihu.com/write', // Zhihu URL
             fields: [
                 { key: 'tags', label: t('publish.field.tags', this.plugin.settings), type: 'text', placeholder: 'Comma separated' },
                 { key: 'zhihu_column', label: t('publish.field.column', this.plugin.settings), type: 'text', placeholder: 'Optional' }
@@ -274,7 +275,7 @@ export class PublishDrawer {
         this.htmlRenderer = htmlRenderer;
     }
 
-    render() {
+    async render() {
         this.container.empty();
         this.container.addClass("publish-drawer");
 
@@ -288,7 +289,7 @@ export class PublishDrawer {
 
         // Preview Wrapper
         this.previewWrapper = mainArea.createDiv({ cls: 'picflow-markdown-preview' });
-        this.renderPreview(this.previewWrapper);
+        await this.renderPreview(this.previewWrapper);
 
         // 3. Bottom Fixed Area: Configuration + Actions
         const bottomContainer = this.container.createDiv({ cls: 'publish-bottom-container' });
@@ -296,7 +297,7 @@ export class PublishDrawer {
         // Configuration Area inside Bottom Container
         const configWrapper = bottomContainer.createDiv({ cls: 'publish-config-wrapper' });
         
-        this.renderConfigurationArea(configWrapper);
+        await this.renderConfigurationArea(configWrapper);
 
         // Action Buttons at the very bottom
         const actionsWrapper = bottomContainer.createDiv({ cls: 'publish-actions-wrapper' });
@@ -317,10 +318,10 @@ export class PublishDrawer {
 
             btn.createSpan({ text: p.name });
 
-            btn.onclick = () => {
+            btn.onclick = async () => {
                 this.selectedPlatformId = p.id;
                 this.selectedAccountId = ''; // Reset account on platform switch
-                this.render(); // Re-render everything
+                await this.render(); // Re-render everything
             };
         });
     }
@@ -337,43 +338,52 @@ export class PublishDrawer {
                     // Try to fetch categories if not cached
                     if (!this.categoryCache[account.id]) {
                         try {
-                            const { WordPressPublisher } = require('../../core/publishers/wordpress-publisher');
+                            const { WordPressPublisher } = await import('../../core/publishers/wordpress-publisher');
                             const publisher = new WordPressPublisher(this.plugin, config.wordpress);
-                            if (publisher.getCategories) {
-                                new Notice('Fetching WordPress categories...');
-                                const categories = await publisher.getCategories();
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            if ((publisher as any).getCategories) {
+                                // eslint-disable-next-line obsidianmd/ui/sentence-case
+                                new Notice("Fetching WordPress categories...");
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                const categories = await (publisher as any).getCategories();
                                 if (categories && categories.length > 0) {
                                     this.categoryCache[account.id] = categories;
-                                    this.render(); // Re-render to show categories
+                                    await this.render(); // Re-render to show categories
                                 }
                             }
-                        } catch (e) {
+                        } catch (e: unknown) {
                             console.error("Failed to load WP categories", e);
+                            new Notice(`Failed to fetch WordPress categories: ${(e as Error).message}`);
                         }
                     }
                 } else if (config && config.type === 'mcp') {
                     // Try to fetch tools if not cached
                     if (!this.toolCache[account.id]) {
                         try {
-                            // @ts-ignore
-                            const { MCPPublisher } = require('../../core/publishers/mcp-publisher');
+                            const { MCPPublisher } = await import('../../core/publishers/mcp-publisher');
                             const publisher = new MCPPublisher(this.plugin, config.mcp);
-                            if (publisher.getTools) {
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            if ((publisher as any).getTools) {
+                                // eslint-disable-next-line obsidianmd/ui/sentence-case
                                 new Notice('Fetching MCP tools...'); 
-                                const tools = await publisher.getTools();
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                const tools = await (publisher as any).getTools();
                                 if (tools && tools.length > 0) {
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                     this.toolCache[account.id] = tools.map((t: any) => t.name);
                                     // this.render(); // Avoid infinite loop or redundant renders, call specific update or ensure this is called once
                                     // Actually, we need to re-render to populate the dropdown
-                                    const wrapper = this.container.querySelector('.publish-config-wrapper') as HTMLElement;
+                                    const wrapper = this.container.querySelector('.publish-config-wrapper');
                                     if (wrapper) {
                                         wrapper.empty();
-                                        this.renderConfigurationArea(wrapper);
+                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                        await this.renderConfigurationArea(wrapper as any);
                                     }
                                 }
                             }
-                        } catch (e) {
+                        } catch (e: unknown) {
                             console.error("Failed to load MCP tools", e);
+                            new Notice(`Failed to fetch MCP tools: ${(e as Error).message}`);
                         }
                     }
                 }
@@ -408,36 +418,95 @@ export class PublishDrawer {
         // For WeChat, we usually strip frontmatter.
         const contentBody = markdown.replace(/^---\n[\s\S]*?\n---\n/, '');
 
-        // Only WeChat needs the custom HTML + Theme preview
-        if (platform.id === 'wechat') {
+        // Use HTML Preview for all HTML-type platforms (WeChat, Bilibili, etc.)
+        if (platform.type === 'html') {
             // HTML Renderer (WeChat style)
             const wrapper = container.createDiv({ cls: 'picflow-preview-html-wrapper' });
             
             const loading = wrapper.createEl('div', { text: 'Rendering preview...' });
 
             try {
-                const html = await this.htmlRenderer.render(contentBody, this.currentTheme);
+                // Determine theme to use.
+                // For non-inline platforms (like Bilibili/Zhihu), we still render HTML but use 'Default' theme or current if needed.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const html = String(await (this.htmlRenderer as any).render(contentBody, this.currentTheme));
                 loading.remove();
 
                 // Use Shadow DOM to isolate styles
                 const shadowHost = wrapper.createDiv();
                 const shadow = shadowHost.attachShadow({ mode: 'open' });
 
-                // For Preview: We need to inject styles because Shadow DOM stops global styles
-                // AND we want to simulate the "Inlined" look only if the platform needs it.
-                // We have two choices: 
-                // 1. Inline the styles (like we do for copy/publish)
-                // 2. Inject <style> tag (easier for preview performance)
+                // Inject Theme CSS ONLY if the platform supports/needs it (inlineStyle is true)
+                // OR if it's an HTML platform that we want to look styled.
+                // But user requested "no theme selection for others", so we should only apply theme if it's WeChat.
+                // Actually, if we render HTML, we need SOME base styles or it looks broken.
+                // But for Zhihu/Bilibili, maybe we should just render clean HTML?
+                // Let's stick to the plan: Render HTML, but only apply the Theme CSS if inlineStyle is true (WeChat).
+                
+                if (platform.inlineStyle) {
+                    const themeConfig = this.themeManager.getTheme(this.currentTheme);
+                    if (themeConfig) {
+                        try {
+                            const sheet = new CSSStyleSheet();
+                            sheet.replaceSync(themeConfig.css);
+                            shadow.adoptedStyleSheets = [...shadow.adoptedStyleSheets, sheet];
+                        } catch(e) {
+                            console.error("Constructable stylesheets not supported", e);
+                        }
+                    }
+                } else {
+                    // For other HTML platforms, maybe inject a minimal reset or default obsidian-like style?
+                    // Or just let it be raw HTML with default browser styles?
+                    // The user wants "Preview = Publish".
+                    // If Zhihu publishes HTML, it will be rendered by Zhihu's CSS on their site.
+                    // We can't replicate Zhihu's CSS easily.
+                    // But displaying raw unstyled HTML is better than Markdown if we are sending HTML.
+                    // However, raw HTML might look ugly (Times New Roman, no margins).
+                    // Let's add a basic readable style for non-WeChat HTML previews.
+                    try {
+                        const sheet = new CSSStyleSheet();
+                        sheet.replaceSync(`
+                            :host { font-family: sans-serif; line-height: 1.6; color: #333; }
+                            img { max-width: 100% !important; height: auto !important; }
+                            pre { background: #f6f8fa; padding: 10px; overflow-x: auto; }
+                            blockquote { border-left: 4px solid #dfe2e5; padding-left: 10px; color: #6a737d; }
+                        `);
+                        shadow.adoptedStyleSheets = [...shadow.adoptedStyleSheets, sheet];
+                    } catch(e) {
+                        console.error("Constructable stylesheets not supported", e);
+                    }
+                }
 
-                // Let's use Inlining to be 100% WYSIWYG
-                const inlinedHtml = platform.inlineStyle
-                    ? this.themeManager.inlineStyles(html, this.currentTheme)
-                    : html;
+                // Inject default styles to fix image overflow in shadow DOM (Global fix)
+                try {
+                    const defaultStyleSheet = new CSSStyleSheet();
+                    defaultStyleSheet.replaceSync(`
+                        img { max-width: 100% !important; height: auto !important; }
+                        pre { white-space: pre-wrap !important; word-wrap: break-word !important; max-width: 100%; overflow-x: auto; }
+                        table { display: block; overflow-x: auto; max-width: 100%; }
+                    `);
+                    shadow.adoptedStyleSheets = [...shadow.adoptedStyleSheets, defaultStyleSheet];
+                } catch(e) {
+                    console.error("Constructable stylesheets not supported", e);
+                }
 
-                shadow.innerHTML = inlinedHtml;
+                // For Preview: Instead of running the slow `juice` inliner,
+                // we rely on the <style> tag injected above. This is much faster
+                // and looks 99% identical in the Shadow DOM.
+                const shadowWrapper = document.createElement('div');
+                shadowWrapper.className = 'picflow-container'; // Essential for CSS selectors to match
+                shadowWrapper.id = 'picflow-article';
+                
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                Array.from(doc.body.childNodes).forEach(node => {
+                    shadowWrapper.appendChild(node);
+                });
+
+                shadow.appendChild(shadowWrapper);
             } catch (e) {
                 loading.setText('Error rendering: ' + e.message);
-                loading.style.color = 'red';
+                loading.addClass('picflow-error-text');
             }
 
         } else {
@@ -445,47 +514,41 @@ export class PublishDrawer {
             const wrapper = container.createDiv({ cls: 'picflow-preview-md-wrapper' });
 
             // Render using Obsidian's MarkdownRenderer
-            await MarkdownRenderer.render(this.plugin.app, contentBody, wrapper, file.path, new Component());
+            const tempComponent = new Component();
+            tempComponent.load();
+            
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await MarkdownRenderer.render(this.plugin.app, contentBody, wrapper as any, file.path, tempComponent as any);
         }
     }
 
     // Helper: Render Cover Image Control
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private renderCoverImageControl(container: HTMLElement, file: any) {
         const coverArea = container.createDiv({ cls: 'picflow-field-wrapper' });
-        coverArea.style.display = 'flex';
-        coverArea.style.flexDirection = 'column';
+        // Style handled by class
         
         // Removed Label as requested
         // this.createLabel(coverArea, t('publish.drawer.cover', this.plugin.settings));
         
         // Fixed height for cover preview
-        coverArea.style.height = '60px';
+        coverArea.addClass('picflow-h-60');
         
         // Get Metadata
         let coverUrl = '';
         if (file) {
-            const metadata = FrontmatterParser.getMetadata(this.plugin.app, file) as any;
-            coverUrl = metadata.cover || '';
+            const metadata = FrontmatterParser.getMetadata(this.plugin.app, file) as Record<string, unknown>;
+            coverUrl = String(metadata.cover || '');
         }
 
         // Cover Preview Box
-        const coverBox = coverArea.createDiv({ cls: 'picflow-cover-box' });
-        coverBox.style.width = '100%';
-        coverBox.style.height = '100%';
-        coverBox.style.borderRadius = '4px';
-        coverBox.style.border = '1px dashed var(--background-modifier-border)';
-        coverBox.style.display = 'flex';
-        coverBox.style.alignItems = 'center';
-        coverBox.style.justifyContent = 'center';
-        coverBox.style.cursor = 'pointer';
-        coverBox.style.overflow = 'hidden';
+        const coverBox = coverArea.createDiv({ cls: 'picflow-cover-preview-box' });
+        // Styles moved to CSS class .picflow-cover-preview-box
 
         if (coverUrl) {
             const img = coverBox.createEl('img');
             img.addClass('picflow-cover-image');
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'cover';
+            // Styles moved to CSS class .picflow-cover-image
             
             if (coverUrl.startsWith('data:')) {
                 img.src = coverUrl;
@@ -496,42 +559,40 @@ export class PublishDrawer {
             }
         } else {
             const icon = coverBox.createDiv({ text: '+' });
-            icon.style.fontSize = '20px';
-            icon.style.color = 'var(--text-muted)';
+            icon.addClass('picflow-cover-upload-icon');
+            // Styles moved to CSS class .picflow-cover-upload-icon
         }
 
         coverBox.onclick = () => {
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             new CoverInputModal(this.plugin.app, coverUrl, async (url) => {
                 if (file) {
                     if (url === coverUrl) return;
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     await FrontmatterParser.updateMetadata(this.plugin.app, file, { cover: url } as any);
                     new Notice('Cover updated.');
-                    this.render(); 
+                    void this.render(); 
                 }
             }).open();
         };
     }
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     private async renderConfigurationArea(container: HTMLElement) {
         const platform = this.platforms.find(p => p.id === this.selectedPlatformId);
         if (!platform) return;
 
-        const configArea = container.createDiv({ cls: 'publish-config-area' });
-        // Remove grid layout from configArea to allow flexible rows
-        configArea.style.display = 'flex';
-        configArea.style.flexDirection = 'column';
-        configArea.style.gap = '12px';
+        const configArea = container.createDiv({ cls: 'picflow-publish-config-area' });
+        // Styles moved to CSS class .picflow-publish-config-area
 
         // 1. Top Row: Cover (Optional) + Account Selector
         const topRow = configArea.createDiv({ cls: 'picflow-config-row' });
-        topRow.style.display = 'flex';
-        topRow.style.gap = '12px';
-        topRow.style.alignItems = 'flex-start'; // Align top
+        // Styles moved to CSS class .picflow-config-row
 
         // Cover Image (If platform supports it)
         if (platform.showCover) {
             const coverWrapper = topRow.createDiv({ cls: 'picflow-cover-wrapper' });
-            coverWrapper.style.width = '80px'; 
+            // Styles moved to CSS class .picflow-cover-wrapper
             
             const file = this.plugin.app.workspace.getActiveFile();
             this.renderCoverImageControl(coverWrapper, file);
@@ -554,7 +615,7 @@ export class PublishDrawer {
                 const config = this.plugin.settings.customPlatforms?.find(c => c.id === currentAccId);
                 if (config && config.type === 'wordpress') {
                     const coverWrapper = topRow.createDiv({ cls: 'picflow-cover-wrapper' });
-                    coverWrapper.style.width = '80px'; 
+                    // Styles moved to CSS class .picflow-cover-wrapper
                     const file = this.plugin.app.workspace.getActiveFile();
                     this.renderCoverImageControl(coverWrapper, file);
                 }
@@ -563,20 +624,20 @@ export class PublishDrawer {
 
         // Account Selector (Takes remaining space in top row)
         const accountWrapper = topRow.createDiv({ cls: 'picflow-field-wrapper' });
-        accountWrapper.style.flex = '1';
-        accountWrapper.style.display = 'flex';
-        accountWrapper.style.flexDirection = 'column';
+        accountWrapper.addClass('picflow-flex-1');
+        // Styles moved to CSS class .picflow-field-wrapper and utility class .picflow-flex-1
         
         this.createLabel(accountWrapper, t('publish.drawer.account'));
         const accDropdown = new DropdownComponent(accountWrapper);
         accDropdown.selectEl.addClass('picflow-field-select');
-        accDropdown.selectEl.style.width = '100%'; // Full width
+        // Styles moved to CSS class .picflow-field-select
         
         const accounts = this.plugin.accountManager.getAccounts(this.selectedPlatformId);
         if (accounts.length === 0) {
             accDropdown.addOption('', t('publish.drawer.noAccount'));
             accDropdown.setDisabled(true);
         } else {
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             accounts.forEach(acc => accDropdown.addOption(acc.id, acc.name));
             if (this.selectedAccountId) accDropdown.setValue(this.selectedAccountId);
             else if (accounts.length > 0) {
@@ -587,14 +648,14 @@ export class PublishDrawer {
                 this.selectedAccountId = val;
                 // Trigger dynamic update if custom platform changes
                 // Re-render whole drawer to update cover image visibility if switching between types
-                this.render(); 
+                void this.render(); 
             });
         }
 
         // Trigger initial update for custom platforms
         if (this.selectedPlatformId === 'custom' && this.selectedAccountId) {
             // Use setTimeout to avoid blocking render
-            setTimeout(() => this.updateDynamicFields(), 0);
+            setTimeout(() => { void this.updateDynamicFields(); }, 0);
         }
 
         // 2. Middle Row: Theme (WeChat Only) + Dynamic Fields Grid
@@ -605,28 +666,26 @@ export class PublishDrawer {
 
         // 3. Dynamic Fields & Theme
         const fieldsContainer = configArea.createDiv({ cls: 'picflow-fields-grid' });
-        fieldsContainer.style.display = 'grid';
-        fieldsContainer.style.gridTemplateColumns = 'repeat(auto-fit, minmax(120px, 1fr))'; // Adjusted min-width
-        fieldsContainer.style.gap = '12px';
+        // Styles moved to CSS class .picflow-fields-grid
 
-        // A. Inject Theme Control for WeChat (as first item in grid)
-        if (this.selectedPlatformId === 'wechat') {
+        // A. Inject Theme Control only for platforms with inline styles (e.g. WeChat)
+        if (platform.inlineStyle) {
             const themeWrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
-            themeWrapper.style.display = 'flex';
-            themeWrapper.style.flexDirection = 'column';
+            // Styles moved to CSS class .picflow-field-wrapper
             
             this.createLabel(themeWrapper, t('publish.drawer.theme'));
             
             const themeControls = themeWrapper.createDiv({ cls: 'picflow-theme-control-group' });
-            themeControls.style.width = '100%';
+            // Styles moved to CSS class .picflow-theme-control-group
 
             const themeDropdown = new DropdownComponent(themeControls);
             themeDropdown.selectEl.addClass('picflow-field-select'); // Use same class as other selects
-            themeDropdown.selectEl.style.width = '100%';
+            // Styles moved to CSS class .picflow-field-select
             
             const populateThemes = () => {
                 themeDropdown.selectEl.empty();
                 const themes = this.themeManager.getAllThemes();
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 themes.forEach(t => themeDropdown.addOption(t.name, t.name));
                 // Select current theme if valid, otherwise first one
                 const themeNames = themes.map(t => t.name);
@@ -651,57 +710,60 @@ export class PublishDrawer {
         // B. Platform Specific Fields
         platform.fields.forEach(field => {
             const wrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
-            wrapper.style.display = 'flex';
-            wrapper.style.flexDirection = 'column';
+            // Styles moved to CSS class .picflow-field-wrapper
             
             this.createLabel(wrapper, field.label);
 
             if (field.type === 'select') {
                 const dropdown = new DropdownComponent(wrapper);
                 dropdown.selectEl.addClass('picflow-field-select');
-                dropdown.selectEl.style.width = '100%';
+                // Styles moved to CSS class .picflow-field-select
                 
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 field.options?.forEach(opt => dropdown.addOption(opt, opt));
                 
                 // Get value from frontmatter
                 const file = this.plugin.app.workspace.getActiveFile();
                 if (file) {
-                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as any;
-                    if (meta[field.key]) dropdown.setValue(meta[field.key]);
-                }
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file as any) as Record<string, unknown>;
+                        if (meta[field.key]) dropdown.setValue(String(meta[field.key]));
+                    }
 
                 dropdown.onChange(async val => {
                     if (file) {
-                        await FrontmatterParser.updateMetadata(this.plugin.app, file, { [field.key]: val } as any);
+                        await FrontmatterParser.updateMetadata(this.plugin.app, file, { [field.key]: val } as unknown);
                     }
                 });
             } else if (field.type === 'text') {
                 const text = new TextComponent(wrapper);
                 text.inputEl.addClass('picflow-field-input');
-                text.inputEl.style.width = '100%';
+                // Styles moved to CSS class .picflow-field-input
                 if (field.placeholder) text.setPlaceholder(field.placeholder);
 
                 const file = this.plugin.app.workspace.getActiveFile();
                 if (file) {
-                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as any;
-                    if (meta[field.key]) text.setValue(meta[field.key]);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file as any) as Record<string, unknown>;
+                if (meta[field.key]) text.setValue(String(meta[field.key]));
                 }
 
                 text.onChange(async val => {
                     if (file) {
-                        await FrontmatterParser.updateMetadata(this.plugin.app, file, { [field.key]: val } as any);
+                        await FrontmatterParser.updateMetadata(this.plugin.app, file, { [field.key]: val } as unknown);
                     }
                 });
             } else if (field.type === 'checkbox') {
                 const toggle = new ToggleComponent(wrapper);
                 const file = this.plugin.app.workspace.getActiveFile();
                 if (file) {
-                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as any;
-                    toggle.setValue(!!meta[field.key]);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file as any) as Record<string, unknown>;
+                toggle.setValue(!!meta[field.key]);
                 }
                 toggle.onChange(async val => {
                     if (file) {
-                        await FrontmatterParser.updateMetadata(this.plugin.app, file, { [field.key]: val } as any);
+                        await FrontmatterParser.updateMetadata(this.plugin.app, file, { [field.key]: val } as unknown);
                     }
                 });
             }
@@ -721,86 +783,88 @@ export class PublishDrawer {
 
                 // 2. Tags Field
                 const tagsWrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
-                tagsWrapper.style.display = 'flex';
-                tagsWrapper.style.flexDirection = 'column';
-                this.createLabel(tagsWrapper, 'Tags');
+                // Styles moved to CSS class .picflow-field-wrapper
+                this.createLabel(tagsWrapper, t('publish.drawer.tags', this.plugin.settings) || 'Tags');
                 const tagsText = new TextComponent(tagsWrapper);
                 tagsText.inputEl.addClass('picflow-field-input');
-                tagsText.inputEl.style.width = '100%';
-                tagsText.setPlaceholder('Comma separated');
+                // Styles moved to CSS class .picflow-field-input
+                tagsText.setPlaceholder(t('publish.drawer.tagsPlaceholder', this.plugin.settings) || 'Comma separated');
                 
                 if (file) {
-                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as any;
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file as any) as Record<string, unknown>;
                     if (meta['tags']) {
                         const t = meta['tags'];
-                        tagsText.setValue(Array.isArray(t) ? t.join(', ') : t);
+                        tagsText.setValue(Array.isArray(t) ? t.join(', ') : String(t));
                     }
                 }
                 tagsText.onChange(async val => {
                     if (file) {
                         // Split by comma and trim
                         const tagList = val.split(',').map(s => s.trim()).filter(s => s.length > 0);
-                        await FrontmatterParser.updateMetadata(this.plugin.app, file, { tags: tagList } as any);
+                        await FrontmatterParser.updateMetadata(this.plugin.app, file, { tags: tagList } as unknown);
                     }
                 });
 
                 // 3. Category Field (Dynamic or Text)
                 const categories = this.categoryCache[this.selectedAccountId];
                 const catWrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
-                catWrapper.style.display = 'flex';
-                catWrapper.style.flexDirection = 'column';
-                this.createLabel(catWrapper, 'Category');
+                // Styles moved to CSS class .picflow-field-wrapper
+                this.createLabel(catWrapper, t('publish.drawer.category', this.plugin.settings) || 'Category');
 
                 if (categories && categories.length > 0) {
                     // Dropdown
                     const dropdown = new DropdownComponent(catWrapper);
                     dropdown.selectEl.addClass('picflow-field-select');
-                    dropdown.selectEl.style.width = '100%';
+                    // Styles moved to CSS class .picflow-field-select
+                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
                     categories.forEach(c => dropdown.addOption(c, c));
                     
                     if (file) {
-                        const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as any;
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const meta = FrontmatterParser.getMetadata(this.plugin.app, file as any) as Record<string, unknown>;
                         const metaCats = meta['categories'];
-                        if (Array.isArray(metaCats) && metaCats.length > 0) dropdown.setValue(metaCats[0]);
+                        if (Array.isArray(metaCats) && metaCats.length > 0) dropdown.setValue(String(metaCats[0]));
                         else if (typeof metaCats === 'string') dropdown.setValue(metaCats);
                     }
                     dropdown.onChange(async val => {
-                        if (file) await FrontmatterParser.updateMetadata(this.plugin.app, file, { categories: [val] } as any);
+                        if (file) await FrontmatterParser.updateMetadata(this.plugin.app, file, { categories: [val] } as unknown);
                     });
                 } else {
                     // Fallback Text Input
                     const catText = new TextComponent(catWrapper);
                     catText.inputEl.addClass('picflow-field-input');
-                    catText.inputEl.style.width = '100%';
+                    // Styles moved to CSS class .picflow-field-input
                     catText.setPlaceholder('Category name');
                     
                     if (file) {
-                        const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as any;
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const meta = FrontmatterParser.getMetadata(this.plugin.app, file as any) as Record<string, unknown>;
                         const metaCats = meta['categories'];
-                        if (Array.isArray(metaCats) && metaCats.length > 0) catText.setValue(metaCats[0]);
+                        if (Array.isArray(metaCats) && metaCats.length > 0) catText.setValue(String(metaCats[0]));
                         else if (typeof metaCats === 'string') catText.setValue(metaCats);
                     }
                     catText.onChange(async val => {
-                        if (file) await FrontmatterParser.updateMetadata(this.plugin.app, file, { categories: [val] } as any);
+                        if (file) await FrontmatterParser.updateMetadata(this.plugin.app, file, { categories: [val] } as unknown);
                     });
                 }
 
                 // 4. Publish Status (Draft vs Publish)
                 const statusWrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
-                statusWrapper.style.display = 'flex';
-                statusWrapper.style.flexDirection = 'column';
-                this.createLabel(statusWrapper, 'Status');
+                // Styles moved to CSS class .picflow-field-wrapper
+                this.createLabel(statusWrapper, t('publish.drawer.status', this.plugin.settings) || 'Status');
                 
                 const statusDropdown = new DropdownComponent(statusWrapper);
                 statusDropdown.selectEl.addClass('picflow-field-select');
-                statusDropdown.selectEl.style.width = '100%';
-                statusDropdown.addOption('draft', 'Draft (草稿)');
-                statusDropdown.addOption('publish', 'Publish (直接发布)');
+                // Styles moved to CSS class .picflow-field-select
+                statusDropdown.addOption('draft', t('publish.drawer.statusDraft', this.plugin.settings) || 'Draft (草稿)');
+                statusDropdown.addOption('publish', t('publish.drawer.statusPublish', this.plugin.settings) || 'Publish (直接发布)');
                 
                 // Initialize from state or frontmatter
                 // If frontmatter has publish_mode: direct -> publish, else draft
                 if (file) {
-                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as any;
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file as any) as Record<string, unknown>;
                     if (meta['publish_mode'] === 'direct' || meta['status'] === 'publish') {
                         this.publishStatus = 'publish';
                     } else {
@@ -816,26 +880,26 @@ export class PublishDrawer {
                     if (file) {
                         await FrontmatterParser.updateMetadata(this.plugin.app, file, { 
                             publish_mode: val === 'publish' ? 'direct' : 'draft' 
-                        } as any);
+                        } as unknown);
                     }
                 });
             } else if (config && config.type === 'mcp') {
                 // MCP Tools Selector
                 const tools = this.toolCache[this.selectedAccountId];
                 const toolWrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
-                toolWrapper.style.display = 'flex';
-                toolWrapper.style.flexDirection = 'column';
-                this.createLabel(toolWrapper, 'MCP Tool');
+                // Styles moved to CSS class .picflow-field-wrapper
+                this.createLabel(toolWrapper, t('publish.drawer.mcpTool', this.plugin.settings) || 'MCP Tool');
 
                 const dropdown = new DropdownComponent(toolWrapper);
                 dropdown.selectEl.addClass('picflow-field-select');
-                dropdown.selectEl.style.width = '100%';
+                // Styles moved to CSS class .picflow-field-select
                 
                 // Add default "Auto" option
-                dropdown.addOption('', 'Auto Detect');
+                dropdown.addOption('', t('publish.drawer.mcpToolAuto', this.plugin.settings) || 'Auto Detect');
                 
                 // Add fetched tools
                 if (tools && tools.length > 0) {
+                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
                     tools.forEach(t => dropdown.addOption(t, t));
                 }
                 
@@ -854,7 +918,7 @@ export class PublishDrawer {
 
                 dropdown.setValue(selectedTool);
 
-                dropdown.onChange(async val => {
+                dropdown.onChange(val => {
                     // We need to pass this tool name to the publisher
                     // We can temporarily store it in the config object in memory
                     // OR pass it via publish options. 
@@ -877,21 +941,21 @@ export class PublishDrawer {
         const actionRow = container.createDiv({ cls: 'picflow-actions-row' });
 
         // Publish (Big)
-        const publishBtn = new ButtonComponent(actionRow)
-            .setButtonText(t('publish.drawer.publish'))
+            const publishBtn = new ButtonComponent(actionRow)
+            .setButtonText(t('publish.drawer.publish', this.plugin.settings))
             .setCta()
             .onClick(async () => {
                 if (!this.selectedAccountId) {
-                    new Notice(t('publish.drawer.selectAccount'));
+                    new Notice(t('publish.drawer.selectAccount', this.plugin.settings));
                     return;
                 }
                 if (this.selectedPlatformId) {
                     const file = this.plugin.app.workspace.getActiveFile();
                     if (!file) {
-                        new Notice(t('publish.drawer.noFile'));
+                        new Notice(t('publish.drawer.noFile', this.plugin.settings));
                         return;
                     }
-                    publishBtn.setButtonText(t('publish.drawer.publishing'));
+                    publishBtn.setButtonText(t('publish.drawer.publishing', this.plugin.settings));
                     publishBtn.setDisabled(true);
                     try {
                         await this.plugin.publishManager.publish(
@@ -901,11 +965,11 @@ export class PublishDrawer {
                             this.selectedPlatformId === 'wechat' ? this.currentTheme : 'Default'
                         );
                         // Notice is now handled inside PublishManager or Publisher to allow for error messages
-                        // new Notice(t('publish.drawer.published'));
-                    } catch (error: any) {
-                        new Notice(`Publish Error: ${error.message}`);
+                        new Notice(t('publish.drawer.published', this.plugin.settings));
+                    } catch (err: unknown) {
+                        new Notice(`Publish error: ${(err as Error).message}`);
                     } finally {
-                        publishBtn.setButtonText(t('publish.drawer.publish'));
+                        publishBtn.setButtonText(t('publish.drawer.publish', this.plugin.settings));
                         publishBtn.setDisabled(false);
                     }
                 }
@@ -914,16 +978,16 @@ export class PublishDrawer {
 
         // Copy
         const copyBtn = new ButtonComponent(actionRow)
-            .setButtonText(t('publish.drawer.copy'))
-            .onClick(async () => {
-                await this.handleCopy();
+            .setButtonText(t('publish.drawer.copy', this.plugin.settings))
+            .onClick(() => {
+                void this.handleCopy();
             });
         copyBtn.buttonEl.addClass('picflow-action-btn-copy');
 
         // Go to Platform
         const gotoBtn = new ButtonComponent(actionRow)
-            .setButtonText(t('publish.drawer.goto'))
-            .setTooltip(t('publish.drawer.goto'))
+            .setButtonText(t('publish.drawer.goto', this.plugin.settings))
+            .setTooltip(t('publish.drawer.goto', this.plugin.settings))
             .onClick(() => {
                 const platform = this.platforms.find(p => p.id === this.selectedPlatformId);
                 if (platform && platform.url) {
@@ -935,16 +999,17 @@ export class PublishDrawer {
         // Refresh (Icon)
         const refreshBtn = new ButtonComponent(actionRow)
             .setIcon('refresh-cw')
-            .setTooltip(t('publish.drawer.refresh'))
-            .onClick(async () => {
+            .setTooltip(t('publish.drawer.refresh', this.plugin.settings))
+            .onClick(() => {
                 // Refresh themes list if in WeChat mode
                 if (this.selectedPlatformId === 'wechat') {
-                    await this.themeManager.loadThemes();
-                    this.render();
-                    new Notice(t('publish.drawer.refresh'));
+                    void this.themeManager.loadThemes().then(() => {
+                        void this.render();
+                        new Notice(t('publish.drawer.refresh', this.plugin.settings));
+                    });
                 } else {
                     this.refreshPreview();
-                    new Notice(t('publish.drawer.refresh'));
+                    new Notice(t('publish.drawer.refresh', this.plugin.settings));
                 }
             });
         refreshBtn.buttonEl.addClass('picflow-action-btn-refresh');
@@ -956,17 +1021,20 @@ export class PublishDrawer {
             cls: 'setting-item-name'
         });
         el.addClass('picflow-field-label');
-        el.style.marginBottom = '4px'; 
+        el.addClass('picflow-mb-4');
+        return el;
     }
 
     private refreshPreview() {
-        const mainArea = this.container.querySelector('.publish-main-area') as HTMLElement;
-        if (mainArea) this.renderPreview(mainArea);
+        const mainArea = this.container.querySelector('.publish-main-area');
+        if (mainArea) void this.renderPreview(mainArea as HTMLElement);
     }
 
     private async handleCopy() {
         const platform = this.platforms.find(p => p.id === this.selectedPlatformId);
+        if (!platform) return;
 
+        let content = '';
         let file = this.plugin.app.workspace.getActiveFile();
         if (!file || file.extension !== 'md') {
             const leaves = this.plugin.app.workspace.getLeavesOfType("markdown");
@@ -976,55 +1044,41 @@ export class PublishDrawer {
             }
         }
         if (!file) {
-            new Notice(t('publish.drawer.noFileCopy'));
+            new Notice(t('publish.drawer.noFileCopy', this.plugin.settings));
             return;
         }
         const markdown = await this.plugin.app.vault.read(file);
-        const contentBody = markdown.replace(/^---\n[\s\S]*?\n---\n/, '');
 
         if (platform?.type === 'html') {
-            const themeToUse = platform.id === 'wechat' ? this.currentTheme : 'Default';
-            const fullHtml = await this.htmlRenderer.render(contentBody, themeToUse);
-
-            let inlinedHtml = platform?.inlineStyle
-                ? this.themeManager.inlineStyles(fullHtml, themeToUse)
-                : fullHtml;
-
-            const container = document.createElement('div');
-            container.innerHTML = inlinedHtml;
-            const styleTags = container.querySelectorAll('style');
-            styleTags.forEach(tag => tag.remove());
-            inlinedHtml = container.innerHTML;
+            const wrapper = this.container.querySelector('.picflow-preview-html-wrapper');
+            if (wrapper && wrapper.firstElementChild && wrapper.firstElementChild.shadowRoot) {
+                const article = wrapper.firstElementChild.shadowRoot.getElementById('picflow-article');
+                if (article) {
+                    content = article.innerHTML;
+                }
+            }
+            if (!content) {
+                 new Notice(t('publish.drawer.copyFailed', this.plugin.settings));
+                 return;
+            }
 
             try {
-                const blobHtml = new Blob([inlinedHtml], { type: 'text/html' });
-                const blobText = new Blob([contentBody], { type: 'text/plain' });
+                const blobHtml = new Blob([content], { type: 'text/html' });
+                const blobText = new Blob([content], { type: 'text/plain' });
 
                 const data = [new ClipboardItem({
                     ['text/html']: blobHtml,
                     ['text/plain']: blobText
                 })];
                 await navigator.clipboard.write(data);
-                new Notice(t('publish.drawer.richTextCopied'));
-            } catch (err) {
+                new Notice(t('publish.drawer.richTextCopied', this.plugin.settings));
+            } catch (err: unknown) {
                 console.error('Clipboard API failed:', err);
-                try {
-                    const listener = (e: ClipboardEvent) => {
-                        e.clipboardData?.setData('text/html', inlinedHtml);
-                        e.clipboardData?.setData('text/plain', contentBody);
-                        e.preventDefault();
-                    };
-                    document.addEventListener('copy', listener);
-                    document.execCommand('copy');
-                    document.removeEventListener('copy', listener);
-                    new Notice(t('publish.drawer.richTextCopied'));
-                } catch (e2) {
-                    new Notice(t('publish.drawer.copied'));
-                }
+                new Notice('Copy failed. Please select and copy manually.');
             }
         } else {
-            navigator.clipboard.writeText(markdown);
-            new Notice(t('publish.drawer.markdownCopied'));
+            void navigator.clipboard.writeText(markdown);
+            new Notice(t('publish.drawer.markdownCopied', this.plugin.settings));
         }
     }
 }

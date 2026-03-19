@@ -1,9 +1,9 @@
 
-import { DropdownComponent, TextAreaComponent, ButtonComponent, setIcon, Notice, MarkdownView, Menu } from "obsidian";
+import { DropdownComponent, ButtonComponent, setIcon, Notice, MarkdownView, Menu } from "obsidian";
 import { t } from "../../i18n";
 import { AI_MODELS, AIModel, DEFAULT_CHAT_MODEL, QuoteMetadata } from "../models";
 import { DEFAULT_PROMPTS } from "../prompts";
-import { getActiveEditor, getActiveMarkdownView } from "../../utils/editor";
+import { getActiveMarkdownView } from "../../utils/editor";
 import PicFlowPlugin from "../../../main";
 
 export class InputArea {
@@ -29,7 +29,7 @@ export class InputArea {
     // Track cursor position
     private lastRange: Range | null = null;
 
-    private debounceTimer: NodeJS.Timeout | null = null;
+    private debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
     constructor(plugin: PicFlowPlugin, container: HTMLElement, onSend: (prompt: string, model: AIModel, quotes: QuoteMetadata[]) => void, onModelChange: (model: AIModel) => void, onStop: () => void) {
         this.plugin = plugin;
@@ -44,6 +44,7 @@ export class InputArea {
 
     setLoading(loading: boolean) {
         this.isLoading = loading;
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         if (this.sendBtn) {
             if (loading) {
                 this.sendBtn.setIcon("square"); // Stop icon
@@ -362,7 +363,7 @@ export class InputArea {
     private applyTemplate(templateContent: string) {
         const view = getActiveMarkdownView(this.plugin.app);
         
-        let nodesToInsert: Node[] = [];
+        const nodesToInsert: Node[] = [];
         
         if (templateContent.includes("{{selection}}")) {
              // Try to get quote from selection
@@ -375,10 +376,10 @@ export class InputArea {
                  // Check if this selection is already quoted (to avoid duplication)
                  // We look for an existing quote with same text/file/lines
                  const existingQuote = this.quotes.find(q => 
-                    q.fileName === quote!.fileName && 
-                    q.lineStart === quote!.lineStart && 
-                    q.lineEnd === quote!.lineEnd &&
-                    q.text === quote!.text
+                    q.fileName === quote.fileName && 
+                    q.lineStart === quote.lineStart && 
+                    q.lineEnd === quote.lineEnd &&
+                    q.text === quote.text
                  );
 
                  if (existingQuote) {
@@ -428,17 +429,17 @@ export class InputArea {
     private handleSend() {
         // License Check
         if (this.plugin.settings.licenseStatus !== 'valid') {
-            new Notice("Pro feature: Please activate license in Settings.");
+            new Notice("Pro feature: please activate license in settings.");
             // Redirect to Status Tab
-            // @ts-ignore
+            // @ts-expect-error - Internal Obsidian API
             this.plugin.app.setting.open();
-            // @ts-ignore
+            // @ts-expect-error - Internal Obsidian API
             const settingTab = this.plugin.app.setting.pluginTabs.find(t => t.id === this.plugin.manifest.id);
             if (settingTab) {
                 settingTab.currentTab = 'Status';
                 settingTab.display();
             }
-            // @ts-ignore
+            // @ts-expect-error - Internal Obsidian API
             this.plugin.app.setting.openTabById(this.plugin.manifest.id);
             return;
         }

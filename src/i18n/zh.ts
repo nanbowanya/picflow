@@ -509,4 +509,14 @@ export const zh: Translations = {
     'publish.field.originalLink': '原文链接',
     'publish.field.zone': '分区',
     'publish.field.content': '内容',
+
+	// Publish Drawer
+	'publish.drawer.tags': '标签',
+	'publish.drawer.tagsPlaceholder': '多个标签请用逗号分隔',
+	'publish.drawer.category': '分类',
+	'publish.drawer.status': '状态',
+	'publish.drawer.statusDraft': '存为草稿',
+	'publish.drawer.statusPublish': '直接发布',
+	'publish.drawer.mcpTool': 'MCP 工具',
+	'publish.drawer.mcpToolAuto': '自动匹配'
 };

@@ -11,29 +11,52 @@ export class StubAIManager implements IAIManager {
         this.plugin = plugin;
     }
 
-    getQuoteFromSelection(view: MarkdownView): QuoteMetadata | null {
+    getQuoteFromSelection(_view: MarkdownView): QuoteMetadata | null {
         this.showProNotice();
         return null;
     }
 
-    insertTextAtCursor(view: MarkdownView, text: string): void {
+    insertTextAtCursor(_view: MarkdownView, _text: string): void {
         this.showProNotice();
     }
 
-    async insertImageAtCursor(view: MarkdownView, message: ChatMessage): Promise<void> {
+    generateImage(_prompt: string, _options?: unknown): Promise<string> {
         this.showProNotice();
+        return Promise.resolve("");
+    }
+
+    insertImageAtCursor(_view: MarkdownView, _message: ChatMessage): Promise<void> {
+        this.showProNotice();
+        return Promise.resolve();
+    }
+
+    chatCompletionStream(_systemPrompt: string, _messages: ChatMessage[], _historyMessages: ChatMessage[], _callback: (chunk: string) => void): Promise<void> {
+        this.showProNotice();
+        return Promise.resolve();
+    }
+    
+    analyzeImage(_imageFile: File, _prompt?: string): Promise<string> {
+        this.showProNotice();
+        return Promise.resolve("");
+    }
+    
+    generateImageVariant(_imageFile: File, _prompt?: string): Promise<string> {
+         this.showProNotice();
+         return Promise.resolve("");
+    }
+
+    quickAction(_view: MarkdownView, _text: string): Promise<void> {
+        this.showProNotice();
+        return Promise.resolve();
     }
 
     private showProNotice() {
         new Notice(t('notice.ai.pro', this.plugin.settings));
         
         // Open Settings -> Status Tab
-        // @ts-ignore
         if (this.plugin.app.setting) {
-            // @ts-ignore
             this.plugin.app.setting.open();
-            // @ts-ignore
-            const settingTab = this.plugin.app.setting.pluginTabs.find((t: any) => t.id === this.plugin.manifest.id);
+            const settingTab = this.plugin.app.setting.pluginTabs.find((t: unknown) => t.id === this.plugin.manifest.id);
             if (settingTab) {
                 settingTab.currentTab = 'Status';
                 settingTab.display();

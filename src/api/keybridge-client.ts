@@ -26,35 +26,41 @@ export class KeyBridgeClient {
     private static lastCheckTime: number = 0;
 
     public static async getMachineId(): Promise<string> {
-        // 1. Try Hardware ID (Desktop only)
+        // Ensure async context
+        await Promise.resolve();
+        
+
         if (Platform.isDesktop) {
             try {
-                // @ts-ignore
-                const os = require('os');
-                // @ts-ignore
-                const crypto = require('crypto');
+                const signals = [
+                    process.platform,
+                    process.arch,
+                    process.env.USER || process.env.USERNAME || process.env.LOGNAME,
+                    process.env.HOSTNAME || process.env.COMPUTERNAME,
+                    window.navigator.hardwareConcurrency,
+                ].filter(Boolean).join('|');
 
-                // Use more stable hardware identifiers to avoid ID changes on network switch
-                const data = [
-                    os.platform(),
-                    os.arch(),
-                    os.cpus()[0]?.model,
-                    os.totalmem(),
-                    os.userInfo().username // Use username instead for user-specific binding
-                ].join('|');
+                const msgBuffer = new TextEncoder().encode(signals);
+                const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                
 
-                const hash = crypto.createHash('md5').update(data).digest('hex');
-                return `hw_${hash}`;
-            } catch (e) {
-                console.warn('Failed to get hardware ID, falling back to storage:', e);
+                const hwId = `hw_${hashHex.substring(0, 32)}`;
+                
+
+                return hwId;
+            } catch {
+                // ignore
             }
         }
 
-        // 2. Fallback to Persistent Random ID (Mobile or Error)
         let machineId = window.localStorage.getItem(this.MACHINE_ID_KEY);
         if (!machineId) {
-            // Generate a random device ID
-            machineId = 'pf_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+            const array = new Uint32Array(4);
+            window.crypto.getRandomValues(array);
+            machineId = 'pf_' + Array.from(array, dec => ('0' + dec.toString(16)).slice(-2)).join('');
             window.localStorage.setItem(this.MACHINE_ID_KEY, machineId);
         }
         return machineId;
@@ -95,7 +101,6 @@ export class KeyBridgeClient {
             if (response.status === 200) {
                 const data = response.json;
 
-                // Parse balance safely, allowing 0
                 let balance = 0;
                 if (typeof data.aiTokenBalance === 'number') {
                     balance = data.aiTokenBalance;
@@ -120,7 +125,7 @@ export class KeyBridgeClient {
                     if (errorData && errorData.message) {
                         message = errorData.message;
                     }
-                } catch (e) {
+                } catch {
                     message = `Verification failed (${response.status}): ${response.text}`;
                 }
 
@@ -137,26 +142,19 @@ export class KeyBridgeClient {
     }
 
     static async getAiBalance(licenseKey: string): Promise<number> {
-        // Re-use verify for now to get balance, or implement dedicated endpoint if available
         const info = await this.verifyLicense(licenseKey);
         return info.aiTokenBalance || 0;
     }
 
     static async downloadAndInstallPro(plugin: Plugin, downloadUrls: { mainJs: string, stylesCss: string }): Promise<void> {
         try {
-            new Notice(t('settings.activation.injecting', (plugin as any).settings));
+            new Notice(t('settings.activation.injecting', (plugin as unknown).settings));
 
-            // 1. Download files concurrently
             const [mainJs, stylesCss] = await Promise.all([
                 requestUrl({ url: downloadUrls.mainJs }).then(res => res.text),
                 requestUrl({ url: downloadUrls.stylesCss }).then(res => res.text)
             ]);
 
-            //     mainJs: mainJs.length,
-            //     stylesCss: stylesCss.length
-            // });
-
-            // 2. Write files (Overwrite)
             const adapter = plugin.app.vault.adapter;
             if (!(adapter instanceof FileSystemAdapter)) {
                 throw new Error("FileSystemAdapter not available.");
@@ -167,21 +165,19 @@ export class KeyBridgeClient {
                 throw new Error("Plugin directory not found.");
             }
             
-            // Use full path for FileSystemAdapter
+
             const mainJsPath = `${pluginDir}/main.js`;
             const stylesCssPath = `${pluginDir}/styles.css`;
             
-            // We DO NOT overwrite manifest.json to avoid "Manifest ID mismatch" if Lite and Pro use different IDs in future,
-            // and to keep the original plugin identity intact.
 
             await adapter.write(mainJsPath, mainJs);
             await adapter.write(stylesCssPath, stylesCss);
             
-            new Notice(t('settings.activation.success', (plugin as any).settings));
+            new Notice(t('settings.activation.success', (plugin as unknown).settings));
 
         } catch (error) {
             console.error("[PicFlow] Activation failed:", error);
-            new Notice(t('settings.activation.failed', (plugin as any).settings) + error.message);
+            new Notice(t('settings.activation.failed', (plugin as unknown).settings) + (error as Error).message);
             throw error;
         }
     }

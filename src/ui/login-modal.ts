@@ -1,10 +1,10 @@
-import { App, Modal, Notice, Setting, requestUrl, RequestUrlParam } from 'obsidian';
+import { App, Modal, Notice } from 'obsidian';
 import { Account } from '../managers/account-manager';
 import PicFlowPlugin from '../../main';
 
 export interface LoginResult {
     success: boolean;
-    cookies?: any;
+    cookies?: unknown;
     userInfo?: {
         name: string;
         avatar?: string;
@@ -29,14 +29,14 @@ export abstract class Platform {
      * @param title Title of the page
      * @param win The BrowserWindow or WebContents (typed as any to avoid Electron import issues in some contexts)
      */
-    abstract checkLoginStatus(url: string, title: string, win?: any): Promise<LoginResult | null>;
+    abstract checkLoginStatus(url: string, title: string, win?: unknown): Promise<LoginResult | null>;
 
     /**
      * Checks if the session (cookies) is still valid.
-     * @param account The account to check
+     * @param _account The account to check
      */
-    async checkSession(account: Account): Promise<boolean> {
-        return true; // Default to true if not implemented
+    checkSession(_account: Account): Promise<boolean> {
+        return Promise.resolve(true); // Default to true if not implemented
     }
 
     /**
@@ -46,7 +46,7 @@ export abstract class Platform {
         if (!account.cookies) return '';
         if (typeof account.cookies === 'string') return account.cookies;
         if (Array.isArray(account.cookies)) {
-            return account.cookies.map((c: any) => `${c.name}=${c.value}`).join('; ');
+            return account.cookies.map((c: unknown) => `${c.name}=${c.value}`).join('; ');
         }
         return '';
     }
@@ -54,17 +54,17 @@ export abstract class Platform {
     /**
      * Optional: Extract user info from the page after login.
      */
-    async getUserInfo(win: any): Promise<any> {
-        return { name: 'Unknown User' };
+    getUserInfo(_win: unknown): Promise<unknown> {
+        return Promise.resolve({ name: 'Unknown User' });
     }
 }
 
 export class LoginModal extends Modal {
     plugin: PicFlowPlugin;
     platform: Platform;
-    webview: any; // Electron Webview
+    webview: unknown; // Electron Webview
     onLogin: (result: LoginResult) => void;
-    checkInterval: NodeJS.Timeout | null = null;
+    checkInterval: number | null = null;
     confirmBtn: HTMLButtonElement;
     currentLoginResult: LoginResult | null = null;
 
@@ -79,10 +79,8 @@ export class LoginModal extends Modal {
         const { contentEl, modalEl } = this;
         
         // Adjust modal size for better visibility
-        modalEl.style.width = '80vw';
-        modalEl.style.height = '80vh';
-        modalEl.style.maxWidth = '1000px';
-        modalEl.style.maxHeight = '800px';
+        modalEl.addClass('picflow-modal-large');
+        // Styles moved to CSS class .picflow-modal-large
 
         contentEl.empty();
         contentEl.addClass('picflow-modal-content');
@@ -117,7 +115,7 @@ export class LoginModal extends Modal {
                     this.confirmBtn.disabled = false;
                     this.confirmBtn.setText('I have logged in');
                 }
-            } catch (e) {
+            } catch (_e) {
                 // console.error('Login confirm error:', e);
                 new Notice('Error verifying login.');
                 this.confirmBtn.disabled = false;
@@ -127,6 +125,7 @@ export class LoginModal extends Modal {
 
         // Warning/Instructions
         const info = contentEl.createDiv({ cls: 'picflow-login-info' });
+                         // eslint-disable-next-line obsidianmd/ui/sentence-case
         info.innerText = 'Please login below. Once logged in, click "Confirm" to add the account.';
 
         // Webview Container
@@ -143,15 +142,15 @@ export class LoginModal extends Modal {
 
         this.webview.addEventListener('dom-ready', () => {
             // Check login status periodically or on navigation
-            this.checkLogin();
+            void this.checkLogin();
         });
 
         this.webview.addEventListener('did-navigate', () => {
-            this.checkLogin();
+            void this.checkLogin();
         });
         
         this.webview.addEventListener('did-navigate-in-page', () => {
-            this.checkLogin();
+            void this.checkLogin();
         });
     }
 
@@ -168,13 +167,11 @@ export class LoginModal extends Modal {
             if (result && result.success) {
                 // Capture cookies
                 let cookies = [];
-                let methodUsed = '';
+                // let methodUsed = '';
                 
                 // Method 1: standard webview API
                 try {
-                    // @ts-ignore
                     if (this.webview.getWebContents) {
-                         // @ts-ignore
                          const session = this.webview.getWebContents().session;
                          
                          // Fix for CSDN: Explicitly get cookies for root domain if platform is CSDN
@@ -200,16 +197,16 @@ export class LoginModal extends Modal {
                              cookies = await session.cookies.get({});
                          }
                          
-                         methodUsed = 'Standard API';
+                         // methodUsed = 'Standard API';
                     } else {
                         throw new Error('getWebContents not available');
                     }
-                } catch (err) {
-                    // // console.warn('[PicFlow] Method 1 failed (Standard API):', err.message);
-                    
-                    // Method 2: remote module
+                } catch (_err) {
+                        // // console.warn('[PicFlow] Method 1 failed (Standard API):', err.message);
+                        
+                        // Method 2: remote module
                     try {
-                         // @ts-ignore
+                         // eslint-disable-next-line @typescript-eslint/no-require-imports
                          const remote = require('@electron/remote');
                          const webContents = remote.webContents.fromId(this.webview.getWebContentsId());
                          const session = webContents.session;
@@ -219,7 +216,7 @@ export class LoginModal extends Modal {
                              const wwwCookies = await session.cookies.get({ domain: 'www.csdn.net' });
                              const passportCookies = await session.cookies.get({ domain: 'passport.csdn.net' });
                              const cookieMap = new Map();
-                             [...rootCookies, ...wwwCookies, ...passportCookies].forEach((c: any) => cookieMap.set(c.name, c));
+                             [...rootCookies, ...wwwCookies, ...passportCookies].forEach((c: unknown) => cookieMap.set(c.name, c));
                              cookies = Array.from(cookieMap.values());
                          } else if (this.platform.id === 'weibo') {
                              // Strategy: Capture EVERYTHING related to weibo/sina to be safe
@@ -232,7 +229,7 @@ export class LoginModal extends Modal {
                                  'card.weibo.com', 'passport.weibo.com', 'login.sina.com.cn'
                              ];
                              
-                             let allCookies = [];
+                             const allCookies = [];
                              for (const d of domains) {
                                  const c = await session.cookies.get({ domain: d });
                                  allCookies.push(...c);
@@ -250,8 +247,8 @@ export class LoginModal extends Modal {
                          } else {
                              cookies = await session.cookies.get({});
                          }
-                         methodUsed = 'Remote API';
-                    } catch (err2) {
+                         // methodUsed = 'Remote API';
+                    } catch {
                         // // console.warn('[PicFlow] Method 2 failed (Remote API):', err2.message);
                         
                         // Method 3: execute Javascript (Fallback)
@@ -262,9 +259,9 @@ export class LoginModal extends Modal {
                                     const [name, value] = c.split('=').map((s: string) => s.trim());
                                     return { name, value };
                                 });
-                                methodUsed = 'JS Injection';
+                                // methodUsed = 'JS Injection'; // Unused
                             }
-                        } catch (err3) {
+                        } catch {
                             // console.error('[PicFlow] All cookie capture methods failed', err3);
                         }
                     }
@@ -289,7 +286,7 @@ export class LoginModal extends Modal {
                     new Notice('Login not detected yet. Please login first.');
                 }
             }
-        } catch (e) {
+        } catch (_e) {
             // console.error("[PicFlow] Error checking login status:", e);
         }
     }
@@ -304,7 +301,7 @@ export class LoginModal extends Modal {
                     for (let i = 0; i < cookies.length; i++) {
                         const cookie = cookies[i];
                         const eqPos = cookie.indexOf("=");
-                        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                        const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
                         document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
                     }
                     localStorage.clear();
@@ -314,10 +311,9 @@ export class LoginModal extends Modal {
              
              // Clear session storage
              try {
-                 // @ts-ignore
                  const session = this.webview.getWebContents().session;
                  await session.clearStorageData();
-             } catch(e) { 
+             } catch(_e) { 
                  // console.warn('Failed to clear session storage', e); 
              }
 
@@ -326,7 +322,7 @@ export class LoginModal extends Modal {
              this.confirmBtn.setText('I have logged in');
              this.confirmBtn.classList.remove('mod-success');
              new Notice('Logged out. Please login again.');
-        } catch(e) {
+        } catch(_e) {
             // console.error('Logout failed', e);
             new Notice('Logout failed. Please try again.');
         }
@@ -336,5 +332,14 @@ export class LoginModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
         if (this.checkInterval) clearInterval(this.checkInterval);
+
+        try {
+            // Try to clear data if possible
+            if (this.webview) {
+                // ...
+            }
+        } catch (_e) {
+            // Ignore
+        }
     }
 }

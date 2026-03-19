@@ -1,9 +1,9 @@
 {
   "id": "picflow",
   "name": "PicFlow",
-  "version": "0.1.1",
+  "version": "0.1.12",
   "minAppVersion": "0.15.0",
-  "description": "PicFlow is not Picture Flow, but a whole set of full-process content production tools for article publishing (Publish), picture management (Image), AI creation (Ai), clip (Clip) and other problems encountered in the process of writing and publishing.",
+  "description": "PicFlow is not Picture Flow, but full-process content tools for publishing, image management, AI creation, clip management and other writing workflows.",
   "author": "Nanbowanya",
   "authorUrl": "https://github.com/nanbowanya/",
   "isDesktopOnly": true

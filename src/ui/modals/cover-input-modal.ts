@@ -14,7 +14,10 @@ export class CoverInputModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
         
-        contentEl.createEl("h2", { text: "Set Cover Image" });
+        const titleDiv = contentEl.createDiv('picflow-modal-title');
+        // const icon = titleDiv.createEl('span', { cls: 'picflow-modal-icon' });
+        // setIcon(icon, 'image'); 
+        titleDiv.createEl('h2', { text: "Set cover image" });
         
         // 1. Text Input Area
         new Setting(contentEl)
@@ -28,19 +31,20 @@ export class CoverInputModal extends Modal {
         // 2. Drag & Drop Area
         const dropZone = contentEl.createDiv({ cls: 'picflow-drop-zone' });
         
-        const icon = dropZone.createDiv({ text: '📂', cls: 'picflow-drop-icon' });
+        dropZone.createDiv({ text: '📂', cls: 'picflow-drop-icon' });
         
-        dropZone.createDiv({ text: 'Click or Drag image here to upload' });
+        dropZone.createDiv({ text: 'Click or drag image here to upload' });
         
         // Hidden file input
         const fileInput = contentEl.createEl('input', { type: 'file' });
         fileInput.accept = 'image/*';
-        fileInput.style.display = 'none';
+        fileInput.addClass('picflow-hidden');
+        // fileInput.style.display = 'none';
         
-        fileInput.onchange = async (e) => {
+        fileInput.onchange = (e) => {
             const files = (e.target as HTMLInputElement).files;
             if (files && files.length > 0) {
-                await this.handleFiles(files);
+                void this.handleFiles(files);
             }
             // Reset input so same file can be selected again if needed
             (e.target as HTMLInputElement).value = '';
@@ -58,12 +62,12 @@ export class CoverInputModal extends Modal {
             dropZone.removeClass('picflow-drop-zone-active');
         };
         
-        dropZone.ondrop = async (e) => {
+        dropZone.ondrop = (e) => {
             e.preventDefault();
             dropZone.removeClass('picflow-drop-zone-active');
             
             if (e.dataTransfer && e.dataTransfer.files.length > 0) {
-                await this.handleFiles(e.dataTransfer.files);
+                void this.handleFiles(e.dataTransfer.files);
             }
         };
 
@@ -81,22 +85,22 @@ export class CoverInputModal extends Modal {
         cancelBtn.onclick = () => this.close();
     }
     
-    async handleFiles(files: FileList) {
+    handleFiles(files: FileList) {
         const file = files[0];
         if (!file.type.startsWith('image/')) {
-            new Notice('Please upload an image file.');
+            new Notice('Please upload an image file');
             return;
         }
 
         // Use absolute path directly (No saving to vault)
-        let path = (file as any).path;
+        const path = (file as File & { path?: string }).path;
         
         if (path) {
-            new Notice('Local image selected.');
+            new Notice('Local image selected');
             this.result = path;
             
             // Refresh UI input
-            const input = this.contentEl.querySelector('input[type="text"]') as HTMLInputElement;
+            const input = this.contentEl.querySelector('input[type="text"]');
             if (input) input.value = path;
             
             // Auto-submit if needed, or just let user click Save.
@@ -139,13 +143,13 @@ export class CoverInputModal extends Modal {
                 const dataUrl = e.target?.result as string;
                 this.result = dataUrl;
                 
-                const input = this.contentEl.querySelector('input[type="text"]') as HTMLInputElement;
+                const input = this.contentEl.querySelector('input[type="text"]');
                 if (input) {
                     input.value = "Image loaded from clipboard/drag (Base64)";
                     input.setAttribute('data-base64', dataUrl);
                 }
                 
-                new Notice('Image loaded for preview.');
+                new Notice("Image loaded for preview");
             };
             reader.readAsDataURL(file);
         }
@@ -160,13 +164,13 @@ export class CoverInputModal extends Modal {
             
             await this.app.vault.createBinary(newName, arrayBuffer);
             
-            new Notice('Image saved to vault (Fallback).');
+            new Notice('Image saved to vault');
             this.result = newName;
             
-            const input = this.contentEl.querySelector('input[type="text"]') as HTMLInputElement;
+            const input = this.contentEl.querySelector('input[type="text"]');
             if (input) input.value = newName;
         } catch (e) {
-            new Notice('Failed to save image: ' + e.message);
+            new Notice('Failed to save image: ' + (e as Error).message);
         }
     }
 

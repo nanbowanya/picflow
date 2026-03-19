@@ -12,23 +12,9 @@ export class StubPublisher implements IPlatformPublisher {
         this.platformName = platformName;
     }
 
-    async publish(file: TFile, accountId: string, themeName: string = 'Default'): Promise<void> {
-        new Notice(`${this.platformName} publishing is a Pro feature. Please upgrade to unlock.`);
-        
-        // Open Settings Tab to Status Tab
-        // @ts-ignore
-        if (this.plugin.app.setting) {
-            // @ts-ignore
-            this.plugin.app.setting.open();
-            // @ts-ignore
-            const settingTab = this.plugin.app.setting.pluginTabs.find(t => t.id === this.plugin.manifest.id);
-            if (settingTab) {
-                settingTab.currentTab = 'Status';
-                settingTab.display();
-            }
-            // @ts-ignore
-            this.plugin.app.setting.openTabById(this.plugin.manifest.id);
-        }
+    async publish(_file: TFile, _accountId: string, _themeName: string): Promise<void> {
+        new Notice('Publishing is available in pro version.');
+        return Promise.resolve();
     }
 }
 

@@ -1,4 +1,4 @@
-import { App, MarkdownView, Notice, TFile, Editor } from 'obsidian';
+import { App, MarkdownView, Notice, TFile, requestUrl } from 'obsidian';
 import * as crypto from 'crypto';
 import PicFlowPlugin from '../../main';
 import { ImageProcessor } from '../utils/image-processor';
@@ -8,7 +8,7 @@ import { OSSUploader } from '../uploaders/oss';
 import { GitHubUploader } from '../uploaders/github';
 import { WebDAVUploader } from '../uploaders/webdav';
 import { SFTPUploader } from '../uploaders/sftp';
-import { ImageGenerationOptions } from '../ai/models';
+// import { ImageGenerationOptions } from '../ai/models';
 
 export class UploadHandler {
     plugin: PicFlowPlugin;
@@ -49,7 +49,7 @@ export class UploadHandler {
 
         // Select Uploader implementation based on profile type
         if (profile.type === 's3' && profile.s3) {
-            const proxySettings: any = { ...this.plugin.settings };
+            const proxySettings: unknown = { ...this.plugin.settings };
             Object.assign(proxySettings, {
                 s3Endpoint: profile.s3.endpoint,
                 s3Region: profile.s3.region,
@@ -72,7 +72,7 @@ export class UploadHandler {
             url = await uploader.upload(processedFile, fileName);
 
         } else if (profile.type === 'github' && profile.github) {
-            const proxySettings: any = { ...this.plugin.settings };
+            const proxySettings: unknown = { ...this.plugin.settings };
             Object.assign(proxySettings, {
                 githubOwner: profile.github.owner,
                 githubRepo: profile.github.repo,
@@ -133,7 +133,7 @@ export class UploadHandler {
             } else if (typeof error === 'object' && error !== null) {
                 try {
                     errorMessage = JSON.stringify(error);
-                } catch (e) {
+                } catch (_e) {
                     errorMessage = String(error);
                 }
             }
@@ -157,10 +157,11 @@ export class UploadHandler {
 
         try {
             // 1. Download
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
-            const blob = await response.blob();
-            const buffer = await blob.arrayBuffer();
+            const response = await requestUrl({ url });
+            if (response.status >= 400) throw new Error(`Failed to fetch image: ${response.status}`);
+            
+            const buffer = response.arrayBuffer;
+            const contentType = response.headers['content-type'] || 'application/octet-stream';
 
             let filename = url.split('/').pop()?.split('?')[0];
             if (!filename || filename.length < 3) {
@@ -171,11 +172,11 @@ export class UploadHandler {
                 }
                 filename = `image-${Math.abs(hash)}.png`;
             } else {
-                try { filename = decodeURIComponent(filename); } catch (e) { }
+                try { filename = decodeURIComponent(filename); } catch { /* ignore */ }
             }
 
             if (!filename.includes('.')) {
-                const type = blob.type.split('/')[1] || 'png';
+                const type = contentType.split('/')[1] || 'png';
                 filename += `.${type}`;
             }
 
@@ -186,7 +187,7 @@ export class UploadHandler {
             }
             const stableLastModified = Math.abs(urlHash) * 1000;
 
-            const file = new File([buffer], filename, { type: blob.type, lastModified: stableLastModified });
+            const file = new File([buffer], filename, { type: contentType, lastModified: stableLastModified });
 
             // 3. Upload
             if (returnUrlOnly) {
@@ -227,7 +228,7 @@ export class UploadHandler {
         const extension = originalName.slice((originalName.lastIndexOf(".") - 1 >>> 0) + 2);
         const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName;
 
-        let format = this.plugin.settings.imageNameFormat || '{Y}{M}{D}{h}{m}{s}-{filename}';
+        const format = this.plugin.settings.imageNameFormat || '{Y}{M}{D}{h}{m}{s}-{filename}';
 
         // 1. Time Replacement
         let newName = format

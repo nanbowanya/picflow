@@ -1,5 +1,4 @@
-import { App, MarkdownView, Notice, setIcon, TFile } from 'obsidian';
-// @ts-ignore
+import { App, MarkdownView, TFile } from 'obsidian';
 import PicFlowPlugin from '../main';
 import { t } from '../i18n';
 
@@ -44,11 +43,9 @@ export class BatchUploadManager {
                 // Read file
                 const arrayBuffer = await this.app.vault.readBinary(file);
                 const blob = new Blob([arrayBuffer]);
-                // @ts-ignore
                 const fileObj = new File([blob], file.name, { type: 'image/' + file.extension });
                 
                 // Upload
-                // @ts-ignore
                 const url = await this.plugin.uploadFileOnly(fileObj);
                 
                 if (url) {
@@ -136,7 +133,7 @@ export class BatchUploadManager {
             const parsed = new URL(url);
             const path = parsed.pathname.toLowerCase();
             return /\.(png|jpg|jpeg|gif|webp|svg|bmp)$/.test(path);
-        } catch (e) {
+        } catch {
             return false;
         }
     }
@@ -163,7 +160,7 @@ export class BatchUploadManager {
         
         // Concurrency Limit: 3
         const limit = 3;
-        let hasError = false;
+        // let hasError = false;
         const activePromises: Promise<void>[] = [];
 
         for (const img of toUpload) {
@@ -176,12 +173,12 @@ export class BatchUploadManager {
 
             if (this.cancelFlag) break;
 
-            const promise = this.uploadOne(img).then((success) => {
-                if (!success) hasError = true;
+            const promise = this.uploadOne(img).then((_success) => {
+                // if (!success) hasError = true;
                 // Remove self from active list
                 const index = activePromises.indexOf(promise);
                 if (index > -1) {
-                    activePromises.splice(index, 1);
+                    void activePromises.splice(index, 1);
                 }
                 this.updateUI();
                 this.updateStatusBar();
@@ -198,18 +195,6 @@ export class BatchUploadManager {
         this.isUploading = false;
         this.updateUI();
         this.clearStatusBar();
-
-        if (this.cancelFlag) {
-            new Notice('Batch upload canceled.');
-        } else if (!hasError) {
-            new Notice(t('batch.notice.finish', this.plugin.settings));
-            // Auto close modal if requested
-            if (this.onCloseRequest) {
-                this.onCloseRequest();
-            }
-        } else {
-            new Notice('Batch upload finished with errors.');
-        }
     }
 
     cancelUpload() {
@@ -228,7 +213,7 @@ export class BatchUploadManager {
              try {
                  // Use plugin's uploadHandler.uploadOnlineImage
                  const cleanPath = img.path.split('|')[0];
-                 const url = await this.plugin.uploadHandler.uploadOnlineImage(cleanPath, this.currentView!, true);
+                 const url = await this.plugin.uploadHandler.uploadOnlineImage(cleanPath, this.currentView, true);
                  
                  if (url) {
                      img.status = 'success';

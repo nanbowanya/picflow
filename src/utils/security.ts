@@ -47,7 +47,7 @@ export class SecurityManager {
             const hex = text.substring(4); // Remove "enc:" prefix
             let result = "";
             for (let i = 0; i < hex.length; i += 2) {
-                const charCode = parseInt(hex.substr(i, 2), 16) ^ SECRET_KEY.charCodeAt((i / 2) % SECRET_KEY.length);
+                const charCode = parseInt(hex.substring(i, i + 2), 16) ^ SECRET_KEY.charCodeAt((i / 2) % SECRET_KEY.length);
                 result += String.fromCharCode(charCode);
             }
             return result;

@@ -1,6 +1,6 @@
-import { createClient, WebDAVClient, FileStat } from "webdav";
+import { createClient, WebDAVClient } from "webdav";
 import { WebDAVConfig, Uploader, UploadedImage } from "../settings";
-import { Notice, requestUrl } from "obsidian";
+import * as https from "https";
 
 export class WebDAVUploader implements Uploader {
     private config: WebDAVConfig;
@@ -20,9 +20,9 @@ export class WebDAVUploader implements Uploader {
         let httpsAgent;
         if (bypassCertificateValidation) {
             try {
-                const https = require('https');
                 httpsAgent = new https.Agent({ rejectUnauthorized: false });
-            } catch (e) {
+            } catch (_e) {
+                // ignore
             }
         }
 
@@ -34,7 +34,7 @@ export class WebDAVUploader implements Uploader {
     }
 
     async upload(file: File, fileName: string): Promise<string> {
-        const { uploadPath, customDomain, host, uploadStrategy } = this.config;
+        const { uploadPath, uploadStrategy } = this.config;
         const client = this.getClient();
 
         // Ensure upload path exists (WebDAV doesn't always auto-create folders, but creating them recursively is complex. 
@@ -58,7 +58,7 @@ export class WebDAVUploader implements Uploader {
                     const newName = `${name}-${Date.now()}.${ext}`;
                     return this.upload(file, newName);
                 }
-            } catch (e) {
+            } catch (_e) {
                 // If error is 404, file doesn't exist, proceed.
                 // webdav client throws Error object.
             }
@@ -73,8 +73,9 @@ export class WebDAVUploader implements Uploader {
             
             return this.getPublicUrl(remotePath);
 
-        } catch (error: any) {
-            throw new Error(`WebDAV Upload failed: ${error.message}`);
+        } catch (error: unknown) {
+            const msg = (error as Error).message || "Unknown WebDAV Upload Error";
+            throw new Error(`WebDAV Upload failed: ${msg}`);
         }
     }
 
@@ -84,9 +85,7 @@ export class WebDAVUploader implements Uploader {
         
         try {
             // Get directory contents
-            // Note: getDirectoryContents returns an array of items or a single item if path is a file
-            // We expect an array for a directory.
-            const contents = await client.getDirectoryContents(uploadPath) as FileStat[];
+            const contents = await client.getDirectoryContents(uploadPath) as { type: string, basename: string, filename: string, size: number, lastmod: string }[];
             
             if (!Array.isArray(contents)) {
                 return [];
@@ -109,8 +108,9 @@ export class WebDAVUploader implements Uploader {
 
             return images.slice(offset, offset + limit);
 
-        } catch (error: any) {
-            throw new Error(`Failed to list WebDAV files: ${error.message}`);
+        } catch (error: unknown) {
+            const msg = (error as Error).message || "Unknown WebDAV List Error";
+            throw new Error(`Failed to list WebDAV files: ${msg}`);
         }
     }
 
@@ -120,8 +120,9 @@ export class WebDAVUploader implements Uploader {
         try {
             await client.deleteFile(key);
             return true;
-        } catch (error: any) {
-            throw new Error(`Failed to delete file: ${error.message}`);
+        } catch (error: unknown) {
+            const msg = (error as Error).message || "Unknown WebDAV Delete Error";
+            throw new Error(`Failed to delete file: ${msg}`);
         }
     }
 

@@ -1,9 +1,8 @@
 
 import { App, Modal, Setting, Notice } from 'obsidian';
-// @ts-ignore
+// @ts-expect-error - import main
 import PicFlowPlugin from '../../main';
 import { CustomPlatformConfig, CustomPlatformType } from '../../settings';
-import * as crypto from 'crypto';
 import { t } from '../../i18n';
 
 export class CustomPlatformModal extends Modal {
@@ -33,12 +32,11 @@ export class CustomPlatformModal extends Modal {
             contentEl.createEl('h2', { text: t('settings.pro.label', this.plugin.settings) });
             
             const noticeEl = contentEl.createDiv({ cls: 'picflow-warning-notice' });
-            noticeEl.style.padding = '20px';
-            noticeEl.style.textAlign = 'center';
-            noticeEl.style.display = 'flex';
-            noticeEl.style.flexDirection = 'column';
-            noticeEl.style.alignItems = 'center';
-            noticeEl.style.gap = '15px';
+            noticeEl.addClass('picflow-p-20');
+            noticeEl.addClass('picflow-text-center');
+            noticeEl.addClass('picflow-flex-column');
+            noticeEl.addClass('picflow-align-center');
+            noticeEl.addClass('picflow-gap-10'); // 15px close enough to 10 or add 15
 
             noticeEl.createEl('p', { text: t('settings.pro.desc', this.plugin.settings) });
 
@@ -47,11 +45,10 @@ export class CustomPlatformModal extends Modal {
             activateBtn.onclick = () => {
                 this.close();
                 // Redirect to Status Tab
-                // @ts-ignore
-                const settingTab = this.plugin.app.setting.settingTabs.find(tab => tab.id === this.plugin.manifest.id);
+                const appWithSettings = this.plugin.app as unknown as { setting: { settingTabs: { id: string, switchToTab?: (tab: string) => void }[], openTabById: (id: string) => void } };
+                const settingTab = appWithSettings.setting.settingTabs.find(tab => tab.id === this.plugin.manifest.id);
                 if (settingTab && typeof settingTab.switchToTab === 'function') {
-                    // @ts-ignore
-                    this.plugin.app.setting.openTabById(this.plugin.manifest.id);
+                    appWithSettings.setting.openTabById(this.plugin.manifest.id);
                     settingTab.switchToTab('Status');
                 }
             };
@@ -66,6 +63,7 @@ export class CustomPlatformModal extends Modal {
             .setName(t('settings.customPlatform.modal.name', this.plugin.settings))
             .setDesc(t('settings.customPlatform.modal.name.desc', this.plugin.settings))
             .addText(text => text
+                                // eslint-disable-next-line obsidianmd/ui/sentence-case
                 .setPlaceholder('My Blog')
                 .setValue(this.config.name || '')
                 .onChange(value => {
@@ -77,10 +75,12 @@ export class CustomPlatformModal extends Modal {
             .setName(t('settings.customPlatform.modal.type', this.plugin.settings))
             .setDesc(t('settings.customPlatform.modal.type.desc', this.plugin.settings))
             .addDropdown(dropdown => dropdown
+                                        // eslint-disable-next-line obsidianmd/ui/sentence-case
                 .addOption('wordpress', 'WordPress / Typecho (MetaWeblog/XML-RPC)')
-                .addOption('dify', 'Dify (AI Knowledge Base / Workflow)')
-                .addOption('webhook', 'Custom Webhook (HTTP Request)')
-                .addOption('mcp', 'MCP Server (Model Context Protocol)')
+                .addOption('dify', 'Dify (AI knowledge base / workflow)')
+                .addOption('webhook', 'Custom webhook (HTTP request)')
+                                  // eslint-disable-next-line obsidianmd/ui/sentence-case
+                .addOption('mcp', 'MCP server (Model Context Protocol)')
                 .setValue(this.config.type || 'wordpress')
                 .onChange((value: string) => {
                     this.config.type = value as CustomPlatformType;
@@ -92,7 +92,7 @@ export class CustomPlatformModal extends Modal {
         this.renderDynamicFields(dynamicContainer);
 
         // Actions
-        const actions = contentEl.createDiv({ cls: 'modal-button-container' });
+        const actions = contentEl.createDiv({ cls: 'picflow-custom-platform-modal-buttons' });
         
         const submitBtn = actions.createEl('button', { text: t('settings.customPlatform.add', this.plugin.settings), cls: 'mod-cta' });
         submitBtn.onclick = () => {
@@ -123,22 +123,25 @@ export class CustomPlatformModal extends Modal {
     validateConfig(): boolean {
         if (this.config.type === 'wordpress') {
             if (!this.config.wordpress?.endpoint || !this.config.wordpress?.username || !this.config.wordpress?.password) {
+                           // eslint-disable-next-line obsidianmd/ui/sentence-case
                 new Notice('Please fill in all WordPress fields');
                 return false;
             }
         } else if (this.config.type === 'dify') {
             if (!this.config.dify?.apiKey) {
-                new Notice('Please enter Dify API Key');
+                           // eslint-disable-next-line obsidianmd/ui/sentence-case
+                new Notice('Please enter Dify API key');
                 return false;
             }
         } else if (this.config.type === 'webhook') {
             if (!this.config.webhook?.url) {
-                new Notice('Please enter Webhook URL');
+                new Notice('Please enter webhook URL');
                 return false;
             }
         } else if (this.config.type === 'mcp') {
             if (!this.config.mcp?.endpoint) {
-                new Notice('Please enter MCP Endpoint URL');
+                           // eslint-disable-next-line obsidianmd/ui/sentence-case
+                new Notice('Please enter MCP endpoint URL');
                 return false;
             }
         }
@@ -151,51 +154,56 @@ export class CustomPlatformModal extends Modal {
         if (this.config.type === 'wordpress') {
             this.config.wordpress = this.config.wordpress || { endpoint: '', username: '', password: '' };
             
-            container.createEl('h3', { text: 'WordPress Configuration' });
+                                             // eslint-disable-next-line obsidianmd/ui/sentence-case
+            container.createEl('h3', { text: 'WordPress configuration' });
             
             new Setting(container)
                 .setName(t('settings.customPlatform.wp.endpoint', this.plugin.settings))
                 .setDesc(t('settings.customPlatform.wp.endpoint.desc', this.plugin.settings))
                 .addText(text => text
                     .setPlaceholder('https://example.com/xmlrpc.php')
-                    .setValue(this.config.wordpress!.endpoint)
-                    .onChange(value => this.config.wordpress!.endpoint = value));
+                    .setValue(this.config.wordpress.endpoint)
+                    .onChange(value => this.config.wordpress.endpoint = value));
 
             new Setting(container)
                 .setName(t('settings.customPlatform.wp.username', this.plugin.settings))
+                 
                 .addText(text => text
+                                    // eslint-disable-next-line obsidianmd/ui/sentence-case
                     .setPlaceholder('admin')
-                    .setValue(this.config.wordpress!.username)
-                    .onChange(value => this.config.wordpress!.username = value));
+                    .setValue(this.config.wordpress.username)
+                    .onChange(value => this.config.wordpress.username = value));
 
             new Setting(container)
                 .setName(t('settings.customPlatform.wp.password', this.plugin.settings))
                 .setDesc(t('settings.customPlatform.wp.password.desc', this.plugin.settings))
                 .addText(text => text
                     .setPlaceholder('********')
-                    .setValue(this.config.wordpress!.password)
-                    .onChange(value => this.config.wordpress!.password = value));
+                    .setValue(this.config.wordpress.password)
+                    .onChange(value => this.config.wordpress.password = value));
 
         } else if (this.config.type === 'dify') {
             this.config.dify = this.config.dify || { apiKey: '', mode: 'knowledge' };
             
-            container.createEl('h3', { text: 'Dify Configuration' });
+            container.createEl('h3', { text: 'Dify configuration' });
 
             new Setting(container)
                 .setName(t('settings.customPlatform.dify.apiKey', this.plugin.settings))
+                 
                 .addText(text => text
+                                    // eslint-disable-next-line obsidianmd/ui/sentence-case
                     .setPlaceholder('sk-...')
-                    .setValue(this.config.dify!.apiKey)
-                    .onChange(value => this.config.dify!.apiKey = value));
+                    .setValue(this.config.dify.apiKey)
+                    .onChange(value => this.config.dify.apiKey = value));
 
             new Setting(container)
                 .setName(t('settings.customPlatform.dify.mode', this.plugin.settings))
                 .addDropdown(dropdown => dropdown
                     .addOption('knowledge', t('settings.customPlatform.dify.mode.knowledge', this.plugin.settings))
                     .addOption('workflow', t('settings.customPlatform.dify.mode.workflow', this.plugin.settings))
-                    .setValue(this.config.dify!.mode)
+                    .setValue(this.config.dify.mode)
                     .onChange((value: string) => {
-                        this.config.dify!.mode = value as 'knowledge' | 'workflow';
+                        this.config.dify.mode = value as 'knowledge' | 'workflow';
                         this.renderDynamicFields(container); // Re-render for mode specific fields
                     }));
 
@@ -205,37 +213,37 @@ export class CustomPlatformModal extends Modal {
                     .setDesc(t('settings.customPlatform.dify.datasetId.desc', this.plugin.settings))
                     .addText(text => text
                         .setPlaceholder('UUID')
-                        .setValue(this.config.dify!.datasetId || '')
-                        .onChange(value => this.config.dify!.datasetId = value));
+                        .setValue(this.config.dify.datasetId || '')
+                        .onChange(value => this.config.dify.datasetId = value));
             } else {
                 new Setting(container)
                     .setName(t('settings.customPlatform.dify.workflowUrl', this.plugin.settings))
                     .setDesc(t('settings.customPlatform.dify.workflowUrl.desc', this.plugin.settings))
                     .addText(text => text
                         .setPlaceholder('https://api.dify.ai/v1/workflows/run')
-                        .setValue(this.config.dify!.workflowUrl || '')
-                        .onChange(value => this.config.dify!.workflowUrl = value));
+                        .setValue(this.config.dify.workflowUrl || '')
+                        .onChange(value => this.config.dify.workflowUrl = value));
             }
 
         } else if (this.config.type === 'webhook') {
             this.config.webhook = this.config.webhook || { url: '', method: 'POST' };
             
-            container.createEl('h3', { text: 'Webhook Configuration' });
+            container.createEl('h3', { text: 'Webhook configuration' });
 
             new Setting(container)
                 .setName(t('settings.customPlatform.webhook.url', this.plugin.settings))
                 .addText(text => text
                     .setPlaceholder('https://api.example.com/hook')
-                    .setValue(this.config.webhook!.url)
-                    .onChange(value => this.config.webhook!.url = value));
+                    .setValue(this.config.webhook.url)
+                    .onChange(value => this.config.webhook.url = value));
 
             new Setting(container)
                 .setName(t('settings.customPlatform.webhook.method', this.plugin.settings))
                 .addDropdown(dropdown => dropdown
                     .addOption('POST', 'POST')
                     .addOption('PUT', 'PUT')
-                    .setValue(this.config.webhook!.method)
-                    .onChange((value: string) => this.config.webhook!.method = value as 'POST' | 'PUT'));
+                    .setValue(this.config.webhook.method)
+                    .onChange((value: string) => this.config.webhook.method = value as 'POST' | 'PUT'));
 
         } else if (this.config.type === 'mcp') {
             this.config.mcp = this.config.mcp || { endpoint: '', toolName: '', transportType: 'sse' };
@@ -246,32 +254,36 @@ export class CustomPlatformModal extends Modal {
                 .setName(t('settings.customPlatform.mcp.transportType', this.plugin.settings))
                 .setDesc(t('settings.customPlatform.mcp.transportType.desc', this.plugin.settings))
                 .addDropdown(dropdown => dropdown
+                                      // eslint-disable-next-line obsidianmd/ui/sentence-case
                     .addOption('sse', 'SSE (Server-Sent Events)')
+                                       // eslint-disable-next-line obsidianmd/ui/sentence-case
                     .addOption('http', 'HTTP (Stateless POST)')
-                    .setValue(this.config.mcp!.transportType || 'sse') // Default to SSE
-                    .onChange((value: string) => this.config.mcp!.transportType = value as 'sse' | 'http'));
+                    .setValue(this.config.mcp.transportType || 'sse') // Default to SSE
+                    .onChange((value: string) => this.config.mcp.transportType = value as 'sse' | 'http'));
 
             new Setting(container)
                 .setName(t('settings.customPlatform.mcp.endpoint', this.plugin.settings))
                 .setDesc(t('settings.customPlatform.mcp.endpoint.desc', this.plugin.settings))
+                 
                 .addText(text => text
+                                    // eslint-disable-next-line obsidianmd/ui/sentence-case
                     .setPlaceholder('http://localhost:3000/sse or /mcp')
-                    .setValue(this.config.mcp!.endpoint)
-                    .onChange(value => this.config.mcp!.endpoint = value));
+                    .setValue(this.config.mcp.endpoint)
+                    .onChange(value => this.config.mcp.endpoint = value));
 
             new Setting(container)
                 .setName(t('settings.customPlatform.mcp.toolName', this.plugin.settings))
                 .setDesc(t('settings.customPlatform.mcp.toolName.desc', this.plugin.settings))
+                 
                 .addText(text => text
+                                    // eslint-disable-next-line obsidianmd/ui/sentence-case
                     .setPlaceholder('create_note')
-                    .setValue(this.config.mcp!.toolName || '')
-                    .onChange(value => this.config.mcp!.toolName = value));
+                    .setValue(this.config.mcp.toolName || '')
+                    .onChange(value => this.config.mcp.toolName = value));
         }
 
         // Add Test Connection Button
         const testContainer = container.createDiv({ cls: 'picflow-test-connection-container' });
-        testContainer.style.marginTop = '15px';
-        testContainer.style.marginBottom = '15px';
         
         const testBtn = testContainer.createEl('button', { text: t('settings.customPlatform.modal.test', this.plugin.settings) });
         testBtn.onclick = async () => {
@@ -282,19 +294,19 @@ export class CustomPlatformModal extends Modal {
             
             try {
                 // Dynamically load publisher to test connection
-                let publisher: any = null;
+                let publisher: { testConnection?: () => Promise<boolean> } | null = null;
                 try {
                     if (this.config.type === 'wordpress') {
-                        const { WordPressPublisher } = require('../../core/publishers/wordpress-publisher');
+                        const { WordPressPublisher } = await import('../../core/publishers/wordpress-publisher');
                         if (WordPressPublisher) publisher = new WordPressPublisher(this.plugin, this.config.wordpress);
                     } else if (this.config.type === 'dify') {
-                        const { DifyPublisher } = require('../../core/publishers/dify-publisher');
+                        const { DifyPublisher } = await import('../../core/publishers/dify-publisher');
                         if (DifyPublisher) publisher = new DifyPublisher(this.plugin, this.config.dify);
                     } else if (this.config.type === 'webhook') {
-                        const { WebhookPublisher } = require('../../core/publishers/webhook-publisher');
+                        const { WebhookPublisher } = await import('../../core/publishers/webhook-publisher');
                         if (WebhookPublisher) publisher = new WebhookPublisher(this.plugin, this.config.webhook);
                     } else if (this.config.type === 'mcp') {
-                        const { MCPPublisher } = require('../../core/publishers/mcp-publisher');
+                        const { MCPPublisher } = await import('../../core/publishers/mcp-publisher');
                         if (MCPPublisher) publisher = new MCPPublisher(this.plugin, this.config.mcp);
                     }
                 } catch (err) {
@@ -310,8 +322,9 @@ export class CustomPlatformModal extends Modal {
                     new Notice("Test connection not implemented for this type yet.");
                 }
 
-            } catch (e: any) {
-                new Notice(t('settings.customPlatform.modal.testFailed', this.plugin.settings).replace('{error}', e.message));
+            } catch (e: unknown) {
+                const msg = (e instanceof Error) ? e.message : JSON.stringify(e);
+                new Notice(t('settings.customPlatform.modal.testFailed', this.plugin.settings).replace('{error}', msg));
             } finally {
                 testBtn.disabled = false;
                 testBtn.textContent = t('settings.customPlatform.modal.test', this.plugin.settings);
