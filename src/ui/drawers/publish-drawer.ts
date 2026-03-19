@@ -47,7 +47,7 @@ export class PublishDrawer {
     previewWrapper: HTMLElement;
     currentTheme: string = 'Default';
     publishStatus: string = 'draft'; // 'draft' or 'publish'
-    
+
     // Dynamic Fields Cache
     categoryCache: Record<string, string[]> = {};
     toolCache: Record<string, string[]> = {}; // Cache for MCP tools
@@ -55,201 +55,201 @@ export class PublishDrawer {
     // Platform Definitions (Static for now, later dynamic)
     get platforms(): PlatformConfig[] {
         const standardPlatforms: PlatformConfig[] = [
-        {
-            id: 'wechat',
-            name: t('platform.wechat', this.plugin.settings),
-            icon: 'message-square',
-            type: 'html',
-            inlineStyle: true,
-            showCover: true, // Needed for article type
-            url: 'https://mp.weixin.qq.com/',
-            fields: [
-                // Title and Author hidden, fetched from frontmatter
-                { 
-                    key: 'category_id', 
-                    label: t('publish.field.category', this.plugin.settings), 
-                    type: 'select', 
-                    options: ['article', 'image'] 
-                }
-            ]
-        },
-        {
-            id: 'zhihu',
-            name: t('platform.zhihu', this.plugin.settings),
-            icon: 'book-open',
-            type: 'html',
-            showCover: true, 
-            url: 'https://zhuanlan.zhihu.com/write', // Zhihu URL
-            fields: [
-                { key: 'tags', label: t('publish.field.tags', this.plugin.settings), type: 'text', placeholder: 'Comma separated' },
-                { key: 'zhihu_column', label: t('publish.field.column', this.plugin.settings), type: 'text', placeholder: 'Optional' }
-            ]
-        },
-        {
-            id: 'csdn',
-            name: t('platform.csdn', this.plugin.settings),
-            icon: 'code',
-            type: 'markdown',
-            showCover: true,
-            url: 'https://mp.csdn.net/',
-            fields: [
-                { key: 'publish_mode', label: t('publish.field.mode', this.plugin.settings), type: 'select', options: ['draft', 'direct'] },
-                { key: 'original', label: t('publish.field.original', this.plugin.settings), type: 'checkbox' },
-                { key: 'url', label: t('publish.field.originalLink', this.plugin.settings), type: 'text', placeholder: 'If not original' }
-            ]
-        },
-        {
-            id: 'juejin',
-            name: t('platform.juejin', this.plugin.settings),
-            icon: 'box',
-            type: 'markdown',
-            showCover: true,
-            url: 'https://juejin.cn/editor/drafts/new',
-            fields: [
-                { 
-                    key: 'category_id', 
-                    label: t('publish.field.category', this.plugin.settings), 
-                    type: 'select', 
-                    options: ['后端', '前端', 'Android', 'iOS', '人工智能', '开发工具', '代码人生', '阅读'] 
-                },
-                { key: 'tag_ids', label: t('publish.field.tags', this.plugin.settings), type: 'text', placeholder: 'Comma separated IDs' }
-            ]
-        },
-        {
-            id: 'weibo',
-            name: t('platform.weibo', this.plugin.settings),
-            icon: 'message-circle',
-            type: 'html',
-            showCover: false,
-            url: 'https://card.weibo.com/article/v5/editor#/draft',
-            fields: []
-        },
-        {
-            id: 'bilibili',
-            name: t('platform.bilibili', this.plugin.settings),
-            icon: 'tv',
-            type: 'html',
-            showCover: true,
-            url: 'https://member.bilibili.com/platform/upload/text/new-article',
-            fields: [
-                { 
-                    key: 'category_id', 
-                    label: t('publish.field.zone', this.plugin.settings), 
-                    type: 'select', 
-                    options: ['游戏', '动画', '影视', '知识', '科技', '数码', '生活', '美食', '动物圈', '时尚', '运动', '汽车', '娱乐']
-                }
-            ]
-        },
-        /* Temporarily commented out until implemented
-        {
-            id: 'jianshu',
-            name: t('platform.jianshu', this.plugin.settings),
-            icon: 'pen-tool',
-            type: 'markdown' as const,
-            showCover: false,
-            url: 'https://www.jianshu.com/writer',
-            fields: []
-        },
-        {
-            id: 'toutiao',
-            name: t('platform.toutiao', this.plugin.settings),
-            icon: 'newspaper',
-            type: 'html' as const,
-            showCover: true,
-            url: 'https://mp.toutiao.com/',
-            fields: []
-        },
-        {
-            id: 'xiaohongshu',
-            name: t('platform.xiaohongshu', this.plugin.settings),
-            icon: 'instagram',
-            type: 'html' as const,
-            showCover: true,
-            url: 'https://creator.xiaohongshu.com/publish/publish',
-            fields: []
-        },
-        {
-            id: 'baijiahao',
-            name: t('platform.baijiahao', this.plugin.settings),
-            icon: 'search',
-            type: 'html' as const,
-            showCover: true,
-            url: 'https://baijiahao.baidu.com/builder/rc/edit',
-            fields: []
-        },
-        {
-            id: 'yuque',
-            name: t('platform.yuque', this.plugin.settings),
-            icon: 'feather',
-            type: 'markdown' as const,
-            showCover: false,
-            url: 'https://www.yuque.com/dashboard',
-            fields: []
-        },
-        {
-            id: 'douban',
-            name: t('platform.douban', this.plugin.settings),
-            icon: 'book',
-            type: 'markdown' as const,
-            showCover: false,
-            url: 'https://www.douban.com/note/create',
-            fields: []
-        },
-        {
-            id: 'sohu',
-            name: t('platform.sohu', this.plugin.settings),
-            icon: 'globe',
-            type: 'html' as const,
-            showCover: true,
-            url: 'https://mp.sohu.com/mp/index.html',
-            fields: []
-        },
-        {
-            id: 'twitter',
-            name: t('platform.twitter', this.plugin.settings),
-            icon: 'twitter',
-            type: 'markdown' as const,
-            showCover: false,
-            url: 'https://twitter.com/compose/tweet',
-            fields: []
-        },
-        {
-            id: 'woshipm',
-            name: t('platform.woshipm', this.plugin.settings),
-            icon: 'briefcase',
-            type: 'html' as const,
-            showCover: true,
-            url: 'https://www.woshipm.com/user/center/publish',
-            fields: []
-        },
-        {
-            id: 'dayu',
-            name: t('platform.dayu', this.plugin.settings),
-            icon: 'fish',
-            type: 'html' as const,
-            showCover: true,
-            url: 'https://mp.dayu.com/dashboard/article/write',
-            fields: []
-        },
-        {
-            id: 'yidian',
-            name: t('platform.yidian', this.plugin.settings),
-            icon: 'zap',
-            type: 'html' as const,
-            showCover: true,
-            url: 'https://mp.yidianzixun.com/',
-            fields: []
-        },
-        {
-            id: 'sohufocus',
-            name: t('platform.sohufocus', this.plugin.settings),
-            icon: 'home',
-            type: 'html' as const,
-            showCover: true,
-            url: 'https://mp.focus.cn/',
-            fields: []
-        }
-        */
+            {
+                id: 'wechat',
+                name: t('platform.wechat', this.plugin.settings),
+                icon: 'message-square',
+                type: 'html',
+                inlineStyle: true,
+                showCover: true, // Needed for article type
+                url: 'https://mp.weixin.qq.com/',
+                fields: [
+                    // Title and Author hidden, fetched from frontmatter
+                    {
+                        key: 'category_id',
+                        label: t('publish.field.category', this.plugin.settings),
+                        type: 'select',
+                        options: ['article', 'image']
+                    }
+                ]
+            },
+            {
+                id: 'zhihu',
+                name: t('platform.zhihu', this.plugin.settings),
+                icon: 'book-open',
+                type: 'html',
+                showCover: true,
+                url: 'https://zhuanlan.zhihu.com/write', // Zhihu URL
+                fields: [
+                    { key: 'tags', label: t('publish.field.tags', this.plugin.settings), type: 'text', placeholder: 'Comma separated' },
+                    { key: 'zhihu_column', label: t('publish.field.column', this.plugin.settings), type: 'text', placeholder: 'Optional' }
+                ]
+            },
+            {
+                id: 'csdn',
+                name: t('platform.csdn', this.plugin.settings),
+                icon: 'code',
+                type: 'markdown',
+                showCover: true,
+                url: 'https://mp.csdn.net/',
+                fields: [
+                    { key: 'publish_mode', label: t('publish.field.mode', this.plugin.settings), type: 'select', options: ['draft', 'direct'] },
+                    { key: 'original', label: t('publish.field.original', this.plugin.settings), type: 'checkbox' },
+                    { key: 'url', label: t('publish.field.originalLink', this.plugin.settings), type: 'text', placeholder: 'If not original' }
+                ]
+            },
+            {
+                id: 'juejin',
+                name: t('platform.juejin', this.plugin.settings),
+                icon: 'box',
+                type: 'markdown',
+                showCover: true,
+                url: 'https://juejin.cn/editor/drafts/new',
+                fields: [
+                    {
+                        key: 'category_id',
+                        label: t('publish.field.category', this.plugin.settings),
+                        type: 'select',
+                        options: ['后端', '前端', 'Android', 'iOS', '人工智能', '开发工具', '代码人生', '阅读']
+                    },
+                    { key: 'tag_ids', label: t('publish.field.tags', this.plugin.settings), type: 'text', placeholder: 'Comma separated IDs' }
+                ]
+            },
+            {
+                id: 'weibo',
+                name: t('platform.weibo', this.plugin.settings),
+                icon: 'message-circle',
+                type: 'html',
+                showCover: false,
+                url: 'https://card.weibo.com/article/v5/editor#/draft',
+                fields: []
+            },
+            {
+                id: 'bilibili',
+                name: t('platform.bilibili', this.plugin.settings),
+                icon: 'tv',
+                type: 'html',
+                showCover: true,
+                url: 'https://member.bilibili.com/platform/upload/text/new-article',
+                fields: [
+                    {
+                        key: 'category_id',
+                        label: t('publish.field.zone', this.plugin.settings),
+                        type: 'select',
+                        options: ['游戏', '动画', '影视', '知识', '科技', '数码', '生活', '美食', '动物圈', '时尚', '运动', '汽车', '娱乐']
+                    }
+                ]
+            },
+            /* Temporarily commented out until implemented
+            {
+                id: 'jianshu',
+                name: t('platform.jianshu', this.plugin.settings),
+                icon: 'pen-tool',
+                type: 'markdown' as const,
+                showCover: false,
+                url: 'https://www.jianshu.com/writer',
+                fields: []
+            },
+            {
+                id: 'toutiao',
+                name: t('platform.toutiao', this.plugin.settings),
+                icon: 'newspaper',
+                type: 'html' as const,
+                showCover: true,
+                url: 'https://mp.toutiao.com/',
+                fields: []
+            },
+            {
+                id: 'xiaohongshu',
+                name: t('platform.xiaohongshu', this.plugin.settings),
+                icon: 'instagram',
+                type: 'html' as const,
+                showCover: true,
+                url: 'https://creator.xiaohongshu.com/publish/publish',
+                fields: []
+            },
+            {
+                id: 'baijiahao',
+                name: t('platform.baijiahao', this.plugin.settings),
+                icon: 'search',
+                type: 'html' as const,
+                showCover: true,
+                url: 'https://baijiahao.baidu.com/builder/rc/edit',
+                fields: []
+            },
+            {
+                id: 'yuque',
+                name: t('platform.yuque', this.plugin.settings),
+                icon: 'feather',
+                type: 'markdown' as const,
+                showCover: false,
+                url: 'https://www.yuque.com/dashboard',
+                fields: []
+            },
+            {
+                id: 'douban',
+                name: t('platform.douban', this.plugin.settings),
+                icon: 'book',
+                type: 'markdown' as const,
+                showCover: false,
+                url: 'https://www.douban.com/note/create',
+                fields: []
+            },
+            {
+                id: 'sohu',
+                name: t('platform.sohu', this.plugin.settings),
+                icon: 'globe',
+                type: 'html' as const,
+                showCover: true,
+                url: 'https://mp.sohu.com/mp/index.html',
+                fields: []
+            },
+            {
+                id: 'twitter',
+                name: t('platform.twitter', this.plugin.settings),
+                icon: 'twitter',
+                type: 'markdown' as const,
+                showCover: false,
+                url: 'https://twitter.com/compose/tweet',
+                fields: []
+            },
+            {
+                id: 'woshipm',
+                name: t('platform.woshipm', this.plugin.settings),
+                icon: 'briefcase',
+                type: 'html' as const,
+                showCover: true,
+                url: 'https://www.woshipm.com/user/center/publish',
+                fields: []
+            },
+            {
+                id: 'dayu',
+                name: t('platform.dayu', this.plugin.settings),
+                icon: 'fish',
+                type: 'html' as const,
+                showCover: true,
+                url: 'https://mp.dayu.com/dashboard/article/write',
+                fields: []
+            },
+            {
+                id: 'yidian',
+                name: t('platform.yidian', this.plugin.settings),
+                icon: 'zap',
+                type: 'html' as const,
+                showCover: true,
+                url: 'https://mp.yidianzixun.com/',
+                fields: []
+            },
+            {
+                id: 'sohufocus',
+                name: t('platform.sohufocus', this.plugin.settings),
+                icon: 'home',
+                type: 'html' as const,
+                showCover: true,
+                url: 'https://mp.focus.cn/',
+                fields: []
+            }
+            */
         ];
 
         // Add Custom Platform Tab if any custom platforms exist
@@ -260,11 +260,11 @@ export class PublishDrawer {
                 icon: 'plug', // Using 'plug' for custom/plugin
                 type: 'markdown', // Default to markdown, but depends on specific platform
                 showCover: false, // Default false
-                url: '', 
+                url: '',
                 fields: [] // Custom platforms might not need generic fields here
             });
         }
-        
+
         return standardPlatforms;
     }
 
@@ -293,15 +293,15 @@ export class PublishDrawer {
 
         // 3. Bottom Fixed Area: Configuration + Actions
         const bottomContainer = this.container.createDiv({ cls: 'publish-bottom-container' });
-        
+
         // Configuration Area inside Bottom Container
         const configWrapper = bottomContainer.createDiv({ cls: 'publish-config-wrapper' });
-        
+
         await this.renderConfigurationArea(configWrapper);
 
         // Action Buttons at the very bottom
         const actionsWrapper = bottomContainer.createDiv({ cls: 'publish-actions-wrapper' });
-        
+
         this.renderActionButtons(actionsWrapper);
     }
 
@@ -310,7 +310,7 @@ export class PublishDrawer {
 
         this.platforms.forEach(p => {
             const btn = tabsContainer.createDiv({ cls: "picflow-platform-tab-btn" });
-            
+
             // Highlight active
             if (this.selectedPlatformId === p.id) {
                 btn.addClass("active");
@@ -333,7 +333,7 @@ export class PublishDrawer {
             if (account) {
                 // Find config type
                 const config = this.plugin.settings.customPlatforms?.find(c => c.id === account.id);
-                
+
                 if (config && config.type === 'wordpress') {
                     // Try to fetch categories if not cached
                     if (!this.categoryCache[account.id]) {
@@ -360,7 +360,7 @@ export class PublishDrawer {
                             const { MCPPublisher } = await import('../../core/publishers/mcp-publisher');
                             const publisher = new MCPPublisher(this.plugin, config.mcp);
                             if ('getTools' in publisher && typeof publisher.getTools === 'function') {
-                                new Notice('Fetching tools...'); 
+                                new Notice('Fetching tools...');
                                 const tools = await publisher.getTools() as { name: string }[];
                                 if (tools && tools.length > 0) {
                                     this.toolCache[account.id] = tools.map(t => t.name);
@@ -414,7 +414,7 @@ export class PublishDrawer {
         if (platform.type === 'html') {
             // HTML Renderer (WeChat style)
             const wrapper = container.createDiv({ cls: 'picflow-preview-html-wrapper' });
-            
+
             const loading = wrapper.createEl('div', { text: 'Rendering preview...' });
 
             try {
@@ -433,7 +433,7 @@ export class PublishDrawer {
                 // Actually, if we render HTML, we need SOME base styles or it looks broken.
                 // But for Zhihu/Bilibili, maybe we should just render clean HTML?
                 // Let's stick to the plan: Render HTML, but only apply the Theme CSS if inlineStyle is true (WeChat).
-                
+
                 if (platform.inlineStyle) {
                     const themeConfig = this.themeManager.getTheme(this.currentTheme);
                     if (themeConfig) {
@@ -441,7 +441,7 @@ export class PublishDrawer {
                             const sheet = new CSSStyleSheet();
                             sheet.replaceSync(themeConfig.css);
                             shadow.adoptedStyleSheets = [...shadow.adoptedStyleSheets, sheet];
-                        } catch(e) {
+                        } catch (e) {
                             console.error("Constructable stylesheets not supported", e);
                         }
                     }
@@ -463,7 +463,7 @@ export class PublishDrawer {
                             blockquote { border-left: 4px solid #dfe2e5; padding-left: 10px; color: #6a737d; }
                         `);
                         shadow.adoptedStyleSheets = [...shadow.adoptedStyleSheets, sheet];
-                    } catch(e) {
+                    } catch (e) {
                         console.error("Constructable stylesheets not supported", e);
                     }
                 }
@@ -477,7 +477,7 @@ export class PublishDrawer {
                         table { display: block; overflow-x: auto; max-width: 100%; }
                     `);
                     shadow.adoptedStyleSheets = [...shadow.adoptedStyleSheets, defaultStyleSheet];
-                } catch(e) {
+                } catch (e) {
                     console.error("Constructable stylesheets not supported", e);
                 }
 
@@ -487,7 +487,7 @@ export class PublishDrawer {
                 const shadowWrapper = document.createElement('div');
                 shadowWrapper.className = 'picflow-container'; // Essential for CSS selectors to match
                 shadowWrapper.id = 'picflow-article';
-                
+
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 Array.from(doc.body.childNodes).forEach(node => {
@@ -507,7 +507,7 @@ export class PublishDrawer {
             // Render using Obsidian's MarkdownRenderer
             const tempComponent = new Component();
             tempComponent.load();
-            
+
             await MarkdownRenderer.render(this.plugin.app, contentBody, wrapper, file.path, tempComponent);
         }
     }
@@ -516,13 +516,13 @@ export class PublishDrawer {
     private renderCoverImageControl(container: HTMLElement, file: import('obsidian').TFile | null) {
         const coverArea = container.createDiv({ cls: 'picflow-field-wrapper' });
         // Style handled by class
-        
+
         // Removed Label as requested
         // this.createLabel(coverArea, t('publish.drawer.cover', this.plugin.settings));
-        
+
         // Fixed height for cover preview
         coverArea.addClass('picflow-h-60');
-        
+
         // Get Metadata
         let coverUrl = '';
         if (file) {
@@ -538,7 +538,7 @@ export class PublishDrawer {
             const img = coverBox.createEl('img');
             img.addClass('picflow-cover-image');
             // Styles moved to CSS class .picflow-cover-image
-            
+
             if (coverUrl.startsWith('data:')) {
                 img.src = coverUrl;
             } else if (coverUrl.startsWith('/') || coverUrl.match(/^[a-zA-Z]:\\/)) {
@@ -559,7 +559,7 @@ export class PublishDrawer {
                     if (url === coverUrl) return;
                     await FrontmatterParser.updateMetadata(this.plugin.app, file, { cover: url });
                     new Notice('Cover updated.');
-                    void this.render(); 
+                    void this.render();
                 }
             }).open();
         };
@@ -581,25 +581,25 @@ export class PublishDrawer {
         if (platform.showCover) {
             const coverWrapper = topRow.createDiv({ cls: 'picflow-cover-wrapper' });
             // Styles moved to CSS class .picflow-cover-wrapper
-            
+
             const file = this.plugin.app.workspace.getActiveFile();
             this.renderCoverImageControl(coverWrapper, file);
         } else if (this.selectedPlatformId === 'custom') {
-             // [NEW] Check if custom platform needs cover (e.g. WordPress)
-             // Use this.selectedAccountId directly. If it's empty, it will be set later in dropdown logic.
-             // But render happens sequentially. We need to know account ID here.
-             
-             // If selectedAccountId is empty, we might default to first account below.
-             // But cover renders BEFORE account selector logic.
-             // So we need to peek at what account will be selected.
-             
-             let currentAccId = this.selectedAccountId;
-             if (!currentAccId) {
-                 const accounts = this.plugin.accountManager.getAccounts(this.selectedPlatformId);
-                 if (accounts.length > 0) currentAccId = accounts[0].id;
-             }
+            // [NEW] Check if custom platform needs cover (e.g. WordPress)
+            // Use this.selectedAccountId directly. If it's empty, it will be set later in dropdown logic.
+            // But render happens sequentially. We need to know account ID here.
 
-             if (currentAccId) {
+            // If selectedAccountId is empty, we might default to first account below.
+            // But cover renders BEFORE account selector logic.
+            // So we need to peek at what account will be selected.
+
+            let currentAccId = this.selectedAccountId;
+            if (!currentAccId) {
+                const accounts = this.plugin.accountManager.getAccounts(this.selectedPlatformId);
+                if (accounts.length > 0) currentAccId = accounts[0].id;
+            }
+
+            if (currentAccId) {
                 const config = this.plugin.settings.customPlatforms?.find(c => c.id === currentAccId);
                 if (config && config.type === 'wordpress') {
                     const coverWrapper = topRow.createDiv({ cls: 'picflow-cover-wrapper' });
@@ -607,19 +607,19 @@ export class PublishDrawer {
                     const file = this.plugin.app.workspace.getActiveFile();
                     this.renderCoverImageControl(coverWrapper, file);
                 }
-             }
+            }
         }
 
         // Account Selector (Takes remaining space in top row)
         const accountWrapper = topRow.createDiv({ cls: 'picflow-field-wrapper' });
         accountWrapper.addClass('picflow-flex-1');
         // Styles moved to CSS class .picflow-field-wrapper and utility class .picflow-flex-1
-        
+
         this.createLabel(accountWrapper, t('publish.drawer.account'));
         const accDropdown = new DropdownComponent(accountWrapper);
         accDropdown.selectEl.addClass('picflow-field-select');
         // Styles moved to CSS class .picflow-field-select
-        
+
         const accounts = this.plugin.accountManager.getAccounts(this.selectedPlatformId);
         if (accounts.length === 0) {
             accDropdown.addOption('', t('publish.drawer.noAccount'));
@@ -636,7 +636,7 @@ export class PublishDrawer {
                 this.selectedAccountId = val;
                 // Trigger dynamic update if custom platform changes
                 // Re-render whole drawer to update cover image visibility if switching between types
-                void this.render(); 
+                void this.render();
             });
         }
 
@@ -648,8 +648,8 @@ export class PublishDrawer {
 
         // 2. Middle Row: Theme (WeChat Only) + Dynamic Fields Grid
         if (this.selectedPlatformId === 'wechat') {
-             // For WeChat, we want Theme and Category to be in the same grid
-             // So we merge them into the dynamic fields area logic
+            // For WeChat, we want Theme and Category to be in the same grid
+            // So we merge them into the dynamic fields area logic
         }
 
         // 3. Dynamic Fields & Theme
@@ -660,16 +660,16 @@ export class PublishDrawer {
         if (platform.inlineStyle) {
             const themeWrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
             // Styles moved to CSS class .picflow-field-wrapper
-            
+
             this.createLabel(themeWrapper, t('publish.drawer.theme'));
-            
+
             const themeControls = themeWrapper.createDiv({ cls: 'picflow-theme-control-group' });
             // Styles moved to CSS class .picflow-theme-control-group
 
             const themeDropdown = new DropdownComponent(themeControls);
             themeDropdown.selectEl.addClass('picflow-field-select'); // Use same class as other selects
             // Styles moved to CSS class .picflow-field-select
-            
+
             const populateThemes = () => {
                 themeDropdown.selectEl.empty();
                 const themes = this.themeManager.getAllThemes();
@@ -679,19 +679,19 @@ export class PublishDrawer {
                 const themeNames = themes.map(t => t.name);
                 if (themeNames.includes(this.currentTheme)) {
                     themeDropdown.setValue(this.currentTheme);
-                } else if (themeNames.length > 0) { 
-                    this.currentTheme = themeNames[0]; 
-                    themeDropdown.setValue(themeNames[0]); 
+                } else if (themeNames.length > 0) {
+                    this.currentTheme = themeNames[0];
+                    themeDropdown.setValue(themeNames[0]);
                 }
             };
-            
+
             // Initial population
             populateThemes();
 
-            themeDropdown.onChange(val => { 
-                this.currentTheme = val; 
+            themeDropdown.onChange(val => {
+                this.currentTheme = val;
                 // Important: Trigger preview refresh when theme changes
-                this.refreshPreview(); 
+                this.refreshPreview();
             });
         }
 
@@ -699,23 +699,23 @@ export class PublishDrawer {
         platform.fields.forEach(field => {
             const wrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
             // Styles moved to CSS class .picflow-field-wrapper
-            
+
             this.createLabel(wrapper, field.label);
 
             if (field.type === 'select') {
                 const dropdown = new DropdownComponent(wrapper);
                 dropdown.selectEl.addClass('picflow-field-select');
                 // Styles moved to CSS class .picflow-field-select
-                
+
                 // eslint-disable-next-line @typescript-eslint/no-misused-promises -- handled safely
                 field.options?.forEach(opt => dropdown.addOption(opt, opt));
-                
+
                 // Get value from frontmatter
                 const file = this.plugin.app.workspace.getActiveFile();
                 if (file) {
-                        const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as Record<string, unknown>;
-                        if (meta[field.key]) dropdown.setValue(String(meta[field.key] as string | number | boolean));
-                    }
+                    const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as Record<string, unknown>;
+                    if (meta[field.key]) dropdown.setValue(String(meta[field.key] as string | number | boolean));
+                }
 
                 dropdown.onChange(async val => {
                     if (file) {
@@ -731,7 +731,7 @@ export class PublishDrawer {
                 const file = this.plugin.app.workspace.getActiveFile();
                 if (file) {
                     const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as Record<string, unknown>;
-                if (meta[field.key]) text.setValue(String(meta[field.key] as string | number | boolean));
+                    if (meta[field.key]) text.setValue(String(meta[field.key] as string | number | boolean));
                 }
 
                 text.onChange(async val => {
@@ -744,7 +744,7 @@ export class PublishDrawer {
                 const file = this.plugin.app.workspace.getActiveFile();
                 if (file) {
                     const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as Record<string, unknown>;
-                toggle.setValue(!!meta[field.key]);
+                    toggle.setValue(!!meta[field.key]);
                 }
                 toggle.onChange(async val => {
                     if (file) {
@@ -757,11 +757,11 @@ export class PublishDrawer {
         // [NEW] Custom Platform Fields (e.g. WordPress Categories)
         if (this.selectedPlatformId === 'custom' && this.selectedAccountId) {
             const config = this.plugin.settings.customPlatforms?.find(c => c.id === this.selectedAccountId);
-            
+
             // Check if it's WordPress to inject standard fields
             if (config && config.type === 'wordpress') {
                 const file = this.plugin.app.workspace.getActiveFile();
-                
+
                 // 1. Cover Field (Removed duplicate text input)
                 // The visual cover control is now in the top row.
                 // We don't need another text input for cover here.
@@ -774,12 +774,12 @@ export class PublishDrawer {
                 tagsText.inputEl.addClass('picflow-field-input');
                 // Styles moved to CSS class .picflow-field-input
                 tagsText.setPlaceholder(t('publish.drawer.tagsPlaceholder', this.plugin.settings) || 'Comma separated');
-                
+
                 if (file) {
                     const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as Record<string, unknown>;
                     if (meta['tags']) {
                         const t = meta['tags'];
-                        tagsText.setValue(Array.isArray(t) ? t.join(', ') : String(t));
+                        tagsText.setValue(Array.isArray(t) ? t.join(', ') : (typeof t === 'string' || typeof t === 'number' ? String(t) : ''));
                     }
                 }
                 tagsText.onChange(async val => {
@@ -803,7 +803,7 @@ export class PublishDrawer {
                     // Styles moved to CSS class .picflow-field-select
                     // eslint-disable-next-line @typescript-eslint/no-misused-promises -- handled safely
                     categories.forEach(c => dropdown.addOption(String(c), String(c)));
-                    
+
                     if (file) {
                         const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as Record<string, unknown>;
                         const metaCats = meta['categories'];
@@ -819,7 +819,7 @@ export class PublishDrawer {
                     catText.inputEl.addClass('picflow-field-input');
                     // Styles moved to CSS class .picflow-field-input
                     catText.setPlaceholder('Category name');
-                    
+
                     if (file) {
                         const meta = FrontmatterParser.getMetadata(this.plugin.app, file) as Record<string, unknown>;
                         const metaCats = meta['categories'];
@@ -835,13 +835,13 @@ export class PublishDrawer {
                 const statusWrapper = fieldsContainer.createDiv({ cls: 'picflow-field-wrapper' });
                 // Styles moved to CSS class .picflow-field-wrapper
                 this.createLabel(statusWrapper, t('publish.drawer.status', this.plugin.settings) || 'Status');
-                
+
                 const statusDropdown = new DropdownComponent(statusWrapper);
                 statusDropdown.selectEl.addClass('picflow-field-select');
                 // Styles moved to CSS class .picflow-field-select
                 statusDropdown.addOption('draft', t('publish.drawer.statusDraft', this.plugin.settings) || 'Draft (草稿)');
                 statusDropdown.addOption('publish', t('publish.drawer.statusPublish', this.plugin.settings) || 'Publish (直接发布)');
-                
+
                 // Initialize from state or frontmatter
                 // If frontmatter has publish_mode: direct -> publish, else draft
                 if (file) {
@@ -853,14 +853,14 @@ export class PublishDrawer {
                     }
                 }
                 statusDropdown.setValue(this.publishStatus);
-                
+
                 statusDropdown.onChange(async val => {
                     this.publishStatus = val;
                     // Optionally update frontmatter too? 
                     // Let's keep it transient in UI for now, or sync to publish_mode
                     if (file) {
-                        await FrontmatterParser.updateMetadata(this.plugin.app, file, { 
-                            publish_mode: val === 'publish' ? 'direct' : 'draft' 
+                        await FrontmatterParser.updateMetadata(this.plugin.app, file, {
+                            publish_mode: val === 'publish' ? 'direct' : 'draft'
                         } as unknown);
                     }
                 });
@@ -874,16 +874,16 @@ export class PublishDrawer {
                 const dropdown = new DropdownComponent(toolWrapper);
                 dropdown.selectEl.addClass('picflow-field-select');
                 // Styles moved to CSS class .picflow-field-select
-                
+
                 // Add default "Auto" option
                 dropdown.addOption('', t('publish.drawer.mcpToolAuto', this.plugin.settings) || 'Auto Detect');
-                
+
                 // Add fetched tools
                 if (tools && tools.length > 0) {
                     // eslint-disable-next-line @typescript-eslint/no-misused-promises -- handled safely
                     tools.forEach(t => dropdown.addOption(String(t), String(t)));
                 }
-                
+
                 // Set initial value from config or previous selection
                 let selectedTool = config.mcp?.toolName || '';
 
@@ -907,7 +907,7 @@ export class PublishDrawer {
                     // Wait, PublishManager.publish takes (platformId, file, accountId, themeName)
                     // We might need to update PublishManager to support options or use a hack.
                     // Actually, I updated MCPPublisher.publish signature, but PublishManager calls it.
-                    
+
                     // Let's store it in a transient state map in the plugin or drawer?
                     // Or update the config in memory (not saving to disk) so it persists for this session?
                     if (config.mcp) {
@@ -922,7 +922,7 @@ export class PublishDrawer {
         const actionRow = container.createDiv({ cls: 'picflow-actions-row' });
 
         // Publish (Big)
-            const publishBtn = new ButtonComponent(actionRow)
+        const publishBtn = new ButtonComponent(actionRow)
             .setButtonText(t('publish.drawer.publish', this.plugin.settings))
             .setCta()
             .onClick(async () => {
@@ -1039,8 +1039,8 @@ export class PublishDrawer {
                 }
             }
             if (!content) {
-                 new Notice(t('publish.drawer.copyFailed', this.plugin.settings));
-                 return;
+                new Notice(t('publish.drawer.copyFailed', this.plugin.settings));
+                return;
             }
 
             try {
