@@ -1,7 +1,7 @@
 {
   "id": "picflow",
   "name": "PicFlow",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "minAppVersion": "0.15.0",
   "description": "PicFlow is not Picture Flow, but full-process content tools for publishing, image management, AI creation, clip management and other writing workflows.",
   "author": "Nanbowanya",

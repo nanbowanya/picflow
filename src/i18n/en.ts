@@ -34,7 +34,7 @@ export const en: Translations = {
     'settings.extractor.error.noUrl': 'Please enter a URL',
     'settings.extractor.error.failed': 'Extraction failed. See console for details.',
     'settings.extractor.notice.analyzing': 'Analyzing article style and content...',
-    'settings.extractor.notice.generating': 'Generating 1:1 theme and markdown...',
+    'settings.extractor.notice.generating': 'Generating theme and Markdown...',
     'settings.extractor.notice.tooLong': 'Article too long, truncating for analysis...',
     'settings.extractor.notice.tokenLimit': 'Article too long for current model, try a 32k/128k model.',
 
@@ -75,7 +75,7 @@ export const en: Translations = {
     'settings.customPlatform.deleteConfirm': 'Delete custom platform "{name}"?',
     'settings.customPlatform.modal.title': 'Add custom platform',
     'settings.customPlatform.modal.name': 'Platform name',
-    'settings.customPlatform.modal.name.desc': 'Give this platform a unique name (example: "My tech blog")',
+    'settings.customPlatform.modal.name.desc': 'Give this platform a unique name (for example, my blog)',
     'settings.customPlatform.modal.type': 'Platform type',
     'settings.customPlatform.modal.type.desc': 'Select the type of integration',
     'settings.customPlatform.modal.test': 'Test connection',
@@ -96,7 +96,7 @@ export const en: Translations = {
     'settings.customPlatform.dify.mode.knowledge': 'Knowledge base (upload document)',
     'settings.customPlatform.dify.mode.workflow': 'Workflow (trigger)',
     'settings.customPlatform.dify.datasetId': 'Dataset ID',
-    'notice.ai.pro': 'AI features are available in Picflow pro, please upgrade to unlock (if activated, please restart plugin).',
+    'notice.ai.pro': 'Advanced features are available in pro version, please upgrade to unlock (if activated, please restart plugin).',
     'notice.clip.pro': 'Smart clip is a pro feature, please upgrade to unlock (if activated, please restart plugin).',
     'settings.customPlatform.dify.workflowUrl.desc': 'Specific endpoint for workflow trigger if needed',
 
@@ -109,7 +109,7 @@ export const en: Translations = {
     'settings.customPlatform.mcp.transportType': 'Transport type',
     'settings.customPlatform.mcp.transportType.desc': 'Select the transport protocol used by the mcp server.',
     'settings.customPlatform.mcp.endpoint': 'Mcp endpoint',
-    'settings.customPlatform.mcp.endpoint.desc': 'The URL of the mcp server, use sse endpoint for sse transport (recommended), or post endpoint for http transport.',
+    'settings.customPlatform.mcp.endpoint.desc': 'Server address, use streaming endpoint for streaming transport (recommended), or standard endpoint for standard transport.',
     'settings.customPlatform.mcp.toolName': 'Tool name (optional)',
     'settings.customPlatform.mcp.toolName.desc': 'Specific tool to use. If empty, will auto-detect "publish" tools.',
 
@@ -193,8 +193,8 @@ export const en: Translations = {
     'settings.pro.desc': 'This feature requires a pro license key to use.',
     'settings.pro.label': 'Pro feature',
     'settings.pro.btn.activate': 'Unlock',
-    'settings.pro.webdav.label': 'Webdav is a pro feature',
-    'settings.pro.sftp.label': 'Sftp is a pro feature',
+    'settings.pro.webdav.label': 'WebDAV is a pro feature',
+    'settings.pro.sftp.label': 'SFTP is a pro feature',
 
     // New Keys
     'settings.nav.general': 'General',
@@ -230,10 +230,10 @@ export const en: Translations = {
     'settings.publishing.noAccounts': 'No accounts added yet.',
 
     'settings.activation.injecting': 'Injecting pro components...',
-    'settings.activation.success': 'Picflow pro activated, please restart obsidian to apply changes.',
+    'settings.activation.success': 'Pro version activated, please restart Obsidian to apply changes.',
     'settings.activation.verified': 'License verified successfully',
     'settings.activation.failed': 'Activation failed: ',
-    'settings.status.restartNotice': 'Please restart the plugin or obsidian after activation.',
+    'settings.status.restartNotice': 'Please restart the plugin or Obsidian after activation.',
     'settings.status.restartNow': 'Restart now',
     'settings.status.title': 'Plugin status',
     'settings.about.version': 'Version',
@@ -256,8 +256,8 @@ export const en: Translations = {
     'settings.uploader.switched': 'Switched to {name}',
 
     'settings.uploader.s3': 'S3 compatible',
-    'settings.uploader.github': 'Github',
-    'settings.uploader.webdav': 'Webdav',
+    'settings.uploader.github': 'GitHub',
+    'settings.uploader.webdav': 'WebDAV',
     'settings.uploader.sftp': 'SFTP',
 
     'settings.uploader.webdav.host': 'Host URL',
@@ -389,7 +389,7 @@ export const en: Translations = {
     'platform.sohu': 'Sohu',
     'platform.twitter': 'Twitter (X)',
 
-    'ai.chat.welcome': 'Hello, I am your AI assistant, how can I help you today?',
+    'ai.chat.welcome': 'Welcome, how can the assistant help you today?',
     'ai.chat.placeholder.text': 'Ask a question or enter a prompt...',
     'ai.chat.placeholder.image': 'Describe the image you want to generate...',
     'ai.chat.tooltip.quote': 'Quote selection',
@@ -407,8 +407,8 @@ export const en: Translations = {
     'ai.chat.notice.imageCopied': 'Image copied to clipboard',
     'ai.chat.notice.imageCopyFailed': 'Failed to copy image',
     'ai.chat.notice.processingImage': 'Processing image...',
-    'ai.chat.notice.noActiveEditor': 'No active markdown editor found.',
-    'ai.chat.notice.noActiveView': 'Please open a markdown file to insert image.',
+    'ai.chat.notice.noActiveEditor': 'No active Markdown editor found.',
+    'ai.chat.notice.noActiveView': 'Please open a Markdown file to insert image.',
     'ai.chat.error.noPrecedingUserMsg': 'Cannot retry: no preceding user message found.',
     'ai.chat.aborted': 'Aborted by user',
     'ai.chat.error.generateImageFailed': 'Failed to generate image.',
@@ -432,7 +432,7 @@ export const en: Translations = {
     'ai.notice.inserted': 'Image inserted!',
     'ai.notice.insertFailed': 'Failed to insert image: {error}',
     'ai.notice.licenseRequired': 'Please activate pro license to use AI features.',
-    'ai.notice.generating': 'Generating image... this may take a while.',
+    'ai.notice.generating': 'Generating image, this may take a while.',
 
     // AI Assistant Settings
     'settings.ai.title': 'AI assistant',
