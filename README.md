@@ -89,53 +89,53 @@ To accommodate different user needs, the plugin supports the following combinati
 
 | Publishing Platform | Status | Documentation |
 | :------------------ | :----- | :------------ |
-| **WeChat Official Accounts (WeChat MP)** | ✅ Supported | |
-| **Bilibili (Columns)** | ✅ Supported | |
-| **Weibo Headlines** | ✅ Supported | |
-| **Zhihu** | ✅ Supported | |
-| **Juejin** | ✅ Supported | |
-| **CSDN** | ✅ Supported | |
-| **WordPress**       | ✅ Supported | |
-| **Webhook**              | ✅ Supported | |
-| **MCP**              | ✅ Supported | |
-| **Xiaohongshu** | 📅 In Progress | |
-| **Jianshu** | 📅 In Progress | |
-| **Toutiao** | 📅 In Progress | |
-| **Baijiahao** | 📅 In Progress | |
-| **Dayu** | 📅 In Progress | |
-| **Sohu** | 📅 In Progress | |
+| **WeChat Official Accounts (WeChat MP)** | ✅ Supported | [document](https://nexus.nanbowan.top/en) |
+| **Bilibili (Columns)** | ✅ Supported |[document](https://nexus.nanbowan.top/en) |
+| **Weibo Headlines** | ✅ Supported |[document](https://nexus.nanbowan.top/en) |
+| **Zhihu** | ✅ Supported |[document](https://nexus.nanbowan.top/en) |
+| **Juejin** | ✅ Supported | [document](https://nexus.nanbowan.top/en)|
+| **CSDN** | ✅ Supported |[document](https://nexus.nanbowan.top/en) |
+| **WordPress**       | ✅ Supported |[document](https://nexus.nanbowan.top/en) |
+| **Webhook**              | ✅ Supported | [document](https://nexus.nanbowan.top/en)|
+| **MCP**              | ✅ Supported |[document](https://nexus.nanbowan.top/en) |
+| **Xiaohongshu** | 📅 In Progress |[document](https://nexus.nanbowan.top/en) |
+| **Jianshu** | 📅 In Progress | [document](https://nexus.nanbowan.top/en)|
+| **Toutiao** | 📅 In Progress |[document](https://nexus.nanbowan.top/en) |
+| **Baijiahao** | 📅 In Progress | [document](https://nexus.nanbowan.top/en)|
+| **Dayu** | 📅 In Progress | [document](https://nexus.nanbowan.top/en)|
+| **Sohu** | 📅 In Progress | [document](https://nexus.nanbowan.top/en)|
 | **Yidian** | 💡 Planned | |
-| **X (Twitter)** | 💡 Planned | |
-| **Yuque** | 💡 Planned | |
-| **Notion** | 💡 Planned | |
-| **Douban** | 💡 Planned | |
-| **Everyone is a Product Manager** | 💡 Planned | |
+| **X (Twitter)** | 💡 Planned | [document](https://nexus.nanbowan.top/en)|
+| **Yuque** | 💡 Planned |[document](https://nexus.nanbowan.top/en) |
+| **Notion** | 💡 Planned |[document](https://nexus.nanbowan.top/en) |
+| **Douban** | 💡 Planned | [document](https://nexus.nanbowan.top/en)|
+| **Everyone is a Product Manager** | 💡 Planned | [document](https://nexus.nanbowan.top/en)|
 
 <br>
 
 | 发布平台                  | 状态     | 文档  |
 | :-------------------- | :----- | :--- |
-| **微信公众号 (WeChat MP)** | ✅ 已支持。 |     |
-| **Bilibili (专栏)**     | ✅ 已支持  |     |
-| **微博头条 (Weibo)**      | ✅ 已支持  |     |
-| **知乎 (Zhihu)**        | ✅ 已支持  |     |
-| **掘金 (Juejin)**       | ✅ 已支持  |     |
-| **CSDN**              | ✅ 已支持  |     |
-| **WordPress**       | ✅ 已支持  |     |
-| **Webhook**              | ✅ 已支持  |     |
-| **MCP**              | ✅ 已支持  |     |
-| **小红书 (Xiaohongshu)** | 📅进行中  |     |
-| **简书 (Jianshu)**      | 📅进行中  |     |
-| **今日头条 (Toutiao)**    | 📅进行中  |     |
-| **百家号 (Baijiahao)**   | 📅进行中  |     |
-| **大鱼号 (Dayu)**        | 📅进行中  |     |
-| **搜狐号 (Sohu)**        | 📅进行中  |     |
-| **一点号 (Yidian)**      | 💡规划中  |     |
-| **X (Twitter)**       | 💡规划中  |     |
-| **语雀 (Yuque)**        | 💡规划中  |     |
-| **Notion**            | 💡规划中  |     |
-| **豆瓣 (Douban)**       | 💡规划中  |     |
-| **人人都是产品经理**          | 💡规划中  |     |
+| **微信公众号 (WeChat MP)** | ✅ 已支持。 |   [文档](https://nexus.nanbowan.top/en)  |
+| **Bilibili (专栏)**     | ✅ 已支持  |    [文档](https://nexus.nanbowan.top/en)   |
+| **微博头条 (Weibo)**      | ✅ 已支持  |   [文档](https://nexus.nanbowan.top/en)    |
+| **知乎 (Zhihu)**        | ✅ 已支持  |   [文档](https://nexus.nanbowan.top/en)    |
+| **掘金 (Juejin)**       | ✅ 已支持  |  [文档](https://nexus.nanbowan.top/en)     |
+| **CSDN**              | ✅ 已支持  |    [文档](https://nexus.nanbowan.top/en)   |
+| **WordPress**       | ✅ 已支持  |    [文档](https://nexus.nanbowan.top/en)   |
+| **Webhook**              | ✅ 已支持  |   [文档](https://nexus.nanbowan.top/en)    |
+| **MCP**              | ✅ 已支持  |   [文档](https://nexus.nanbowan.top/en)    |
+| **小红书 (Xiaohongshu)** | 📅进行中  |  [文档](https://nexus.nanbowan.top/en)     |
+| **简书 (Jianshu)**      | 📅进行中  |   [文档](https://nexus.nanbowan.top/en)    |
+| **今日头条 (Toutiao)**    | 📅进行中  |   [文档](https://nexus.nanbowan.top/en)    |
+| **百家号 (Baijiahao)**   | 📅进行中  |   [文档](https://nexus.nanbowan.top/en)    |
+| **大鱼号 (Dayu)**        | 📅进行中  |    [文档](https://nexus.nanbowan.top/en)   |
+| **搜狐号 (Sohu)**        | 📅进行中  |   [文档](https://nexus.nanbowan.top/en)    |
+| **一点号 (Yidian)**      | 💡规划中  |   [文档](https://nexus.nanbowan.top/en)    |
+| **X (Twitter)**       | 💡规划中  |    [文档](https://nexus.nanbowan.top/en)   |
+| **语雀 (Yuque)**        | 💡规划中  |   [文档](https://nexus.nanbowan.top/en)    |
+| **Notion**            | 💡规划中  |   [文档](https://nexus.nanbowan.top/en)    |
+| **豆瓣 (Douban)**       | 💡规划中  |     [文档](https://nexus.nanbowan.top/en)  |
+| **人人都是产品经理**          | 💡规划中  |   [文档](https://nexus.nanbowan.top/en)    |
 
 
 ### Theme CSS Rules（主题 CSS 规则）
